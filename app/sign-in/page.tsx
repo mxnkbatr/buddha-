@@ -220,7 +220,7 @@ export default function SignUpPage() {
     instruction: t({ mn: "Та хэн болохыг сонгоно уу?", en: "How will you join us?" }),
     roleClient: t({ mn: "Хэрэглэгч", en: "Seeker" }),
     roleMonk: t({ mn: "Багш (Лам)", en: "Guide" }),
-    registerBtn: role === "monk" ? t({ mn: "Багшаар бүртгүүлэх", en: "Register as Monk" }) : t({ mn: "Сангхад нэгдэх", en: "Join the Sangha" }),
+    registerBtn: role === "monk" ? t({ mn: "Багшаар бүртгүүлэх", en: "Register as Monk" }) : t({ mn: "Бүртгүүлэх  ", en: "Sign up" }),
     loginBtn: showOtpInput ? t({ mn: "Код илгээх", en: "Verify Code" }) : t({ mn: "Нэвтрэх", en: "Enter Sanctuary" }),
     forgotPassword: t({ mn: "Нууц үгээ мартсан уу?", en: "Forgot Password?" }),
     footer: t({ mn: "Эв нэгдэл • Нигүүлсэл • Мэргэн ухаан", en: "Unity • Compassion • Wisdom" }),
