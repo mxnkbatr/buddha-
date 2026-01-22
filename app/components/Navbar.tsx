@@ -89,9 +89,9 @@ export default function OverlayNavbar() {
             : "bg-white/80 border-amber-100 text-[#451a03] shadow-amber-900/10"}
         `}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-4 group">
+          <Link href="/" className="flex items-center gap-4 group" aria-label="Gevabal Home">
             <div className="relative w-11 h-11 overflow-hidden rounded-full border-2 border-amber-500/20 shadow-inner">
-              <Image src="/logo.png" alt="Logo" width={44} height={44} className="object-cover group-hover:scale-110 transition-transform duration-500" />
+              <Image src="/logo.png" alt="Logo" width={44} height={44} priority className="object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
             <span className="font-serif font-black text-2xl tracking-tighter">{CONTENT.logo[lang]}</span>
           </Link>
@@ -114,7 +114,11 @@ export default function OverlayNavbar() {
 
           {/* Desktop Actions */}
           <div className="flex items-center gap-3">
-            <button onClick={toggleLanguage} className="w-11 h-11 rounded-full border flex items-center justify-center border-current/10 hover:bg-current/10 transition-all active:scale-90">
+            <button
+              onClick={toggleLanguage}
+              className="w-11 h-11 rounded-full border flex items-center justify-center border-current/10 hover:bg-current/10 transition-all active:scale-90"
+              aria-label={lang === 'mn' ? "Switch to English" : "Монгол хэл рүү шилжих"}
+            >
               <Globe size={18} />
             </button>
 
@@ -145,7 +149,7 @@ export default function OverlayNavbar() {
       {/* 2. MOBILE TOP BAR (High Obviousness Login)               */}
       {/* ========================================================= */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 px-5 py-4 flex justify-between items-center pointer-events-none">
-        <Link href="/" className="pointer-events-auto">
+        <Link href="/" className="pointer-events-auto" aria-label="Gevabal Home">
           <div className="p-1 rounded-full bg-white/10 backdrop-blur-xl border border-white/30 shadow-2xl">
             <Image src="/logo.png" alt="Logo" width={38} height={38} sizes="38px" className="rounded-full" />
           </div>
@@ -166,7 +170,11 @@ export default function OverlayNavbar() {
 
           {/* Quick Action Circle Buttons */}
           <div className="flex gap-1 p-1 rounded-full bg-black/5 backdrop-blur-md border border-white/10">
-            <button onClick={toggleLanguage} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isDark ? "text-amber-200" : "text-amber-900"}`}>
+            <button
+              onClick={toggleLanguage}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isDark ? "text-amber-200" : "text-amber-900"}`}
+              aria-label={lang === 'mn' ? "Switch to English" : "Монгол хэл рүү шилжих"}
+            >
               <span className="text-[10px] font-black">{lang === 'mn' ? 'EN' : 'MN'}</span>
             </button>
 
@@ -196,7 +204,7 @@ export default function OverlayNavbar() {
 
             // Standard Icons (Dynamic Dashboard/Login logic)
             return (
-              <Link key={item.id} href={item.href} className="flex-1 flex flex-col items-center justify-center py-2 relative group">
+              <Link key={item.id} href={item.href} className="flex-1 flex flex-col items-center justify-center py-2 relative group" aria-label={item.label[lang]}>
                 <AnimatePresence>
                   {isActive && (
                     <motion.div

@@ -187,8 +187,12 @@ export default function GoldenNirvanaFooter() {
 
                   {/* Social Stars */}
                   <div className="flex gap-6">
-                     {[Facebook, Instagram, Youtube].map((Icon, i) => (
-                        <a key={i} href="#" className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500 hover:-translate-y-2 ${isDark ? "border-cyan-500/30 text-cyan-300 hover:bg-[#C72075] hover:text-white" : "border-[#D97706]/30 text-[#78350F] hover:bg-[#F59E0B] hover:text-white"
+                    {[
+                      { Icon: Facebook, label: "Facebook" },
+                      { Icon: Instagram, label: "Instagram" },
+                      { Icon: Youtube, label: "Youtube" }
+                    ].map(({ Icon, label }, i) => (
+                        <a key={i} href="#" aria-label={label} className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-500 hover:-translate-y-2 ${isDark ? "border-cyan-500/30 text-cyan-300 hover:bg-[#C72075] hover:text-white" : "border-[#D97706]/30 text-[#78350F] hover:bg-[#F59E0B] hover:text-white"
                            }`}>
                            <Icon size={20} />
                         </a>

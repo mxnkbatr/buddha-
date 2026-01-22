@@ -15,6 +15,7 @@ interface OptimizedVideoProps {
     height?: number;
     id?: string;
     useNative?: boolean;
+    isLCP?: boolean;
 }
 
 const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
@@ -29,6 +30,7 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
     height = 607,
     id,
     useNative = false,
+    isLCP = false,
 }) => {
     const [mounted, setMounted] = useState(false);
 
@@ -60,7 +62,9 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
             // Construct a basic optimized Cloudinary URL for the native video tag
             finalSrc = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto/${publicId}.mp4`;
             if (!finalPoster) {
-                finalPoster = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto,so_0/${publicId}.jpg`;
+                // Optimize poster with Cloudinary transformations
+                // Use smaller dimensions for non-LCP or mobile if needed, but here we use width/height
+                finalPoster = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto,c_limit,w_${width},h_${height},so_0/${publicId}.jpg`;
             }
         }
 
@@ -78,8 +82,12 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
                 height={height}
                 style={{ objectFit: 'cover' }}
                 // @ts-ignore
-                fetchpriority={id === "hero-video" ? "high" : "auto"}
-            />
+                fetchpriority={isLCP ? "high" : "auto"}
+                // preload="none" for non-critical, but since it's usually background autoplay, auto or metadata is preferred
+                preload={isLCP ? "auto" : "metadata"}
+            >
+                <track kind="captions" />
+            </video>
         );
     }
 

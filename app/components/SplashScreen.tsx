@@ -54,7 +54,7 @@ export default function SplashScreen() {
                                     src="/logo.png"
                                     alt="Gevabal Logo"
                                     fill
-                                    sizes="(max-width: 768px) 128px, 160px"
+                                    sizes="160px"
                                     className="object-contain"
                                     priority
                                 />

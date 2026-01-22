@@ -252,8 +252,8 @@ function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: numbe
           </span>
 
           <div className="relative mb-4">
-            <div className={`w-16 h-16 rounded-full border-2 p-1 transition-all duration-1000 ${isDark ? "border-[#C72075]/50 shadow-[0_0_15px_rgba(199,32,117,0.3)]" : "border-amber-200"}`}>
-              <img src={comment.avatar} className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="avatar" />
+            <div className={`relative w-16 h-16 rounded-full border-2 p-1 overflow-hidden transition-all duration-1000 ${isDark ? "border-[#C72075]/50 shadow-[0_0_15px_rgba(199,32,117,0.3)]" : "border-amber-200"}`}>
+              <Image src={comment.avatar || "/logo.png"} fill sizes="64px" className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt={`${comment.authorName}'s avatar`} />
             </div>
             <Sparkles className={`absolute -top-2 -right-2 ${isDark ? 'text-cyan-300' : 'text-amber-400'} animate-pulse`} size={16} />
           </div>

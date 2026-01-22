@@ -41,6 +41,12 @@ export default function RootLayout({
     <ClerkProvider>
       <LanguageProvider>
         <html lang="en" suppressHydrationWarning>
+          <head>
+            <link rel="preconnect" href="https://res.cloudinary.com" />
+            <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
+            <link rel="preconnect" href="https://www.transparenttextures.com" />
+            <link rel="preconnect" href="https://i.pravatar.cc" />
+          </head>
           <body className={`${playfair.variable} ${lato.variable} font-sans`}>
             <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
               <SplashScreen />

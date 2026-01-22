@@ -53,6 +53,7 @@ export default function Hero() {
           height={1080}
           className="hidden md:block w-full h-full object-cover brightness-90 md:brightness-100"
           useNative={true}
+          isLCP={true}
         />
         {/* Cinematic Gradient Overlay to ensure text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent md:from-black/40" />
