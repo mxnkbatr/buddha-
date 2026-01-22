@@ -98,7 +98,7 @@ export default function SignUpPage() {
     }),
     welcome: t({ mn: "Тавтай морил", en: "Welcome Home" }),
     instruction: t({ mn: "Та хэн болохыг сонгоно уу?", en: "How will you join us?" }),
-    roleClient: t({ mn: "Эрэлчин", en: "Seeker" }),
+    roleClient: t({ mn: "Хэрэглэгч", en: "Seeker" }),
     roleMonk: t({ mn: "Багш (Лам)", en: "Guide" }),
     registerBtn: role === "monk" ? t({ mn: "Багшаар бүртгүүлэх", en: "Register as Monk" }) : t({ mn: "Сангхад нэгдэх", en: "Join the Sangha" }),
     loginBtn: t({ mn: "Нэвтрэх", en: "Enter Sanctuary" }),
