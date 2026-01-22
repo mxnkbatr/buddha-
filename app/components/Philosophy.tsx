@@ -319,6 +319,7 @@ function ActualAboutContent() {
                       width={800}
                       height={1000}
                       className="w-full h-full object-cover transition-all duration-1000 ease-out"
+                      useNative={true}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
 

@@ -1,24 +1,19 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   motion,
   useScroll,
   useTransform,
-  useSpring,
-  useMotionValue,
 } from "framer-motion";
-import { Search, Calendar, ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useTheme } from "next-themes";
 import OptimizedVideo from "./OptimizedVideo";
 
 export default function Hero() {
-  const { language, t } = useLanguage();
-  const { resolvedTheme } = useTheme();
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const isDark = false;
 
   const { scrollYProgress } = useScroll();
   const yContent = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
@@ -57,14 +52,12 @@ export default function Hero() {
           width={1920}
           height={1080}
           className="hidden md:block w-full h-full object-cover brightness-90 md:brightness-100"
+          useNative={true}
         />
         {/* Cinematic Gradient Overlay to ensure text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent md:from-black/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent md:to-black/20 to-transparent" />
       </div>
-
-      {/* --- TOP NAVIGATION BAR (Integrated into Hero) --- */}
-
 
       {/* --- MAIN CONTENT --- */}
       <motion.div

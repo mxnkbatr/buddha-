@@ -91,7 +91,7 @@ export default function OverlayNavbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-4 group">
             <div className="relative w-11 h-11 overflow-hidden rounded-full border-2 border-amber-500/20 shadow-inner">
-              <Image src="/logo.png" alt="Logo" fill sizes="44px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
+              <Image src="/logo.png" alt="Logo" width={44} height={44} className="object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
             <span className="font-serif font-black text-2xl tracking-tighter">{CONTENT.logo[lang]}</span>
           </Link>

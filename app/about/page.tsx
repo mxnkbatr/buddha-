@@ -10,14 +10,13 @@ import {
   useMotionValue,
 } from "framer-motion";
 import {
-  Users, Zap, Lock, Globe, Sparkles,
+  Users, Zap, Lock, Globe,
   Compass,
   ArrowRight,
   Orbit
 } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useTheme } from "next-themes";
 import OptimizedVideo from "../components/OptimizedVideo";
 
 // ==========================================
@@ -57,7 +56,6 @@ const BlurReveal = ({ children, delay = 0, className = "" }: { children: React.R
 
 export default function AboutPage() {
   const { t } = useLanguage();
-  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef(null);
 
@@ -69,7 +67,6 @@ export default function AboutPage() {
 
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1.1, 1]);
   const heroY = useTransform(scrollYProgress, [0, 0.2], ["0%", "20%"]);
-  const overlayOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 0.8]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -155,6 +152,7 @@ export default function AboutPage() {
                   width={1920}
                   height={1080}
                   className="w-full h-full object-cover opacity-60"
+                  useNative={true}
                 />
               </motion.div>
 
@@ -213,7 +211,7 @@ export default function AboutPage() {
                       </p>
                       <div className={`pl-6 border-l-2 border-amber-500/30`}>
                         <p className="font-bold italic text-xl">
-                          "{t({ mn: "Амар амгалан таны гарт.", en: "Inner peace in your hands." })}"
+                          &quot;{t({ mn: "Амар амгалан таны гарт.", en: "Inner peace in your hands." })}&quot;
                         </p>
                       </div>
                     </BlurReveal>
@@ -293,7 +291,7 @@ const ParallaxImage = ({ src, alt }: { src: string, alt: string }) => {
   );
 };
 
-const StatBox = ({ number, label, theme }: any) => (
+const StatBox = ({ number, label, theme }: { number: string, label: string, theme: any }) => (
   <div className={`p-8 rounded-3xl border ${theme.cardBorder} ${theme.cardBg} shadow-sm hover:shadow-lg transition-shadow duration-300`}>
     <div className={`text-4xl font-serif font-bold ${theme.accent} mb-2`}>{number}</div>
     <div className={`text-[10px] uppercase tracking-widest font-bold opacity-50 ${theme.text}`}>{label}</div>
@@ -301,7 +299,7 @@ const StatBox = ({ number, label, theme }: any) => (
 );
 
 // High-end spotlight effect that respects specific card colors
-function SpotlightCard({ card, index, theme }: any) {
+function SpotlightCard({ card, index, theme }: { card: any, index: number, theme: any }) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 

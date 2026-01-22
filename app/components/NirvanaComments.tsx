@@ -267,7 +267,7 @@ function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: numbe
         {/* Soul Message */}
         <div className="relative z-10 flex-1 flex flex-col justify-start items-center px-2 overflow-hidden">
           <p className="text-sm md:text-base font-medium leading-relaxed italic text-center opacity-80 font-serif">
-            "{comment.text}"
+            &quot;{comment.text}&quot;
           </p>
         </div>
 

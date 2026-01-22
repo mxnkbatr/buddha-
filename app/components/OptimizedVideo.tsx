@@ -14,6 +14,7 @@ interface OptimizedVideoProps {
     width?: number;
     height?: number;
     id?: string;
+    useNative?: boolean;
 }
 
 const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
@@ -27,6 +28,7 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
     width = 1080,
     height = 607,
     id,
+    useNative = false,
 }) => {
     const [mounted, setMounted] = useState(false);
 
@@ -48,19 +50,35 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
 
     if (!mounted) return <div className={className} style={{ width, height, backgroundColor: '#000' }} />;
 
-    if (!isCloudinary) {
+    if (!isCloudinary || useNative) {
+        // For Cloudinary URLs in native mode, we can still use Cloudinary transformations
+        let finalSrc = src;
+        let finalPoster = poster;
+
+        if (isCloudinary && useNative) {
+            const cloudName = src.split("res.cloudinary.com/")[1]?.split("/")[0];
+            // Construct a basic optimized Cloudinary URL for the native video tag
+            finalSrc = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto/${publicId}.mp4`;
+            if (!finalPoster) {
+                finalPoster = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto,so_0/${publicId}.jpg`;
+            }
+        }
+
         return (
             <video
-                src={src}
+                id={id}
+                src={finalSrc}
                 className={className}
                 autoPlay={autoPlay}
                 loop={loop}
                 muted={muted}
                 playsInline={playsInline}
-                poster={poster}
+                poster={finalPoster}
                 width={width}
                 height={height}
                 style={{ objectFit: 'cover' }}
+                // @ts-ignore
+                fetchpriority={id === "hero-video" ? "high" : "auto"}
             />
         );
     }
