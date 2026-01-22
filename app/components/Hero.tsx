@@ -20,7 +20,8 @@ export default function Hero() {
   const opacityFade = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const content = {

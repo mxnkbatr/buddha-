@@ -10,7 +10,7 @@ import {
   useMotionTemplate,
   AnimatePresence
 } from "framer-motion";
-import { ArrowUpRight, Loader2, Sparkles, Star, Wallet, Zap, Calendar } from "lucide-react";
+import { ArrowUpRight, Loader2, Sparkles, Calendar } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "next-themes";
@@ -20,29 +20,76 @@ import { Monk } from "@/database/types";
 // 1. VISUAL EFFECTS COMPONENTS
 // =========================================
 
-const CosmicDust = ({ isDark }: { isDark: boolean }) => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {[...Array(20)].map((_, i) => (
-      <motion.div
-        key={i}
-        initial={{ y: "100vh", opacity: 0 }}
-        animate={{
-          y: "-100vh",
-          opacity: [0, 0.4, 0],
-          x: Math.random() * 100 - 50
-        }}
-        transition={{
-          duration: Math.random() * 10 + 15,
-          repeat: Infinity,
-          ease: "linear",
-          delay: Math.random() * 5
-        }}
-        className={`absolute w-1 h-1 rounded-full safari-gpu ${isDark ? 'bg-cyan-200' : 'bg-amber-400'}`}
-        style={{ left: `${Math.random() * 100}%` }}
-      />
-    ))}
-  </div>
-);
+interface Particle {
+  id: number;
+  x: number;
+  duration: number;
+  delay: number;
+  left: number;
+}
+
+const CosmicDust = ({ isDark }: { isDark: boolean }) => {
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    setParticles([...Array(20)].map((_, i) => ({
+      id: i,
+      x: Math.random() * 100 - 50,
+      duration: Math.random() * 10 + 15,
+      delay: Math.random() * 5,
+      left: Math.random() * 100
+    })));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ y: "100vh", opacity: 0 }}
+          animate={{
+            y: "-100vh",
+            opacity: [0, 0.4, 0],
+            x: p.x
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: p.delay
+          }}
+          className={`absolute w-1 h-1 rounded-full safari-gpu ${isDark ? 'bg-cyan-200' : 'bg-amber-400'}`}
+          style={{ left: `${p.left}%` }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const DivineParticle = ({ isDark, index }: { isDark: boolean, index: number }) => {
+  const [config, setConfig] = useState<{ x: number, left: number, delay: number } | null>(null);
+
+  useEffect(() => {
+    setConfig({
+      x: (Math.random() - 0.5) * 100,
+      left: 20 + Math.random() * 60,
+      delay: index * 0.1
+    });
+  }, [index]);
+
+  if (!config) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: [0, 1, 0], y: -200, x: config.x }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 2, delay: config.delay, ease: "easeOut" }}
+      className={`absolute bottom-0 w-1 h-1 rounded-full z-20 pointer-events-none ${isDark ? 'bg-cyan-400' : 'bg-amber-500'}`}
+      style={{ left: `${config.left}%` }}
+    />
+  );
+};
 
 const NoiseOverlay = () => (
   <div className="absolute inset-0 z-20 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay pointer-events-none" />
@@ -59,7 +106,7 @@ export default function DivineTarotShowcase() {
   const [monks, setMonks] = useState<Monk[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
-  const [wasm, setWasm] = useState<typeof import("rust-modules") | null>(null);
+  const [wasm, setWasm] = useState<any>(null);
 
   // Theme Sync
   const isDark = false;
@@ -428,15 +475,7 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
           {/* --- LAYER 5: PARTICLES --- */}
           <AnimatePresence>
             {isHovered && [...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 100 }}
-                animate={{ opacity: [0, 1, 0], y: -200, x: (Math.random() - 0.5) * 100 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2, delay: i * 0.1, ease: "easeOut" }}
-                className={`absolute bottom-0 w-1 h-1 rounded-full z-20 pointer-events-none ${isDark ? 'bg-cyan-400' : 'bg-amber-500'}`}
-                style={{ left: `${20 + Math.random() * 60}%` }}
-              />
+              <DivineParticle key={i} index={i} isDark={isDark} />
             ))}
           </AnimatePresence>
 

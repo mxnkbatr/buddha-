@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import {
   motion,
@@ -33,29 +33,43 @@ const TextReveal = ({ children, delay = 0, className = "" }: { children: React.R
   </div>
 );
 
-const CosmicDust = ({ isDark }: { isDark: boolean }) => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {[...Array(15)].map((_, i) => (
-      <motion.div
-        key={i}
-        initial={{ y: "100%", opacity: 0 }}
-        animate={{
-          y: "-100%",
-          opacity: [0, 0.5, 0],
-          x: Math.random() * 50 - 25
-        }}
-        transition={{
-          duration: Math.random() * 10 + 20,
-          repeat: Infinity,
-          ease: "linear",
-          delay: Math.random() * 5
-        }}
-        className={`absolute w-1 h-1 rounded-full blur-[1px] ${isDark ? 'bg-cyan-200' : 'bg-amber-400'}`}
-        style={{ left: `${Math.random() * 100}%` }}
-      />
-    ))}
-  </div>
-);
+const CosmicDust = ({ isDark }: { isDark: boolean }) => {
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    setParticles([...Array(15)].map((_, i) => ({
+      id: i,
+      x: Math.random() * 50 - 25,
+      duration: Math.random() * 10 + 20,
+      delay: Math.random() * 5,
+      left: Math.random() * 100
+    })));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{
+            y: "-100%",
+            opacity: [0, 0.5, 0],
+            x: p.x
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: "linear",
+            delay: p.delay
+          }}
+          className={`absolute w-1 h-1 rounded-full blur-[1px] ${isDark ? 'bg-cyan-200' : 'bg-amber-400'}`}
+          style={{ left: `${p.left}%` }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const ZodiacServiceFrame = ({ color, isDark }: { color: string; isDark: boolean }) => (
   <div className="absolute inset-0 pointer-events-none z-30 p-2 md:p-0">

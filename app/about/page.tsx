@@ -68,7 +68,10 @@ export default function AboutPage() {
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1.1, 1]);
   const heroY = useTransform(scrollYProgress, [0, 0.2], ["0%", "20%"]);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // --- FORCE LIGHT MODE ---
   const isDark = false; // resolvedTheme === "dark";

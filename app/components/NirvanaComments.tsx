@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import {
   motion,
   AnimatePresence,
@@ -46,6 +47,7 @@ const CelestialAtmosphere = React.memo(({ isDark }: { isDark: boolean }) => (
     />
   </div>
 ));
+CelestialAtmosphere.displayName = "CelestialAtmosphere";
 
 // --- STATIC DATA ---
 const STATIC_COMMENTS: Comment[] = [
@@ -93,7 +95,6 @@ const STATIC_COMMENTS: Comment[] = [
 
 export default function CelestialRiverComments() {
   const { t } = useLanguage();
-  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [comments, setComments] = useState<Comment[]>(STATIC_COMMENTS);
   const [newComment, setNewComment] = useState("");

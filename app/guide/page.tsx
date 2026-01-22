@@ -63,7 +63,10 @@ export default function GuidePage() {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
-    useEffect(() => setMounted(true), []);
+    useEffect(() => {
+        const timer = setTimeout(() => setMounted(true), 0);
+        return () => clearTimeout(timer);
+    }, []);
 
     const isDark = false;
     const theme = {

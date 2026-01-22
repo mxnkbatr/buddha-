@@ -16,18 +16,17 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [selectedItem, setSelectedItem] = useState<RitualItem | null>(null);
     const [showMobileDetails, setShowMobileDetails] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const toggleCategory = (cat: string) => {
-        setExpandedCategories(prev =>
-            prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-        );
-    };
+    // Responsive check
+    React.useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
-    const handleSelectItem = (item: RitualItem) => {
-        setSelectedItem(item);
-        setShowMobileDetails(true);
-    };
-
+    // Filter logic
     const filteredBook = useMemo(() => {
         if (!searchTerm) return RITUAL_BOOK;
 
@@ -59,11 +58,22 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
 
     const isSidebar = variant === 'sidebar';
 
+    const toggleCategory = (cat: string) => {
+        setExpandedCategories(prev =>
+            prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+        );
+    };
+
+    const handleSelectItem = (item: RitualItem) => {
+        setSelectedItem(item);
+        setShowMobileDetails(true);
+    };
+
     const containerClasses = isSidebar
         ? "relative w-full h-full bg-stone-950 border-l border-stone-800 flex flex-col pointer-events-auto"
         : "bg-stone-950 border-2 md:border-4 border-amber-600 w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative";
 
-    const content = (
+    const sidebarContent = (
         <div className={containerClasses}>
             {/* Header */}
             <div className="p-4 border-b-2 border-stone-800 bg-stone-900 flex justify-between items-center shrink-0">
@@ -210,15 +220,6 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
         </div>
     );
 
-    // Responsive check
-    const [isMobile, setIsMobile] = useState(false);
-    React.useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
     if (isSidebar) {
         // MOBILE OVERLAY MODE (Absolute, Full Width)
         if (isMobile) {
@@ -231,7 +232,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                     style={{ transform: "translate3d(0,0,0)" }}
                 >
                     <div className="w-full h-full flex flex-col overflow-hidden">
-                        {content}
+                        {sidebarContent}
                     </div>
                 </motion.div>
             );
@@ -248,7 +249,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                 style={{ width: isMobile ? "100%" : "350px", transform: "translate3d(0,0,0)" }}
             >
                 <div className="w-[350px] h-full overflow-hidden">
-                    {content}
+                    {sidebarContent}
                 </div>
             </motion.div>
         );
@@ -266,43 +267,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                 exit={{ opacity: 0, scale: 0.9, y: 40 }}
                 className="bg-stone-950 border-2 md:border-4 border-amber-600 w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative"
             >
-                {/* Because we need the wrapper classes on 'content' variable for styling, but also the modal wrapper for animation/border, 
-                    and the styles in `containerClasses` are actually redundant/conflicting if we double wrap.
-                    
-                    The logic in `containerClasses` was:
-                    - Sidebar: bg-stone-950 border-l ...
-                    - Modal: bg-stone-950 border-2 border-amber-600 ...
-
-                    When using modal, `containerClasses` is APPLIED to the inner div.
-                    BUT `motion.div` above ALSO has styles!
-                    The `motion.div` has `bg-stone-950 border-2 ...`
-                    
-                    Wait, `containerClasses` also has `bg-stone-950 ...`
-                    
-                    So if I render `{content}` inside `motion.div`, I get double borders and backgrounds.
-                    
-                    Let's fix `containerClasses` to be cleaner.
-                */}
                 <div className="w-full h-full flex flex-col overflow-hidden">
-                    {/* 
-                        Re-implementing the inner content directly here instead of using the `content` variable which has wrapper classes that might conflict with the Modal outer wrapper.
-                        Actually, looking at `containerClasses`:
-                        It has `bg-stone-950 border-2 ...` for non-sidebar.
-                        So `content` IS the modal.
-                        
-                        If I put `content` INSIDE `motion.div`, then `motion.div` shouldn't have those classes. 
-                        OR `content` shouldn't have them.
-                        
-                        The `motion.div` handles the enter/exit animation and positioning.
-                        Let's strip the styles from `motion.div` and let `content` handle them?
-                        However, `motion.div` needs `overflow-hidden` and `rounded` to clip correctly during animation.
-
-                        BETTER PLAN:
-                        Make `BookViewerContent` a sub-component or just inline the render logic smartly.
-                        
-                        Let's just duplicate the header/body render logic for now since it's cleaner than weird class merging.
-                     */}
-
                     {/* Header */}
                     <div className="p-4 md:p-6 border-b-2 border-stone-800 bg-stone-900 flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-2 md:gap-3 text-amber-500">
@@ -322,15 +287,6 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                         </button>
                     </div>
 
-                    {/* Content Container - reusing the same inner logic? */}
-                    {/* 
-                         To avoid massive duplication, I'll extract the inner content in a future refactor. 
-                         For now, I'll use a trick: 
-                         Modify `containerClasses` to NOT be a wrapper for Modal, but just inner layout?
-                         
-                         Let's keep it simple. `content` variable is used for Sidebar.
-                         For Modal, I'll just paste the inner JSX structure again. It's safer.
-                       */}
                     <div className="flex-1 flex overflow-hidden flex-row">
                         {/* Left Panel */}
                         <div className={`w-full md:w-1/4 border-r-2 md:border-r-4 border-stone-800 flex flex-col bg-stone-950 transition-all ${showMobileDetails ? 'hidden md:flex' : 'flex'}`}>
@@ -440,4 +396,3 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
         </div>
     );
 }
-
