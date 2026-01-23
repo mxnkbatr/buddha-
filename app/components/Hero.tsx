@@ -66,31 +66,22 @@ export default function Hero() {
         <div className="max-w-4xl space-y-6">
 
           {/* Main Title with Highlight */}
-          <motion.h1
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu"
+          <h1
+            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu animate-fade-in-right"
           >
             <span className="text-[#FFB84D]">{content.highlight}</span> {content.main}
-          </motion.h1>
+          </h1>
 
           {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="max-w-2xl text-lg md:text-2xl text-white/90 font-medium leading-relaxed drop-shadow-md safari-gpu"
+          <p
+            className="max-w-2xl text-lg md:text-2xl text-white/90 font-medium leading-relaxed drop-shadow-md safari-gpu animate-fade-in-right delay-200"
           >
             {content.desc}
-          </motion.p>
+          </p>
 
           {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="pt-8 safari-gpu"
+          <div
+            className="pt-8 safari-gpu animate-fade-in-up delay-400"
           >
             <Link href={content.href}>
               <motion.button
@@ -106,7 +97,7 @@ export default function Hero() {
                 </div>
               </motion.button>
             </Link>
-          </motion.div>
+          </div>
         </div>
       </motion.div>
 

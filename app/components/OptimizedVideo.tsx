@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CldVideoPlayer } from "next-cloudinary";
+import dynamic from "next/dynamic";
+
+const CldVideoPlayer = dynamic(() => import("next-cloudinary").then(mod => mod.CldVideoPlayer), {
+    ssr: false,
+    loading: () => <div className="bg-black/10 animate-pulse w-full h-full" />
+});
 
 interface OptimizedVideoProps {
     src: string;
@@ -62,13 +67,40 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
 
         if (isCloudinary && useNative) {
             const cloudName = src.split("res.cloudinary.com/")[1]?.split("/")[0];
-            // Construct a basic optimized Cloudinary URL for the native video tag
-            finalSrc = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto/${publicId}.mp4`;
+            const baseUrl = `https://res.cloudinary.com/${cloudName}/video/upload`;
+            
+            // Construct responsive sources
+            const mobileSrc = `${baseUrl}/q_auto,f_auto,w_640/${publicId}.mp4`;
+            const desktopSrc = `${baseUrl}/q_auto,f_auto/${publicId}.mp4`;
+
             if (!finalPoster) {
                 // Optimize poster with Cloudinary transformations
                 // Use smaller dimensions for non-LCP or mobile if needed, but here we use width/height
-                finalPoster = `https://res.cloudinary.com/${cloudName}/video/upload/q_auto,f_auto,c_limit,w_${width},h_${height},so_0/${publicId}.jpg`;
+                finalPoster = `${baseUrl}/q_auto,f_auto,c_limit,w_${width},h_${height},so_0/${publicId}.jpg`;
             }
+
+            return (
+                <video
+                    id={id}
+                    className={className}
+                    autoPlay={autoPlay}
+                    loop={loop}
+                    muted={muted}
+                    playsInline={playsInline}
+                    poster={finalPoster}
+                    width={width}
+                    height={height}
+                    style={{ objectFit: 'cover' }}
+                    // @ts-ignore
+                    fetchpriority={isLCP ? "high" : "auto"}
+                    // preload="none" for non-critical, but since it's usually background autoplay, auto or metadata is preferred
+                    preload={isLCP ? "auto" : "metadata"}
+                >
+                    <source src={mobileSrc} media="(max-width: 768px)" type="video/mp4" />
+                    <source src={desktopSrc} type="video/mp4" />
+                    <track kind="captions" />
+                </video>
+            );
         }
 
         return (
