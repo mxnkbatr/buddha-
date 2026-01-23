@@ -302,6 +302,15 @@ export default function SignUpPage() {
               </div>
             </form>
 
+            <div className="mt-6">
+              <SignInButton mode="modal">
+                <button type="button" className="w-full flex items-center justify-center gap-3 py-4 border border-stone-200 rounded-xl shadow-sm bg-white text-sm font-bold text-stone-700 hover:bg-stone-50 transition-all">
+                  <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 opacity-70" />
+                  {t({ mn: "Google-ээр нэвтрэх", en: "Sign in with Google" })}
+                </button>
+              </SignInButton>
+            </div>
+
             {!showOtpInput && (
               <div className="mt-8">
                 <div className="relative">

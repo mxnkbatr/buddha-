@@ -256,11 +256,24 @@ export default function DashboardPage() {
                 setLoading(true);
                 const userId = user.id;
                 let profileData = null;
-                const monksRes = await fetch(`/api/monks/${userId}`);
 
-                if (monksRes.ok) {
-                    profileData = await monksRes.json();
-                } else if (user.authType === 'custom') {
+                // --- FIX: Conditional Fetch based on Role ---
+                // Only fetch from /api/monks if the user IS a monk.
+                if (user.role === 'monk') {
+                    const monksRes = await fetch(`/api/monks/${userId}`);
+                    if (monksRes.ok) {
+                        profileData = await monksRes.json();
+                    }
+                } else {
+                    // For Clients, fetch generic user data
+                    const userRes = await fetch(`/api/users/${userId}`);
+                    if (userRes.ok) {
+                        profileData = await userRes.json();
+                    }
+                }
+
+                // Fallback for custom auth or if API fails but we have context
+                if (!profileData && user.authType === 'custom') {
                     profileData = user;
                 }
 
@@ -541,7 +554,7 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-4 items-center justify-center">
-                            {user?.publicMetadata?.role === 'admin' && (
+                            {user?.role === 'admin' && (
                                 <a href="/admin" className="bg-stone-900 text-white px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black border border-white/10 transition-all flex items-center gap-2">
                                     <ShieldCheck size={18} /> Admin
                                 </a>
@@ -564,6 +577,12 @@ export default function DashboardPage() {
                                 )}
                                 {isSigningOut ? TEXT.signingOut : TEXT.signOut}
                             </button>
+
+                            {isMonk && (
+                                <a href="/monk/content" className="bg-[#D97706]/10 text-[#D97706] px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#D97706] hover:text-white border border-[#D97706]/20 transition-all flex items-center gap-2">
+                                    <ScrollText size={18} /> Manage Content
+                                </a>
+                            )}
 
                             {!isMonk && (
                                 <button onClick={() => setIsBookingModalOpen(true)} className="bg-[#D97706] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#B45309] shadow-lg flex items-center gap-3">

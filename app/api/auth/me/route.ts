@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { connectToDatabase } from "@/database/db";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
@@ -42,23 +42,80 @@ export async function GET() {
     const clerkUser = await currentUser();
 
     if (clerkUser) {
-        // Fetch full profile from DB if needed, or just return Clerk data
-        // Ideally we sync-ed, so we can fetch from DB using clerkId
-        const { db } = await connectToDatabase();
-        const user = await db.collection("users").findOne({ clerkId: clerkUser.id });
+      const { db } = await connectToDatabase();
 
-        return NextResponse.json({
-            user: {
-                ...(user || {}), // Merge DB data
-                id: clerkUser.id,
-                email: clerkUser.emailAddresses[0]?.emailAddress,
-                avatar: clerkUser.imageUrl,
-                firstName: clerkUser.firstName,
-                lastName: clerkUser.lastName,
-                isAuthenticated: true,
-                authType: 'clerk'
-            }
-        });
+      // --- LAZY SYNC IMPL ---
+      // 1. Try to find user by Clerk ID
+      let user: any = await db.collection("users").findOne({ clerkId: clerkUser.id });
+
+      // 2. If user is MISSING or needs role update (optional), UPSERT them
+      // For now, we focus on creation if missing, as that's the main bug.
+      if (!user) {
+        console.log(`[LazySync] User not found in DB. Syncing Clerk user: ${clerkUser.id}`);
+
+        // Extract role from Clerk Metadata
+        // If they signed up as Monk, this metadata should exist.
+        const role = (clerkUser.unsafeMetadata?.role as string) || "client";
+        const phone = clerkUser.phoneNumbers?.[0]?.phoneNumber || "";
+
+        const newUser = {
+          clerkId: clerkUser.id,
+          email: clerkUser.emailAddresses[0]?.emailAddress,
+          firstName: clerkUser.firstName,
+          lastName: clerkUser.lastName,
+          avatar: clerkUser.imageUrl,
+          role: role, // <--- CRITICAL: Persist the role!
+          phone: phone,
+          createdAt: new Date(),
+          // If they are a monk, ensure they have a status
+          monkStatus: role === 'monk' ? 'pending' : undefined
+        };
+
+        await db.collection("users").insertOne(newUser);
+        user = newUser; // Use the new user object
+      }
+
+      // --- SUPER ADMIN WHITELIST FIX ---
+      // Force promote owner specific email if they are not admin
+      const ownerEmails = ["puje27509@gmail.com"]; // Support both spellings
+
+      if (user.email && ownerEmails.includes(user.email) && user.role !== "admin") {
+        console.log(`[SuperAdmin] Auto-promoting owner: ${user.email}`);
+
+        // 1. Update DB
+        await db.collection("users").updateOne(
+          { _id: user._id },
+          { $set: { role: "admin" } }
+        );
+
+        // 2. Sync to Clerk (Crucial so claims are updated)
+        try {
+          const client = await clerkClient();
+          await client.users.updateUser(clerkUser.id, {
+            publicMetadata: { role: "admin" }
+          });
+          console.log("Synced Clerk Metadata");
+        } catch (e) {
+          console.error("Clerk Sync Error", e);
+        }
+
+        // Update local object so response is correct immediately
+        user.role = "admin";
+      }
+
+      return NextResponse.json({
+        user: {
+          ...user,
+          // Override/Ensure ID matches Clerk for frontend consistency
+          id: clerkUser.id,
+          email: clerkUser.emailAddresses[0]?.emailAddress,
+          firstName: clerkUser.firstName,
+          lastName: clerkUser.lastName,
+          avatar: clerkUser.imageUrl,
+          isAuthenticated: true,
+          authType: 'clerk'
+        }
+      });
     }
 
     return NextResponse.json({ user: null });

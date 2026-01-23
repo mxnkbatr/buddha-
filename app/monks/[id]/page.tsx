@@ -176,9 +176,10 @@ export default function MonkBookingPage() {
                         const isReferenced = Array.isArray(mData.services) && mData.services.some((ms: any) => {
                             // Check if it's an ID string or an object with an ID
                             const msId = typeof ms === 'string' ? ms : (ms.id || ms._id);
-                            return msId === s._id;
+                            // Match against either Mongo _id OR custom id
+                            return msId === s._id || msId === s.id;
                         });
-                        return isDirectMatch || isReferenced;
+                        return isDirectMatch || isReferenced || s.isUniversal; // Also show if flagged as universal
                     });
 
                 // Unique filtering by name
@@ -225,16 +226,23 @@ export default function MonkBookingPage() {
         return dates;
     }, [lang]);
 
-    const times = useMemo(() => [
-        "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-        "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"
-    ], []);
+    // Expanded to 24 Hours
+    const times = useMemo(() => {
+        const t = [];
+        for (let i = 0; i < 24; i++) {
+            const h = i.toString().padStart(2, '0');
+            t.push(`${h}:00`);
+            t.push(`${h}:30`);
+        }
+        return t;
+    }, []);
 
     const currentDaySlots = useMemo(() => {
         if (selectedDateIndex === null) return [];
         const dateObj = calendarDates[selectedDateIndex].full;
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        const dayConfig = monk?.schedule?.find(s => s.day === dayName) || { start: "09:00", end: "19:00", active: true };
+        // Default to full 24h if no specific schedule found, or use schedule
+        const dayConfig = monk?.schedule?.find(s => s.day === dayName) || { start: "00:00", end: "23:59", active: true };
 
         if (!dayConfig.active) return [];
 
@@ -245,7 +253,10 @@ export default function MonkBookingPage() {
 
     useEffect(() => {
         if (selectedDateIndex === null || !monkId) return;
-        const dateStr = calendarDates[selectedDateIndex].full.toISOString().split('T')[0];
+        // Fix Timezone Issue: Use local date components instead of toISOString (which is UTC)
+        const d = calendarDates[selectedDateIndex].full;
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
         fetch(`/api/bookings?monkId=${monkId}&date=${dateStr}`).then(r => r.json()).then(setTakenSlots);
     }, [selectedDateIndex, monkId, calendarDates]);
 
@@ -254,13 +265,21 @@ export default function MonkBookingPage() {
         if (!selectedService) { alert("Please select a service."); return; }
 
         setIsSubmitting(true);
-        const dateStr = calendarDates[selectedDateIndex!].full.toISOString().split('T')[0];
+
+        // Fix Timezone Issue here too
+        const d = calendarDates[selectedDateIndex!].full;
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
         const res = await fetch('/api/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ monkId, serviceId: selectedService._id, date: dateStr, time: selectedTime, userName, userEmail, note: userNote })
         });
         if (res.ok) setIsBooked(true);
+        else {
+            const json = await res.json();
+            alert("Booking Failed: " + (json.message || "Unknown Error"));
+        }
         setIsSubmitting(false);
     };
 

@@ -1,0 +1,62 @@
+import React from "react";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { connectToDatabase } from "@/database/db";
+import ContentManager from "@/app/components/ContentManager";
+import OverlayNavbar from "@/app/components/Navbar";
+import { ShieldAlert } from "lucide-react";
+
+export default async function MonkContentPage() {
+    const user = await currentUser();
+    if (!user) redirect("/sign-in");
+
+    const { db } = await connectToDatabase();
+    const dbUser = await db.collection("users").findOne({ clerkId: user.id });
+
+    if (!dbUser) redirect("/sign-in");
+
+    const isSpecialMonk = dbUser.role === 'monk' && dbUser.isSpecial === true;
+    const isAdmin = dbUser.role === 'admin';
+
+    if (!isSpecialMonk && !isAdmin) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-stone-50">
+                <div className="text-center">
+                    <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <h1 className="text-2xl font-bold text-stone-800">Access Denied</h1>
+                    <p className="text-stone-500 mt-2">Only Special Monks can access this content manager.</p>
+                    <a href="/dashboard" className="inline-block mt-6 text-blue-600 hover:underline">Return to Dashboard</a>
+                </div>
+            </div>
+        );
+    }
+
+    // Fetch ONLY blogs (filtered by author for monks, or all for admin if desired)
+
+    const query = isAdmin ? {} : { authorId: dbUser._id };
+
+    const blogs = await db.collection("blogs").find(query).toArray();
+
+    const serialize = (items: any[]) => items.map(i => ({
+        ...i,
+        _id: i._id.toString(),
+        id: i.id || i._id.toString(),
+        authorId: i.authorId?.toString() || ""
+    }));
+
+    return (
+        <div className="min-h-screen bg-stone-50 font-sans">
+            <OverlayNavbar />
+
+            <main className="container mx-auto px-4 pt-32 pb-20">
+                <header className="mb-10">
+                    <h1 className="text-3xl font-black font-serif text-stone-800">Monk's Blog Manager</h1>
+                    <p className="text-stone-500">Share your wisdom and daily thoughts with the community.</p>
+                </header>
+
+                <ContentManager blogs={serialize(blogs)} />
+            </main>
+        </div>
+    );
+
+}

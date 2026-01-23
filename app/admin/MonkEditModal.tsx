@@ -100,8 +100,8 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`py-4 px-6 text-sm font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === tab
-                  ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-white/5"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-white/5"
+                : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
             >
               {{ basic: "Үндсэн", details: "Дэлгэрэнгүй", bio: "Намтар & Бусад" }[tab]}
@@ -140,6 +140,10 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
                     <p className="text-xs opacity-60">Идэвхжүүлвэл үйлчилгээний үнэ 80k, орлого 80k болно.</p>
                   </div>
                 </div>
+
+                <div className="col-span-full">
+                  <InputGroup label="Утас (Phone)" value={formData.phone} onChange={(v: string) => handleChange("phone", v)} />
+                </div>
               </div>
             )}
 
@@ -148,6 +152,7 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputGroup label="Туршлага (Жил)" type="number" value={formData.yearsOfExperience} onChange={(v: string) => handleChange("yearsOfExperience", parseInt(v) || 0)} />
+                  <InputGroup label="Earnings (₮)" type="number" value={formData.earnings} onChange={(v: string) => handleChange("earnings", parseInt(v) || 0)} />
                 </div>
 
                 <div className="space-y-3">

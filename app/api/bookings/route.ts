@@ -35,11 +35,11 @@ export async function GET(request: Request) {
       query.userEmail = userEmail;
     }
     if (userId) {
-        // userId could be clientId in bookings collection
-        query.$or = [
-            { userId: userId },
-            { clientId: userId }
-        ];
+      // userId could be clientId in bookings collection
+      query.$or = [
+        { userId: userId },
+        { clientId: userId }
+      ];
     }
 
     // Optional date filter
@@ -127,21 +127,21 @@ export async function POST(request: Request) {
   try {
     // 1. Authenticate (Clerk OR Custom)
     let authenticatedUserId = null;
-    
+
     // Check Clerk
     const { userId: clerkUserId } = await auth();
     authenticatedUserId = clerkUserId;
 
     // Check Custom if no Clerk
     if (!authenticatedUserId) {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("auth_token")?.value;
-        if (token) {
-            try {
-                const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
-                authenticatedUserId = payload.sub as string;
-            } catch (e) { /* invalid token */ }
-        }
+      const cookieStore = await cookies();
+      const token = cookieStore.get("auth_token")?.value;
+      if (token) {
+        try {
+          const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+          authenticatedUserId = payload.sub as string;
+        } catch (e) { /* invalid token */ }
+      }
     }
 
     if (!authenticatedUserId) {
@@ -160,8 +160,30 @@ export async function POST(request: Request) {
     const bookingDateTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
 
     const now = new Date();
-    if (bookingDateTime < now) {
-      return NextResponse.json({ message: "Cannot book times in the past. It is already " + now.toLocaleTimeString() }, { status: 400 });
+    // Allow a small buffer (e.g. 5 minutes) or just check dates. 
+    // Strict minute comparison often fails due to server/client clock drift.
+    // Let's just block dates strictly prior to Today.
+    // For Today's slots, we rely on the UI to not show past slots, or we do a loose check.
+
+    // Check if date is strictly in the past (Yesterday or before)
+    const bookingDateOnly = new Date(year, month - 1, day);
+    const todayDateOnly = new Date();
+    todayDateOnly.setHours(0, 0, 0, 0);
+
+    if (bookingDateOnly < todayDateOnly) {
+      console.error("Booking Rejected: Date is in past", { bookingDateOnly, todayDateOnly });
+      return NextResponse.json({ message: "Cannot book dates in the past." }, { status: 400 });
+    }
+
+    // If it *is* today, check time with a buffer
+    if (bookingDateOnly.getTime() === todayDateOnly.getTime()) {
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      // If booking hour is less than current hour, reject
+      if (hours < currentHours) {
+        console.error("Booking Rejected: Time is past", { time, now: now.toLocaleTimeString() });
+        return NextResponse.json({ message: "Time slot has passed." }, { status: 400 });
+      }
     }
 
     // 2. Check Availability
@@ -222,14 +244,14 @@ export async function POST(request: Request) {
     // Wrapped in try/catch so booking succeeds even if email fails
     try {
       if (userEmail) {
-          await sendBookingNotification({
-            userEmail,
-            userName,
-            monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
-            serviceName: serviceName,
-            date,
-            time
-          });
+        await sendBookingNotification({
+          userEmail,
+          userName,
+          monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
+          serviceName: serviceName,
+          date,
+          time
+        });
       }
     } catch (emailError) {
       console.error("Failed to send email:", emailError);

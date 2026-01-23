@@ -10,6 +10,7 @@ import {
 import { ArrowRight, Play } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import OptimizedVideo from "./OptimizedVideo";
+import { useUser } from "@clerk/nextjs";
 
 export default function Hero() {
   const { t } = useLanguage();
@@ -24,6 +25,9 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
+  // --- AUTH CHECK ---
+  const { isSignedIn } = useUser();
+
   const content = {
     highlight: t({ mn: "Оюун", en: "Spiritual" }),
     main: t({ mn: "санааны амар амгаланг гэрээсээ...", en: "peace from the comfort of home..." }),
@@ -31,7 +35,8 @@ export default function Hero() {
       mn: "Гэвабал номын өргөө болон бусад лам нартай шууд холбогдоно.",
       en: "Connect directly with experienced monks from Gandantegchinlen and other major monasteries."
     }),
-    btn: t({ mn: "Цаг захиалах", en: "Book Now" }),
+    btn: isSignedIn ? t({ mn: "Цаг захиалах", en: "Book Now" }) : t({ mn: "Нэвтрэх", en: "Sign In" }),
+    href: isSignedIn ? "/monks" : "/sign-in",
     nav: [
       { name: t({ mn: "Нүүр хуудас", en: "Home" }), href: "/", active: true },
       { name: t({ mn: "Үйлчилгээ", en: "Services" }), href: "/services" },
@@ -95,7 +100,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="pt-8 safari-gpu"
           >
-            <Link href="/services">
+            <Link href={content.href}>
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 184, 77, 0.3)" }}
                 whileTap={{ scale: 0.98 }}

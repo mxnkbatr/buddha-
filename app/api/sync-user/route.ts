@@ -15,16 +15,19 @@ export async function POST() {
     // Clerk metadata can be used to pass the phone number collected on sign-up
     const role = user.unsafeMetadata?.role as string || "client";
     const phone = user.unsafeMetadata?.phone as string || user.phoneNumbers?.[0]?.phoneNumber || "";
-    
+
     // Safely get email if it exists
     const email = user.emailAddresses?.[0]?.emailAddress;
+
+    // Check if user exists first to protect ROLE changes
+    const existingUser = await db.collection("users").findOne({ clerkId: user.id });
 
     const updateData: any = {
       clerkId: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       avatar: user.imageUrl,
-      role: role,
+      // role: role, // REMOVED from default $set to prevent overwriting Admin/Monk with 'client'
       updatedAt: new Date(),
     };
 
@@ -32,22 +35,30 @@ export async function POST() {
       updateData.email = email;
     }
 
-    // Only update phone if it's not empty, to avoid overwriting with empty string on subsequent syncs if metadata is lost
     if (phone) {
-        updateData.phone = phone;
+      updateData.phone = phone;
     }
 
     // Upsert User
+    // We use $set for fields we always want to sync (Profile info)
+    // We use $setOnInsert for fields that should only be set once (Role, Karma, etc)
+    const setOnInsert: any = {
+      createdAt: new Date(),
+      karma: 0,
+      meditationDays: 0,
+      totalMerits: 0,
+    };
+
+    // Only set role if user is new, otherwise respect DB role
+    if (!existingUser) {
+      setOnInsert.role = role;
+    }
+
     await db.collection("users").updateOne(
       { clerkId: user.id },
       {
         $set: updateData,
-        $setOnInsert: {
-          createdAt: new Date(),
-          karma: 0,
-          meditationDays: 0,
-          totalMerits: 0,
-        }
+        $setOnInsert: setOnInsert
       },
       { upsert: true }
     );

@@ -17,23 +17,23 @@ export default function UserEditModal({ user, isOpen, onClose, onSave }: UserEdi
 
   useEffect(() => {
     if (user) {
-        // Handle name structure (string or object)
-        let name = { mn: "", en: "" };
-        if (typeof user.name === 'string') {
-            name = { mn: user.name, en: user.name };
-        } else if (user.name) {
-            name = { mn: user.name.mn || "", en: user.name.en || "" };
-        }
+      // Handle name structure (string or object)
+      let name = { mn: "", en: "" };
+      if (typeof user.name === 'string') {
+        name = { mn: user.name, en: user.name };
+      } else if (user.name) {
+        name = { mn: user.name.mn || "", en: user.name.en || "" };
+      }
 
-        setFormData({
-            ...user,
-            name,
-            phone: user.phone || "",
-            email: user.email || "",
-            karma: user.karma || 0,
-            totalMerits: user.totalMerits || 0,
-            role: user.role || "seeker",
-        });
+      setFormData({
+        ...user,
+        name,
+        phone: user.phone || "",
+        email: user.email || "",
+        karma: user.karma || 0,
+        totalMerits: user.totalMerits || 0,
+        role: user.role || "seeker",
+      });
     }
   }, [user]);
 
@@ -88,8 +88,8 @@ export default function UserEditModal({ user, isOpen, onClose, onSave }: UserEdi
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`py-4 px-6 text-sm font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === tab
-                  ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-white/5"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-white/5"
+                : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
             >
               {{ basic: "Үндсэн", account: "Бүртгэл & Эрх" }[tab]}
@@ -106,13 +106,13 @@ export default function UserEditModal({ user, isOpen, onClose, onSave }: UserEdi
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputGroup label="Нэр (MN)" value={formData.name?.mn} onChange={(v: string) => handleChange("name", v, "mn")} />
                 <InputGroup label="Name (EN)" value={formData.name?.en} onChange={(v: string) => handleChange("name", v, "en")} />
-                
+
                 <div className="col-span-full">
-                    <InputGroup label="Утас (Phone)" value={formData.phone} onChange={(v: string) => handleChange("phone", v)} />
+                  <InputGroup label="Утас (Phone)" value={formData.phone} onChange={(v: string) => handleChange("phone", v)} />
                 </div>
 
                 <div className="col-span-full">
-                    <InputGroup label="Имэйл (Email)" value={formData.email} onChange={(v: string) => handleChange("email", v)} type="email" />
+                  <InputGroup label="Имэйл (Email)" value={formData.email} onChange={(v: string) => handleChange("email", v)} type="email" />
                 </div>
               </div>
             )}
@@ -121,21 +121,22 @@ export default function UserEditModal({ user, isOpen, onClose, onSave }: UserEdi
             {activeTab === "account" && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputGroup label="Karma" value={formData.karma} onChange={(v: string) => handleChange("karma", parseInt(v) || 0)} type="number" />
-                    <InputGroup label="Total Merits" value={formData.totalMerits} onChange={(v: string) => handleChange("totalMerits", parseInt(v) || 0)} type="number" />
+                  <InputGroup label="Karma" value={formData.karma} onChange={(v: string) => handleChange("karma", parseInt(v) || 0)} type="number" />
+                  <InputGroup label="Total Merits" value={formData.totalMerits} onChange={(v: string) => handleChange("totalMerits", parseInt(v) || 0)} type="number" />
+                  <InputGroup label="Earnings (₮)" value={formData.earnings} onChange={(v: string) => handleChange("earnings", parseInt(v) || 0)} type="number" />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-700 dark:text-gray-300 block">Үүрэг (Role)</label>
-                    <select 
-                        className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-500 transition-colors text-gray-900 dark:text-gray-100"
-                        value={formData.role || "seeker"}
-                        onChange={(e) => handleChange("role", e.target.value)}
-                    >
-                        <option value="seeker" className="dark:bg-[#0C164F]">Seeker (Хэрэглэгч)</option>
-                        <option value="monk" className="dark:bg-[#0C164F]">Monk (Лам)</option>
-                        <option value="admin" className="dark:bg-[#0C164F]">Admin (Админ)</option>
-                    </select>
+                  <label className="text-xs font-bold uppercase text-gray-700 dark:text-gray-300 block">Үүрэг (Role)</label>
+                  <select
+                    className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-500 transition-colors text-gray-900 dark:text-gray-100"
+                    value={formData.role || "seeker"}
+                    onChange={(e) => handleChange("role", e.target.value)}
+                  >
+                    <option value="seeker" className="dark:bg-[#0C164F]">Seeker (Хэрэглэгч)</option>
+                    <option value="monk" className="dark:bg-[#0C164F]">Monk (Лам)</option>
+                    <option value="admin" className="dark:bg-[#0C164F]">Admin (Админ)</option>
+                  </select>
                 </div>
               </div>
             )}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, UserButton, useClerk } from "@clerk/nextjs";
+import { UserButton, useClerk } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldAlert, Users, Calendar, LayoutDashboard,
@@ -85,8 +85,9 @@ interface AdminData {
 }
 
 export default function AdminDashboard() {
-  const { user, isLoaded } = useUser();
-  const { logout } = useAuth(); // Use centralized logout
+  // Use AuthContext as source of truth for Role (Database)
+  // this bypasses stale Clerk tokens
+  const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const { resolvedTheme } = useTheme();
 
@@ -100,7 +101,8 @@ export default function AdminDashboard() {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [wasm, setWasm] = useState<typeof import("rust-modules") | null>(null);
 
-  const isAdmin = user?.publicMetadata?.role === "admin";
+  const isLoaded = !authLoading;
+  const isAdmin = user?.role === "admin";
   const isDark = false;
 
   useEffect(() => {
