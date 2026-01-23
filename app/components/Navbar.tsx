@@ -131,30 +131,30 @@ export default function OverlayNavbar() {
                   {CONTENT.dashboard[lang]}
                 </Link>
                 <div className="scale-110">
-                    {user.authType === 'clerk' ? (
-                        <UserButton />
-                    ) : (
-                        <div className="relative group">
-                            <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer">
-                                {user.avatar ? (
-                                    <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
-                                ) : user.firstName ? (
-                                    user.firstName[0]
-                                ) : user.phone ? (
-                                    user.phone.slice(-4)
-                                ) : (
-                                    <UserCircle size={20} />
-                                )}
-                            </div>
-                            <button onClick={logout} className="absolute top-full right-0 mt-2 bg-white border shadow-xl p-2 rounded-xl text-red-500 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap">
-                                <LogOut size={14} /> Log Out
-                            </button>
-                        </div>
-                    )}
+                  {user.authType === 'clerk' ? (
+                    <UserButton />
+                  ) : (
+                    <div className="relative group">
+                      <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer">
+                        {user.avatar ? (
+                          <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                        ) : user.firstName ? (
+                          user.firstName[0]
+                        ) : user.phone ? (
+                          user.phone.slice(-4)
+                        ) : (
+                          <UserCircle size={20} />
+                        )}
+                      </div>
+                      <button onClick={logout} className="absolute top-full right-0 mt-2 bg-white border shadow-xl p-2 rounded-xl text-red-500 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap">
+                        <LogOut size={14} /> Log Out
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
-              <Link href="/sign-in">
+              <Link href="/sign-up">
                 <button className="px-8 py-3 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-900/20 transition-all active:scale-95">
                   {CONTENT.login[lang]}
                 </button>
@@ -204,19 +204,19 @@ export default function OverlayNavbar() {
 
           {user && (
             <div className="ml-1 scale-125 drop-shadow-lg">
-                {user.authType === 'clerk' ? <UserButton /> : (
-                    <Link href="/dashboard" className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-white">
-                        {user.avatar ? (
-                            <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
-                        ) : user.firstName ? (
-                            user.firstName[0]
-                        ) : user.phone ? (
-                            <span className="text-[8px]">{user.phone.slice(-4)}</span>
-                        ) : (
-                            <UserCircle size={16} />
-                        )}
-                    </Link>
-                )}
+              {user.authType === 'clerk' ? <UserButton /> : (
+                <Link href="/dashboard" className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-white">
+                  {user.avatar ? (
+                    <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                  ) : user.firstName ? (
+                    user.firstName[0]
+                  ) : user.phone ? (
+                    <span className="text-[8px]">{user.phone.slice(-4)}</span>
+                  ) : (
+                    <UserCircle size={16} />
+                  )}
+                </Link>
+              )}
             </div>
           )}
         </div>

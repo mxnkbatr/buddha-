@@ -2,19 +2,20 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton, useClerk } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldAlert, Users, Calendar, LayoutDashboard,
   Search, Trash2, CheckCircle, XCircle,
   Loader2, UserCog, ScrollText, TrendingUp, Check, X,
-  FileText, Clock, Edit, Plus, RefreshCw
+  FileText, Clock, Edit, Plus, RefreshCw, LogOut
 } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useTheme } from "next-themes";
 import MonkEditModal from "./MonkEditModal";
 import ServiceCreateModal from "./ServiceCreateModal";
 import UserEditModal from "./UserEditModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- TYPES ---
 // --- TYPES ---
@@ -85,6 +86,7 @@ interface AdminData {
 
 export default function AdminDashboard() {
   const { user, isLoaded } = useUser();
+  const { logout } = useAuth(); // Use centralized logout
   const router = useRouter();
   const { resolvedTheme } = useTheme();
 
@@ -265,7 +267,7 @@ export default function AdminDashboard() {
         console.log(`User deletion completed successfully:`, responseData);
       } else {
         // Show error message to user
-    
+
         const errorMessage = responseData.message || "Failed to delete user";
         alert(`Error: ${errorMessage}`);
         console.error(`User deletion failed:`, responseData);
@@ -409,11 +411,21 @@ export default function AdminDashboard() {
             <p className="opacity-60 text-sm mt-1">Хэрэглэгч, лам нар болон захиалгуудыг удирдах.</p>
           </div>
           <div className="flex items-center justify-between w-full md:w-auto gap-4 p-3 rounded-2xl bg-black/5 md:bg-transparent dark:bg-white/5 md:dark:bg-transparent">
-            <div className="text-left md:text-right">
-              <p className="text-xs font-bold uppercase">{user?.fullName}</p>
-              <span className="text-red-500 text-[10px] font-black uppercase tracking-tighter">Super Admin</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={async () => await logout()}
+                className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 px-4"
+                title="Гарах"
+              >
+                <LogOut size={16} />
+                <span className="text-xs font-bold uppercase hidden md:inline">Гарах</span>
+              </button>
+              <div className="text-left md:text-right">
+                <p className="text-xs font-bold uppercase">{user?.fullName}</p>
+                <span className="text-red-500 text-[10px] font-black uppercase tracking-tighter">Super Admin</span>
+              </div>
+              <div className="scale-110 md:scale-125"><UserButton /></div>
             </div>
-            <div className="scale-110 md:scale-125"><UserButton /></div>
           </div>
         </header>
 

@@ -9,71 +9,17 @@ import {
   Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, KeyRound
 } from "lucide-react";
 // Ideally import this from @clerk/types, but we can define a local helper type to fix the error without extra dependencies
-import type { PhoneCodeFactor } from "@clerk/types"; 
+import type { PhoneCodeFactor } from "@clerk/types";
 
 import { useLanguage } from "../contexts/LanguageContext";
 import OverlayNavbar from "../components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 
-// ==========================================
-// 1. VISUAL EFFECTS COMPONENTS
-// ==========================================
-
-const Nebulas = () => (
-  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-    <motion.div
-      animate={{ scale: [1, 1.2, 1], rotate: 360 }}
-      transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-      className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.1)_0%,_transparent_50%)]"
-    />
-    <div className="absolute inset-0 opacity-[0.05] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
-  </div>
-);
+// Effects removed for clarity
 
 // High-End Role Card with "Liquid" Selection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RoleSelector = ({ role, setRole, content }: any) => (
-  <div className="grid grid-cols-2 gap-4 mb-8">
-    {(["client", "monk"] as const).map((r) => {
-      const isActive = role === r;
-      return (
-        <motion.button
-          key={r}
-          onClick={() => setRole(r)}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className={`relative flex flex-col items-center justify-center py-6 rounded-[2rem] border overflow-hidden transition-all duration-300 ${isActive
-            ? "border-amber-500 shadow-[0_10px_30px_-10px_rgba(245,158,11,0.4)]"
-            : "border-transparent bg-white/40 hover:bg-white/60"
-            }`}
-        >
-          {/* Active Liquid Background */}
-          <AnimatePresence>
-            {isActive && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gradient-to-br from-amber-100 to-white z-0"
-              />
-            )}
-          </AnimatePresence>
 
-          <div className={`relative z-10 flex flex-col items-center gap-3 ${isActive ? "text-amber-800" : "text-stone-500"}`}>
-            {r === "client" ? (
-              <div className={`p-3 rounded-full ${isActive ? 'bg-amber-500 text-white' : 'bg-stone-200'}`}>
-                <User size={20} />
-              </div>
-            ) : (
-              <div className={`p-3 rounded-full ${isActive ? 'bg-amber-500 text-white' : 'bg-stone-200'}`}>
-                <ScrollText size={20} />
-              </div>
-            )}
-            <span className="text-xs font-black uppercase tracking-widest">{content[`role${r.charAt(0).toUpperCase() + r.slice(1)}`]}</span>
-          </div>
-        </motion.button>
-      );
-    })}
-  </div>
-);
 
 // ==========================================
 // 2. MAIN PAGE
@@ -101,11 +47,11 @@ export default function SignUpPage() {
 
     // Helper to format identifier
     const formatIdentifier = (ident: string) => {
-        const clean = ident.replace(/\s+/g, '');
-        if (clean.includes('@')) return clean; // Email
-        if (/^\d{8}$/.test(clean)) return `+976${clean}`; // Mongolian
-        if (/^\d+$/.test(clean) && !clean.startsWith('+')) return `+${clean}`; // Other number without +
-        return ident;
+      const clean = ident.replace(/\s+/g, '');
+      if (clean.includes('@')) return clean; // Email
+      if (/^\d{8}$/.test(clean)) return `+976${clean}`; // Mongolian
+      if (/^\d+$/.test(clean) && !clean.startsWith('+')) return `+${clean}`; // Other number without +
+      return ident;
     };
 
     const formattedIdentifier = formatIdentifier(email);
@@ -113,30 +59,30 @@ export default function SignUpPage() {
     // --- 1. TRY CUSTOM DB LOGIN FIRST ---
     // If successful, we are done. If it fails specifically because user is not found or has no password (monk), we try Clerk.
     try {
-        if (!showOtpInput && password !== "Gevabal") { // Skip if OTP flow or Master Key
-            try {
-                await login({ identifier: formattedIdentifier, password });
-                router.push("/dashboard");
-                return; // Stop here if custom login works
-            } catch (err: any) {
-                // If error is NOT "Invalid credentials", it might be a system error or "not found"
-                // "Invalid credentials" (401) usually means password wrong OR user not found.
-                // My API returns 401 for both "User not found" and "Wrong password" to be safe, BUT
-                // it returns "Please log in with the correct method" if user exists but has no password (Monk).
-                // So:
-                if (err.message === "Please log in with the correct method." || err.message === "Invalid credentials") {
-                    // It might be a Monk (Clerk user) or just wrong password.
-                    // Let's TRY Clerk as fallback. If Clerk also fails, we show "Invalid credentials".
-                    console.log("Custom login failed, trying Clerk...", err.message);
-                } else { 
-                    // Real error
-                    throw err; 
-                }
-            }
+      if (!showOtpInput && password !== "Gevabal") { // Skip if OTP flow or Master Key
+        try {
+          await login({ identifier: formattedIdentifier, password });
+          router.push("/dashboard");
+          return; // Stop here if custom login works
+        } catch (err: any) {
+          // If error is NOT "Invalid credentials", it might be a system error or "not found"
+          // "Invalid credentials" (401) usually means password wrong OR user not found.
+          // My API returns 401 for both "User not found" and "Wrong password" to be safe, BUT
+          // it returns "Please log in with the correct method" if user exists but has no password (Monk).
+          // So:
+          if (err.message === "Please log in with the correct method." || err.message === "Invalid credentials") {
+            // It might be a Monk (Clerk user) or just wrong password.
+            // Let's TRY Clerk as fallback. If Clerk also fails, we show "Invalid credentials".
+            console.log("Custom login failed, trying Clerk...", err.message);
+          } else {
+            // Real error
+            throw err;
+          }
         }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-        // Continue to Clerk logic
+      // Continue to Clerk logic
     }
 
     try {
@@ -196,7 +142,7 @@ export default function SignUpPage() {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else if (result.status === "needs_first_factor") {
-        
+
         // --- FIX START ---
         // 1. Safely access factors with optional chaining or fallback
         const factors = result.supportedFirstFactors || [];
@@ -214,7 +160,7 @@ export default function SignUpPage() {
             phoneNumberId: phoneFactor.phoneNumberId,
           });
           setShowOtpInput(true);
-          setError(""); 
+          setError("");
         } else {
           setError("Login failed. Please check credentials.");
         }
@@ -225,7 +171,7 @@ export default function SignUpPage() {
         setError("Sign in requirements not met.");
       }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Login Error:", err);
       let msg = err.errors ? err.errors[0].longMessage : err.message;
@@ -254,216 +200,132 @@ export default function SignUpPage() {
   };
 
   const content = {
-    leftTitle: t({ mn: "Хязгааргүй<br/>Боломж", en: "Infinite<br/>Potential" }),
-    leftSubtitle: t({ mn: "Таны аялал эндээс эхэлнэ.", en: "Your journey starts here." }),
-    quote: t({
-      mn: "\"Мянган бээрийн аялал нэг алхмаас эхэлдэг. Бидэнтэй нэгдэж, амар амгалан, гэгээрлийн төлөөх замаа өнөөдөр эхлүүлээрэй.\"",
-      en: "\"A journey of a thousand miles begins with a single step. Join us and begin your path towards peace and enlightenment today.\""
-    }),
-    welcome: t({ mn: "Тавтай морил", en: "Welcome Home" }),
-    instruction: t({ mn: "Та хэн болохыг сонгоно уу?", en: "How will you join us?" }),
-    roleClient: t({ mn: "Хэрэглэгч", en: "Seeker" }),
-    roleMonk: t({ mn: "Багш (Лам)", en: "Guide" }),
-    registerBtn: role === "monk" ? t({ mn: "Багшаар бүртгүүлэх", en: "Register as Monk" }) : t({ mn: "Бүртгүүлэх  ", en: "Sign up" }),
-    loginBtn: showOtpInput ? t({ mn: "Код илгээх", en: "Verify Code" }) : t({ mn: "Нэвтрэх", en: "Enter Sanctuary" }),
+    welcome: t({ mn: "Нэвтрэх", en: "Welcome Back" }),
+    instruction: t({ mn: "Мэдээллээ оруулна уу", en: "Sign in to your account" }),
+    loginBtn: t({ mn: "Нэвтрэх", en: "Sign In" }),
+    sendCode: t({ mn: "Код илгээх", en: "Send Code" }),
+    verifyCode: t({ mn: "Баталгаажуулах", en: "Verify Code" }),
+    registerBtn: t({ mn: "Бүртгүүлэх", en: "Create Account" }),
     forgotPassword: t({ mn: "Нууц үгээ мартсан уу?", en: "Forgot Password?" }),
-    footer: t({ mn: "Эв нэгдэл • Нигүүлсэл • Мэргэн ухаан", en: "Unity • Compassion • Wisdom" }),
+    noAccount: t({ mn: "Бүртгэлгүй юу?", en: "Don't have an account?" }),
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex bg-[#FDFBF7] font-serif overflow-hidden selection:bg-amber-200"
-      onMouseMove={handleMouseMove}
-    >
+    <div className="min-h-screen w-full bg-[#FFFBEB] font-sans flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <OverlayNavbar />
 
-      {/* --- LEFT SIDE: CINEMATIC VISUAL --- */}
-      <div className="hidden lg:flex w-5/12 relative overflow-hidden bg-[#2a1a12] items-center justify-center">
-        {/* Animated Layers */}
-        <motion.div
-          initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 20, ease: "easeOut" }}
-          className="absolute inset-0 z-0"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1600609842388-3e4b7b250571?q=80&w=2574&auto=format&fit=crop"
-            alt="Temple"
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay grayscale"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#2a1a12] via-[#451a03]/60 to-transparent" />
-        </motion.div>
-
-        <Nebulas />
-
-        {/* Content */}
-        <div className="relative z-10 px-12 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 1, delay: 0.2 }}
-          >
-            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-amber-200/20 backdrop-blur-md mb-8 text-amber-100/60">
-              <Orbit className="animate-spin-slow" size={14} />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">{content.leftSubtitle}</span>
-            </div>
-
-            <h1
-              className="text-6xl font-black text-amber-50 mb-8 leading-[0.9] tracking-tighter drop-shadow-2xl"
-              dangerouslySetInnerHTML={{ __html: content.leftTitle }}
-            />
-
-            <div className="w-12 h-1 bg-amber-500/50 mx-auto mb-8 rounded-full" />
-
-            <p className="text-amber-100/70 text-lg font-sans font-light leading-relaxed max-w-sm mx-auto italic">
-              {content.quote}
-            </p>
-          </motion.div>
-        </div>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
+        <h2 className="text-3xl font-extrabold text-stone-900 font-serif">
+          {content.welcome}
+        </h2>
+        <p className="mt-2 text-sm text-stone-600">
+          {content.instruction}
+        </p>
       </div>
 
-      {/* --- RIGHT SIDE: INTERACTIVE FORM --- */}
-      <div className="w-full lg:w-7/12 relative flex flex-col items-center justify-center p-6 sm:p-12 md:p-24">
+      <div className="sm:mx-auto sm:w-full sm:max-w-[480px]">
+        <div className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-stone-100">
+          <ClerkLoaded>
+            <form onSubmit={handleSignIn} className="space-y-6">
 
-        {/* Magic Background Torch (Hidden on Mobile for Clarity) */}
-        <motion.div className="hidden md:block absolute inset-0 pointer-events-none" style={{ background: torchBg }} />
-
-        {/* Background Flower (Hidden on Mobile) */}
-        <div className="hidden md:block absolute top-0 right-0 p-12 pointer-events-none opacity-5">
-          <Flower size={300} />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "circOut" }}
-          className="relative z-10 w-full max-w-lg"
-        >
-          {/* Header */}
-          <div className="text-center mb-8 md:mb-12">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-              className="inline-block p-3 md:p-4 rounded-2xl bg-white shadow-xl mb-4 md:mb-6 text-amber-600 border border-amber-100"
-            >
-              <Sparkles size={28} className="md:w-8 md:h-8" />
-            </motion.div>
-            <h2 className="text-3xl md:text-5xl font-bold text-[#2a1a12] mb-2 md:mb-3 tracking-tight leading-tight">{content.welcome}</h2>
-            <p className="text-[#5c4033] font-sans opacity-60 uppercase tracking-widest text-[10px] md:text-xs font-bold">{content.instruction}</p>
-          </div>
-
-          {/* Role Selection */}
-          <RoleSelector role={role} setRole={setRole} content={content} />
-
-          {/* Auth Actions */}
-          <div className="space-y-4">
-            <ClerkLoading>
-              <div className="flex justify-center py-4"><Loader2 className="animate-spin text-amber-600" /></div>
-            </ClerkLoading>
-
-            <ClerkLoaded>
-              {/* Custom Sign In Form */}
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-3 md:space-y-2">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t({ mn: "Имэйл эсвэл Утас", en: "Email or Phone" })}
-                      className="w-full px-5 md:px-6 py-4 rounded-xl bg-white border border-stone-200 outline-none focus:border-amber-400 transition-colors text-base font-sans shadow-sm"
-                      required
-                      disabled={showOtpInput}
-                    />
-                  </div>
-
-                  {showOtpInput ? (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative">
-                      <KeyRound className="absolute top-1/2 -translate-y-1/2 left-5 text-stone-400" size={18} />
+              {!showOtpInput ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-stone-700 mb-1">
+                      {t({ mn: "Имэйл эсвэл Утас", en: "Email or Phone" })}
+                    </label>
+                    <div className="relative">
                       <input
                         type="text"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        placeholder={t({ mn: "Баталгаажуулах код", en: "Verification Code" })}
-                        className="w-full px-12 py-4 rounded-xl bg-white border border-amber-200 outline-none focus:border-amber-400 transition-colors text-base font-sans shadow-sm"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="appearance-none block w-full px-3 py-3 border border-stone-300 rounded-lg shadow-sm placeholder-stone-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
                         required
-                        autoFocus
+                        disabled={loading}
                       />
-                    </motion.div>
-                  ) : (
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-stone-700 mb-1">
+                      {t({ mn: "Нууц үг", en: "Password" })}
+                    </label>
                     <div className="relative">
                       <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder={t({ mn: "Нууц үг (Сонголттой)", en: "Password (Optional for SMS)" })}
-                        className="w-full px-5 md:px-6 py-4 rounded-xl bg-white border border-stone-200 outline-none focus:border-amber-400 transition-colors text-base font-sans shadow-sm"
+                        placeholder={t({ mn: "Хоосон байж болно (SMS-ээр нэвтрэх бол)", en: "Optional (if using SMS)" })}
+                        className="appearance-none block w-full px-3 py-3 border border-stone-300 rounded-lg shadow-sm placeholder-stone-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
                       />
                     </div>
-                  )}
-                </div>
-
-                {error && <p className="text-red-500 text-xs text-center font-bold px-4">{error}</p>}
-
-                {/* 1. Primary Sign In Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  disabled={loading}
-                  type="submit"
-                  className="group relative w-full h-16 rounded-[1.5rem] overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-900/20 disabled:opacity-50"
-                >
-                  <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                  <div className="relative z-10 flex items-center justify-center gap-3 font-bold text-sm uppercase tracking-[0.2em]">
-                    {loading ? <Loader2 className="animate-spin" /> : <ShieldCheck size={18} />}
-                    {content.loginBtn}
+                    <div className="flex items-center justify-end mt-1">
+                      <Link href="/forgot-password" className="text-xs font-medium text-amber-600 hover:text-amber-500">
+                        {content.forgotPassword}
+                      </Link>
+                    </div>
                   </div>
-                </motion.button>
-              </form>
-
-              {/* Social Login Fallback */}
-              {!showOtpInput && (
-                <div className="mt-4">
-                  <SignInButton mode="modal">
-                    <button type="button" className="w-full py-3 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold text-xs uppercase tracking-wider hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
-                      <img src="https://www.google.com/favicon.ico" alt="G" className="w-4 h-4 opacity-70" />
-                      Sign in with Google / Other
-                    </button>
-                  </SignInButton>
-                </div>
-              )}
-
-              {/* 2. Secondary Register Button */}
-              {!showOtpInput && (
-                <>
-                  <div className="relative py-4">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200" /></div>
-                    <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-[#FDFBF7] px-4 text-stone-400">Or</span></div>
-                  </div>
-
-                  <Link href="/sign-up" className="block w-full">
-                    <motion.button
-                      whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.02)" }} whileTap={{ scale: 0.98 }}
-                      className="w-full h-14 rounded-[1.5rem] border-2 border-stone-200 text-[#451a03] font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-colors hover:border-amber-300"
-                    >
-                      <UserPlus size={16} /> {content.registerBtn}
-                    </motion.button>
-                  </Link>
                 </>
+              ) : (
+                <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 text-center animate-in fade-in zoom-in duration-300">
+                  <p className="text-sm text-stone-600 mb-4">{t({ mn: "Баталгаажуулах код оруулна уу", en: "Enter verification code" })}</p>
+                  <input
+                    type="text"
+                    placeholder="123456"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="block w-full text-center tracking-[1em] px-3 py-4 border border-stone-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-lg font-bold"
+                    autoFocus
+                    required
+                  />
+                </div>
               )}
 
-              <div className="text-center mt-6">
-                <Link
-                  href="/forgot-password"
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600/60 hover:text-amber-600 hover:underline transition-colors"
+              {error && (
+                <div className="rounded-md bg-red-50 p-4">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-stone-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500 disabled:opacity-50 transition-all uppercase tracking-widest"
                 >
-                  {content.forgotPassword}
-                </Link>
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : (showOtpInput ? content.verifyCode : content.loginBtn)}
+                </button>
               </div>
-            </ClerkLoaded>
-          </div>
+            </form>
 
-          <div className="mt-12 text-center opacity-40">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em]">{content.footer}</p>
-          </div>
+            {!showOtpInput && (
+              <div className="mt-8">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-stone-500">{content.noAccount}</span>
+                  </div>
+                </div>
 
-        </motion.div>
+                <div className="mt-6">
+                  <Link
+                    href="/sign-up"
+                    className="w-full flex justify-center py-3 px-4 border border-stone-300 rounded-xl shadow-sm bg-white text-sm font-bold text-stone-700 hover:bg-stone-50"
+                  >
+                    {content.registerBtn}
+                  </Link>
+                </div>
+              </div>
+            )}
+
+          </ClerkLoaded>
+        </div>
       </div>
     </div>
   );
