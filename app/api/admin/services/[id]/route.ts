@@ -35,7 +35,21 @@ export async function DELETE(request: Request, props: Props) {
       }, { status: 401 });
     }
 
-    // 2. Validate service ID
+    // 2. Parse request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError: any) {
+      return NextResponse.json({
+        success: false,
+        message: "Invalid JSON in request body",
+        error: "INVALID_JSON"
+      }, { status: 400 });
+    }
+
+    const { name, title, type, price, duration, desc, subtitle, image, quote } = body;
+
+    // 3. Validate service ID
     if (!id || typeof id !== 'string') {
       return NextResponse.json({
         success: false,
@@ -44,7 +58,7 @@ export async function DELETE(request: Request, props: Props) {
       }, { status: 400 });
     }
 
-    // 3. Connect to database
+    // 4. Comprehensive validation
     let db;
     try {
       const connection = await connectToDatabase();
@@ -372,7 +386,9 @@ export async function PUT(request: Request, props: Props) {
       }, { status: 400 });
     }
 
-    // Comprehensive validation
+    const { name, title, type, price, duration, desc, subtitle, image, quote } = body;
+
+    // 4. Comprehensive validation
     const validation = validateServiceData(body);
     if (!validation.valid) {
       logFailure(
@@ -439,7 +455,7 @@ export async function PUT(request: Request, props: Props) {
       standardServiceResult = await db.collection("services").updateOne(serviceQuery, {
         $set: updateData
       });
-    } catch (standardUpdateError) {
+      } catch (standardUpdateError: any) {
       console.error("Standard service update failed:", standardUpdateError);
       return NextResponse.json({
         success: false,
