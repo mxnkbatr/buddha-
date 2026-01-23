@@ -147,12 +147,6 @@ const ParallaxBackground = React.memo(({ isDark }: { isDark: boolean }) => {
 // ==========================================
 
 export default function AboutUsHero() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-  if (!mounted) return <div className="min-h-screen bg-[#05051a]" />;
   return <ActualAboutContent />;
 }
 

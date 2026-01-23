@@ -1,10 +1,9 @@
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import MonkSection from "./components/Monksection";
-import PhilosophySection from "./components/Philosophy";
-import NirvanaComments from "./components/NirvanaComments";
-import GoldenNirvanaFooter from "./components/Footer";
+
+const PhilosophySection = dynamic(() => import("./components/Philosophy"));
+const NirvanaComments = dynamic(() => import("./components/NirvanaComments"));
 
 export default function Home() {
   return (

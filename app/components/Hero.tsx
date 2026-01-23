@@ -14,16 +14,10 @@ import { useUser } from "@clerk/nextjs";
 
 export default function Hero() {
   const { t } = useLanguage();
-  const [mounted, setMounted] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const yContent = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
   const opacityFade = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   // --- AUTH CHECK ---
   const { isSignedIn } = useUser();
@@ -43,8 +37,6 @@ export default function Hero() {
       { name: t({ mn: "Бидний давуу тал", en: "About Us" }), href: "/about" },
     ]
   };
-
-  if (!mounted) return <div className="h-screen w-full bg-[#FCF9F2]" />;
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-center bg-[#FCF9F2]">

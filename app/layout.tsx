@@ -7,7 +7,6 @@ import { ThemeProvider } from 'next-themes'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
-import 'next-cloudinary/dist/cld-video-player.css';
 import { AuthProvider } from '@/contexts/AuthContext'
 
 const playfair = Playfair_Display({

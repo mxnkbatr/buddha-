@@ -51,7 +51,9 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
 
     const publicId = getPublicId(src);
 
-    if (!mounted) return <div className={className} style={{ width, height, backgroundColor: '#000' }} />;
+    // Optimize: Render immediately for native video to support SSR/LCP
+    // Only wait for mount if using the CldVideoPlayer which requires client-side JS
+    if (!mounted && !useNative) return <div className={className} style={{ width, height, backgroundColor: '#000' }} />;
 
     if (!isCloudinary || useNative) {
         // For Cloudinary URLs in native mode, we can still use Cloudinary transformations
