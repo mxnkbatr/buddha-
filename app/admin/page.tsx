@@ -137,6 +137,7 @@ export default function AdminDashboard() {
 
   // 0. Create Service
   const [editingService, setEditingService] = useState<any>(null); // New state for editing service
+  const [syncingServices, setSyncingServices] = useState(false);
 
   // 0. Create/Edit Service Helper
   const handleSaveService = async (serviceData: any, id?: string) => {
@@ -527,6 +528,7 @@ export default function AdminDashboard() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={async () => {
+                    setSyncingServices(true);
                     try {
                       const res = await fetch('/api/admin/sync-services', { method: 'POST' });
                       const result = await res.json();
@@ -538,11 +540,22 @@ export default function AdminDashboard() {
                       }
                     } catch (error) {
                       alert('Синхрончлох явцад алдаа гарлаа');
+                    } finally {
+                      setSyncingServices(false);
                     }
                   }}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-lg shadow-blue-900/20 hover:bg-blue-600 transition-all flex items-center gap-2"
+                  disabled={syncingServices}
+                  className="bg-blue-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-lg shadow-blue-900/20 hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
-                  <RefreshCw size={16} /> Бүх лам нартай синхрончлох
+                  {syncingServices ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Синхрончлох...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={16} /> Бүх лам нартай синхрончлох
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => setIsServiceModalOpen(true)}
