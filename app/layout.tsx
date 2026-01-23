@@ -48,6 +48,8 @@ export default function RootLayout({
               <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
               <link rel="preconnect" href="https://www.transparenttextures.com" />
               <link rel="preconnect" href="https://i.pravatar.cc" />
+              <link rel="preconnect" href="https://clerk-telemetry.com" />
+              <link rel="preconnect" href="https://img.clerk.com" />
             </head>
             <body className={`${playfair.variable} ${lato.variable} font-sans`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
