@@ -313,19 +313,6 @@ export default function SignUpPage() {
                             required
                             />
                         </div>
-
-                        <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Mail className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
-                            </div>
-                            <input
-                            type="email"
-                            placeholder={t({ mn: "Имэйл (Сонголттой)", en: "Email (Optional)" })}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
-                            />
-                        </div>
                     </div>
                 )}
 
