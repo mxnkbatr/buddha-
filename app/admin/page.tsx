@@ -35,6 +35,7 @@ interface User {
   // properties used in applications view
   title?: LocalizedString;
   yearsOfExperience?: number;
+  phone?: string;
 }
 
 interface Service {
@@ -500,13 +501,13 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-4 mb-4">
                       <img src={app.image || "/default-avatar.png"} className="w-14 h-14 rounded-2xl object-cover" alt="applicant" />
                       <div>
-                        <h4 className="font-black text-base">{app.name?.mn || app.name?.en}</h4>
+                        <h4 className="font-black text-base">{app.name?.mn || app.name?.en || app.phone}</h4>
                         <p className="text-xs opacity-50">{app.title?.mn || app.title?.en}</p>
                       </div>
                     </div>
                     <div className="flex gap-2 mb-6 text-xs">
                       <span className="bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md">{app.yearsOfExperience} жилийн туршлага</span>
-                      <span className="bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md">{app.email}</span>
+                      <span className="bg-black/5 dark:bg-white/10 px-2 py-1 rounded-md">{app.email || app.phone}</span>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleApplication(app._id, 'approve')} className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-black text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-600 transition-colors">
@@ -638,15 +639,15 @@ export default function AdminDashboard() {
                 <div key={u._id} className={`p-6 rounded-[2rem] border flex items-center justify-between group ${isDark ? "bg-white/5 border-white/10" : "bg-white border-amber-100"}`}>
                   <div className="flex items-center gap-4 overflow-hidden">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shrink-0 ${isDark ? "bg-white/10" : "bg-amber-100 text-amber-800"}`}>
-                      {u.image ? <img src={u.image} alt={u.name?.mn} className="w-full h-full rounded-full object-cover" /> : (u.name?.en?.[0] || "U")}
+                      {u.image ? <img src={u.image} alt={u.name?.mn || u.phone} className="w-full h-full rounded-full object-cover" /> : (u.name?.mn?.[0] || u.name?.en?.[0] || u.phone?.[0] || "U")}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-black text-sm truncate">{u.name?.mn || u.name?.en || "Нэргүй хэрэглэгч"}</h4>
+                        <h4 className="font-black text-sm truncate">{u.name?.mn || u.name?.en || u.phone || "Нэргүй"}</h4>
                         {u.monkStatus === 'active' && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Лам</span>}
                         {u.role === 'admin' && <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Админ</span>}
                       </div>
-                      <p className="text-xs opacity-50 truncate">{u.email}</p>
+                      <p className="text-xs opacity-50 truncate">{u.email || u.phone}</p>
                       <p className="text-[10px] opacity-30 mt-1">Бүртгүүлсэн: {new Date(u.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>

@@ -19,7 +19,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useTheme } from "next-themes";
+import { useAuth } from "../contexts/AuthContext";
 import { Comment } from "@/database/types";
 
 // --- ZODIAC GALAXY ATMOSPHERE ---
@@ -95,6 +95,7 @@ const STATIC_COMMENTS: Comment[] = [
 
 export default function CelestialRiverComments() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [comments, setComments] = useState<Comment[]>(STATIC_COMMENTS);
   const [newComment, setNewComment] = useState("");
@@ -123,12 +124,14 @@ export default function CelestialRiverComments() {
     if (!newComment.trim()) return;
     setIsSubmitting(true);
 
+    const displayName = user ? (user.firstName || user.name?.mn || user.name?.en || user.phone || "You") : "Pilgrim";
+
     // Simulate adding a comment
     const newEntry: Comment = {
       _id: Date.now().toString(),
-      authorName: "You",
+      authorName: displayName,
       authorRole: isDark ? "Celestial Voyager" : "Pilgrim",
-      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+      avatar: user?.avatar || `https://i.pravatar.cc/150?u=${Date.now()}`,
       text: newComment,
       karma: 0,
       element: "light",
@@ -183,11 +186,11 @@ export default function CelestialRiverComments() {
               {isDark ? <Sparkles className="text-[#C72075]" size={24} /> : <Flower className="text-amber-400" size={24} />}
             </div>
             <input
-              type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-              placeholder={isDark ? "Write your star sign..." : "Сэтгэгдэл бичих..."}
+              type="text" disabled={!user} value={newComment} onChange={(e) => setNewComment(e.target.value)}
+              placeholder={!user ? (language === 'mn' ? "Нэвтэрч сэтгэгдэл үлдээнэ үү" : "Please login to comment") : (isDark ? "Write your star sign..." : "Сэтгэгдэл бичих...")}
               className={`flex-1 bg-transparent border-none outline-none font-serif text-lg h-16 ${isDark ? "text-white placeholder-cyan-400/20" : "text-[#451a03] placeholder-amber-900/20"}`}
             />
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`px-10 py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-2xl flex items-center gap-3 transition-all ${isDark ? "bg-gradient-to-r from-[#C72075] to-[#7B337D] text-white shadow-[#C72075]/30" : "bg-amber-500 text-white hover:bg-amber-600"
+            <motion.button disabled={!user || isSubmitting} whileHover={{ scale: user ? 1.05 : 1 }} whileTap={{ scale: user ? 0.95 : 1 }} className={`px-10 py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-2xl flex items-center gap-3 transition-all ${!user ? "bg-stone-200 text-stone-400 cursor-not-allowed" : isDark ? "bg-gradient-to-r from-[#C72075] to-[#7B337D] text-white shadow-[#C72075]/30" : "bg-amber-500 text-white hover:bg-amber-600"
               }`}>
               {isSubmitting ? <Loader2 className="animate-spin" /> : <Star size={16} />} <span>{ui.btn}</span>
             </motion.button>

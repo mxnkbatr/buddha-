@@ -3,6 +3,10 @@ import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { sendBookingNotification } from "@/lib/mail";
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
 
 // Force dynamic to prevent caching issues (users not seeing new bookings)
 export const dynamic = "force-dynamic";
@@ -12,10 +16,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const monkId = searchParams.get("monkId");
     const userEmail = searchParams.get("userEmail"); // Get email from params
+    const userId = searchParams.get("userId"); // Get custom userId from params
 
-    // FIX: Allow searching by either monkId OR userEmail
-    if (!monkId && !userEmail) {
-      return NextResponse.json({ message: "Missing search parameter (monkId or userEmail)" }, { status: 400 });
+    // FIX: Allow searching by either monkId OR userEmail OR userId
+    if (!monkId && !userEmail && !userId) {
+      return NextResponse.json({ message: "Missing search parameter" }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
@@ -28,6 +33,13 @@ export async function GET(request: Request) {
     }
     if (userEmail) {
       query.userEmail = userEmail;
+    }
+    if (userId) {
+        // userId could be clientId in bookings collection
+        query.$or = [
+            { userId: userId },
+            { clientId: userId }
+        ];
     }
 
     // Optional date filter
@@ -113,8 +125,26 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { userId: authUserId } = await auth();
-    if (!authUserId) {
+    // 1. Authenticate (Clerk OR Custom)
+    let authenticatedUserId = null;
+    
+    // Check Clerk
+    const { userId: clerkUserId } = await auth();
+    authenticatedUserId = clerkUserId;
+
+    // Check Custom if no Clerk
+    if (!authenticatedUserId) {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("auth_token")?.value;
+        if (token) {
+            try {
+                const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+                authenticatedUserId = payload.sub as string;
+            } catch (e) { /* invalid token */ }
+        }
+    }
+
+    if (!authenticatedUserId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -149,9 +179,8 @@ export async function POST(request: Request) {
 
     // 3. Fetch Monk & Service Details (For the Email Notification)
     let monk = null;
-    if (ObjectId.isValid(monkId)) {
-      monk = await db.collection("users").findOne({ _id: new ObjectId(monkId) });
-    }
+    const monkQuery = ObjectId.isValid(monkId) ? { _id: new ObjectId(monkId) } : { _id: monkId };
+    monk = await db.collection("users").findOne(monkQuery);
 
     let serviceName = "Spiritual Session";
 
@@ -176,7 +205,7 @@ export async function POST(request: Request) {
     // 4. Save Booking
     const newBooking = {
       monkId,
-      clientId: body.userId || null,
+      clientId: body.userId || authenticatedUserId,
       clientName: userName,
       serviceName: { en: serviceName, mn: serviceName },
       date,
@@ -192,14 +221,16 @@ export async function POST(request: Request) {
     // 5. Send Email
     // Wrapped in try/catch so booking succeeds even if email fails
     try {
-      await sendBookingNotification({
-        userEmail,
-        userName,
-        monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
-        serviceName: serviceName,
-        date,
-        time
-      });
+      if (userEmail) {
+          await sendBookingNotification({
+            userEmail,
+            userName,
+            monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
+            serviceName: serviceName,
+            date,
+            time
+          });
+      }
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
     }

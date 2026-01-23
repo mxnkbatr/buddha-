@@ -7,6 +7,41 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+export async function GET(request: Request, props: Props) {
+  try {
+    const params = await props.params;
+    const { id } = params;
+
+    const { db } = await connectToDatabase();
+
+    // Build query to find user by _id or clerkId
+    let query: any = {
+      $or: [
+        { clerkId: id },
+        { _id: id }
+      ]
+    };
+
+    if (ObjectId.isValid(id)) {
+      query.$or.push({ _id: new ObjectId(id) });
+    }
+
+    const user = await db.collection("users").findOne(query);
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(user);
+  } catch (error: any) {
+    console.error("User Fetch Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(request: Request, props: Props) {
   try {
     const params = await props.params;

@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     const newUser: any = {
       clerkId: "custom-db-" + new ObjectId().toString(), // Placeholder ID
       phone: phoneNumber,
+      firstName: "", // Initialize as empty string
       password: hashedPassword,
       role: "seeker", // Default to seeker/client
       karma: 0,

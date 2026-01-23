@@ -37,6 +37,12 @@ export default function ChatWindow({
 
   // Helper: Get Initials
   const getInitials = (name: string) => {
+    if (!name) return "?";
+    if (name.includes("+") || /^\d+$/.test(name.replace(/\s/g, ""))) {
+        // Looks like a phone number
+        const digits = name.replace(/\D/g, "");
+        return digits.slice(-2);
+    }
     return name
       .split(" ")
       .map((n) => n[0])

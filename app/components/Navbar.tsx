@@ -136,7 +136,15 @@ export default function OverlayNavbar() {
                     ) : (
                         <div className="relative group">
                             <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer">
-                                {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.firstName?.[0] || <UserCircle size={20} />}
+                                {user.avatar ? (
+                                    <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                                ) : user.firstName ? (
+                                    user.firstName[0]
+                                ) : user.phone ? (
+                                    user.phone.slice(-4)
+                                ) : (
+                                    <UserCircle size={20} />
+                                )}
                             </div>
                             <button onClick={logout} className="absolute top-full right-0 mt-2 bg-white border shadow-xl p-2 rounded-xl text-red-500 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap">
                                 <LogOut size={14} /> Log Out
@@ -198,7 +206,15 @@ export default function OverlayNavbar() {
             <div className="ml-1 scale-125 drop-shadow-lg">
                 {user.authType === 'clerk' ? <UserButton /> : (
                     <Link href="/dashboard" className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-white">
-                        {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.firstName?.[0] || <UserCircle size={16} />}
+                        {user.avatar ? (
+                            <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                        ) : user.firstName ? (
+                            user.firstName[0]
+                        ) : user.phone ? (
+                            <span className="text-[8px]">{user.phone.slice(-4)}</span>
+                        ) : (
+                            <UserCircle size={16} />
+                        )}
                     </Link>
                 )}
             </div>

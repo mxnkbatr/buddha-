@@ -2,15 +2,16 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import {
     Sun, Clock, ScrollText, Plus, Trash2, X, History, Video,
-    Loader2, Save, Ban, CheckCircle, Edit, ImageIcon, Upload, MessageCircle, ShieldCheck
+    Loader2, Save, Ban, CheckCircle, Edit, ImageIcon, Upload, MessageCircle, ShieldCheck, UserCircle
 } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useLanguage } from "../contexts/LanguageContext";
 import LiveRitualRoom from "../components/LiveRitualRoom";
 import ChatWindow from "../components/ChatWindow";
+import { useAuth } from "../contexts/AuthContext";
 
 // --- TYPES ---
 interface ServiceItem {
@@ -47,6 +48,7 @@ interface UserProfile {
     yearsOfExperience?: number;
     video?: string;
     phone?: string;
+    firstName?: string;
 }
 
 interface Booking {
@@ -65,7 +67,7 @@ const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday
 const DAYS_MN = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
 
 export default function DashboardPage() {
-    const { isLoaded, user } = useUser();
+    const { user, loading: authLoading } = useAuth();
     const { language } = useLanguage(); // assuming language is 'en' or 'mn'
     const langKey = language === 'mn' ? 'mn' : 'en';
 
@@ -223,62 +225,55 @@ export default function DashboardPage() {
 
     // --- FETCH DATA ---
     useEffect(() => {
-        if (isLoaded && user) {
+        if (user && user.authType === 'clerk') {
             // Sync user to DB (ensures phone number is saved and user exists)
             fetch('/api/sync-user', { method: 'POST' }).catch(err => console.error("User sync failed", err));
         }
-    }, [isLoaded, user]);
+    }, [user]);
 
     useEffect(() => {
         async function fetchData() {
             if (!user) return;
             try {
                 setLoading(true);
-                const userEmail = user.primaryEmailAddress?.emailAddress;
+                const userId = user.id; 
+                
+                let profileData = null;
+                const monksRes = await fetch(`/api/monks/${userId}`);
 
-                // 1. Try to fetch Monk Profile
-                const res = await fetch(`/api/monks/${user.id}`);
+                if (monksRes.ok) {
+                    profileData = await monksRes.json();
+                } else if (user.authType === 'custom') {
+                    profileData = user;
+                }
 
-                if (res.ok) {
-                    // === SCENARIO A: MONK (OR EXISTING CLIENT) ===
-                    const data = await res.json();
-                    setProfile(data);
+                if (profileData) {
+                    setProfile(profileData);
 
-                    // If Monk, load schedule
-                    if (data.role === 'monk') {
-                        if (data.schedule) setSchedule(data.schedule);
-                        if (data.blockedSlots) setBlockedSlots(data.blockedSlots);
-                        // Fetch Monk's Bookings (By Monk ID)
-                        const bRes = await fetch(`/api/bookings?monkId=${data._id}`);
+                    if (profileData.role === 'monk') {
+                        if (profileData.schedule) setSchedule(profileData.schedule);
+                        if (profileData.blockedSlots) setBlockedSlots(profileData.blockedSlots);
+                        const bRes = await fetch(`/api/bookings?monkId=${profileData._id}`);
                         if (bRes.ok) setBookings(await bRes.json());
                     } else {
-                        // If Client in DB, fetch by email
-                        if (userEmail) {
-                            const bRes = await fetch(`/api/bookings?userEmail=${userEmail}`);
-                            if (bRes.ok) setBookings(await bRes.json());
-                        }
-                        // Fetch monks for booking modal
-                        const monksRes = await fetch('/api/monks');
-                        if (monksRes.ok) setAllMonks(await monksRes.json());
+                        const bRes = await fetch(`/api/bookings?userId=${profileData._id}`);
+                        if (bRes.ok) setBookings(await bRes.json());
+                        
+                        const allMonksRes = await fetch('/api/monks');
+                        if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
                     }
 
                 } else {
-                    // === SCENARIO B: NEW CLIENT (404 Not Found) ===
                     const tempClientProfile: UserProfile = {
-                        _id: "temp_client",
+                        _id: userId,
                         role: "client",
-                        name: { mn: user.fullName || "Хэрэглэгч", en: user.fullName || "User" },
-                        phone: (user.unsafeMetadata?.phone as string) || user.phoneNumbers?.[0]?.phoneNumber || "",
+                        name: { mn: user.firstName || "Хэрэглэгч", en: user.firstName || "User" },
+                        phone: user.phone || "",
                     };
                     setProfile(tempClientProfile);
-
-                    if (userEmail) {
-                        const bRes = await fetch(`/api/bookings?userEmail=${userEmail}`);
-                        if (bRes.ok) setBookings(await bRes.json());
-                    }
-
-                    const monksRes = await fetch('/api/monks');
-                    if (monksRes.ok) setAllMonks(await monksRes.json());
+                    
+                    const allMonksRes = await fetch('/api/monks');
+                    if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
                 }
 
             } catch (e) {
@@ -287,13 +282,12 @@ export default function DashboardPage() {
                 setLoading(false);
             }
         }
-        if (isLoaded && user) {
+        if (!authLoading && user) {
             fetchData();
-            // Polling for updates (especially for clients to see when a monk starts a call)
             const pollInterval = setInterval(fetchData, 8000); // 8 second polling
             return () => clearInterval(pollInterval);
         }
-    }, [isLoaded, user]);
+    }, [authLoading, user]);
 
     // --- LOGIC: GENERATE SLOTS FOR BLOCKING UI ---
     const dailySlotsForBlocking = useMemo(() => {
@@ -304,10 +298,10 @@ export default function DashboardPage() {
         if (!dayConfig || !dayConfig.active) return [];
 
         const slots: string[] = [];
-        let [startH, startM] = dayConfig.start.split(':').map(Number);
-        let [endH, endM] = dayConfig.end.split(':').map(Number);
+        const [startH, startM] = dayConfig.start.split(':').map(Number);
+        const [endH, endM] = dayConfig.end.split(':').map(Number);
 
-        let current = new Date(dateObj);
+        const current = new Date(dateObj);
         current.setHours(startH, startM, 0, 0);
         const end = new Date(dateObj);
         end.setHours(endH, endM, 0, 0);
@@ -321,25 +315,19 @@ export default function DashboardPage() {
 
     // --- HELPER: CHECK RITUAL AVAILABILITY ---
     const checkRitualAvailability = (booking: Booking) => {
-        // 1. If call is active, it's ALWAYS open (override time check)
         if (booking.callStatus === 'active') {
             return { isOpen: true, message: TEXT.roomOpen };
         }
 
-        // 2. Parse Date/Time (Ensure HH:mm format for reliable cross-browser parsing)
         let timeStr = booking.time || "00:00";
         if (timeStr.includes(':')) {
-            let [h, m] = timeStr.split(':').map(part => part.trim().padStart(2, '0'));
+            const [h, m] = timeStr.split(':').map(part => part.trim().padStart(2, '0'));
             timeStr = `${h}:${m}`;
         }
 
         const bookingDateTime = new Date(`${booking.date}T${timeStr}`);
         const now = new Date();
-
-        // 3. Open Window: 48 hours before booking time (allow ample time for setup/messaging)
         const openTime = new Date(bookingDateTime.getTime() - 48 * 60 * 60 * 1000);
-
-        // 4. Close Window: EXACTLY 30 minutes after booking time (STRICT CUTOFF)
         const closeTime = new Date(bookingDateTime.getTime() + 30 * 60 * 1000);
 
         if (now >= openTime && now <= closeTime) {
@@ -377,7 +365,6 @@ export default function DashboardPage() {
             if (res.ok) {
                 alert("Session completed successfully.");
                 setActiveBookingForRoom(null);
-                // Update local state to reflect completion without reload
                 setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, status: 'completed' } : b));
             }
         } catch (e) { console.error(e); } finally { setIsSaving(false); }
@@ -415,9 +402,9 @@ export default function DashboardPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...bookingForm,
-                    userName: profile?.name?.[langKey] || user?.fullName,
-                    userEmail: user?.primaryEmailAddress?.emailAddress,
-                    userId: profile?._id === "temp_client" ? user?.id : profile?._id,
+                    userName: profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "User",
+                    userEmail: user?.email,
+                    userId: profile?._id,
                     serviceId: bookingForm.serviceId
                 })
             });
@@ -475,7 +462,6 @@ export default function DashboardPage() {
     const joinVideoCall = async (booking: Booking) => {
         setJoiningRoomId(booking._id);
         try {
-            // If monk, signal call is starting
             if (isMonk) {
                 await fetch(`/api/bookings/${booking._id}`, {
                     method: 'PATCH',
@@ -484,7 +470,8 @@ export default function DashboardPage() {
                 });
             }
 
-            const res = await fetch(`/api/livekit?room=${booking._id}&username=${user?.fullName}`);
+            const username = user?.fullName || user?.firstName || user?.phone || "Anonymous";
+            const res = await fetch(`/api/livekit?room=${booking._id}&username=${username}`);
             const data = await res.json();
             setActiveRoomToken(data.token);
             setActiveRoomName(booking._id);
@@ -499,7 +486,6 @@ export default function DashboardPage() {
         const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
         const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-        // Create form data
         const data = new FormData();
         data.append("file", file);
         if (uploadPreset) data.append("upload_preset", uploadPreset);
@@ -542,7 +528,7 @@ export default function DashboardPage() {
         } catch (e) { console.error(e); } finally { setIsSaving(false); }
     };
 
-    if (!isLoaded) return null;
+    if (!authLoading && !user) return null;
     const isMonk = profile?.role === 'monk';
 
     if (activeRoomToken && activeRoomName) {
@@ -550,7 +536,7 @@ export default function DashboardPage() {
             token={activeRoomToken}
             serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL!}
             roomName={activeRoomName}
-            bookingId={activeRoomName} // Pass bookingId for auto-cleanup
+            bookingId={activeRoomName} 
             isMonk={isMonk}
             onLeave={async () => {
                 if (isMonk && activeRoomName) {
@@ -566,7 +552,6 @@ export default function DashboardPage() {
         />;
     }
 
-    // --- APPROVAL GATES (Monks Only) ---
     if (isMonk && profile?.monkStatus === 'pending') {
         return (
             <div className="min-h-screen bg-[#FFFBEB] flex items-center justify-center p-6 font-serif text-[#451a03]">
@@ -617,10 +602,24 @@ export default function DashboardPage() {
                     <div className="bg-[#451a03] rounded-[3rem] p-8 md:p-12 text-[#FFFBEB] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="flex items-center gap-8">
                             <div className="scale-[2] origin-center relative">
-                                <UserButton />
+                                {user?.authType === 'clerk' ? (
+                                    <UserButton />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-[#FDE68A]">
+                                        {user?.avatar ? (
+                                            <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
+                                        ) : user?.firstName ? (
+                                            user.firstName[0]
+                                        ) : (
+                                            user?.phone?.slice(-4) || <UserCircle size={16} />
+                                        )}
+                                    </div>
+                                )}
                             </div>
                             <div>
-                                <h1 className="text-3xl md:text-5xl font-serif font-bold">{profile?.name?.[langKey] || user?.fullName}</h1>
+                                <h1 className="text-3xl md:text-5xl font-serif font-bold">
+                                    {profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "Seeker"}
+                                </h1>
                                 <p className="text-[#FDE68A]/80 uppercase tracking-widest mt-2">{isMonk ? profile?.title?.[langKey] : TEXT.clientRole}</p>
                                 {isMonk && (
                                     <div className="mt-4 inline-flex items-center gap-2 bg-[#FDE68A]/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-[#FDE68A]/30">
@@ -632,7 +631,6 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col md:flex-row gap-4 items-center">
-                            {/* Admin Access Button */}
                             {user?.publicMetadata?.role === 'admin' && (
                                 <a href="/admin" className="bg-stone-900 text-white px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black shadow-lg flex items-center gap-3 border border-white/10 transition-all">
                                     <ShieldCheck size={18} /> Admin Panel
@@ -657,10 +655,8 @@ export default function DashboardPage() {
 
                 <section className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                    {/* LEFT COLUMN */}
                     <div className="lg:col-span-2 space-y-8">
 
-                        {/* --- SCHEDULE SETTINGS (MONK ONLY) --- */}
                         {isMonk && (
                             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
                                 <div className="flex justify-between items-center mb-6">
@@ -670,7 +666,6 @@ export default function DashboardPage() {
                                     </button>
                                 </div>
 
-                                {/* 1. Weekly Schedule */}
                                 <div className="mb-10">
                                     <h3 className="font-bold text-xs uppercase text-stone-400 tracking-widest mb-4">{TEXT.step1}</h3>
                                     <div className="space-y-3">
@@ -730,7 +725,6 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
-                                {/* 2. Block Specific Times */}
                                 <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                                         <div>
@@ -793,7 +787,6 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        {/* --- BOOKINGS LIST --- */}
                         <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
                             <h2 className="text-2xl font-serif font-bold text-[#451a03] mb-6 flex items-center gap-3"><History className="text-[#78350F]" /> {isMonk ? TEXT.ritualsClient : TEXT.ritualsMy}</h2>
                             <div className="space-y-4">
@@ -817,7 +810,7 @@ export default function DashboardPage() {
                                                             <button
                                                                 onClick={() => {
                                                                     setActiveBookingForRoom(b);
-                                                                    joinVideoCall(b); // Auto-join call if active
+                                                                    joinVideoCall(b); 
                                                                 }}
                                                                 className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-green-500/10 hover:bg-green-700 transition-transform active:scale-95"
                                                             >
@@ -855,7 +848,6 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* --- SERVICES (Monk) --- */}
                         {isMonk && (
                             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
                                 <div className="flex justify-between items-center mb-6">
@@ -891,7 +883,6 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {/* RIGHT SIDEBAR */}
                     <div className="space-y-6">
                         <div className="bg-[#FEF3C7] border border-[#FDE68A] p-8 rounded-[2.5rem]">
                             <Sun className="w-16 h-16 text-[#F59E0B]/30 mb-4" />
@@ -901,7 +892,6 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {/* --- RITUAL ROOM MODAL (Chat + Video) --- */}
                 <AnimatePresence>
                     {activeBookingForRoom && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -916,7 +906,6 @@ export default function DashboardPage() {
                                     <button onClick={() => setActiveBookingForRoom(null)} className="p-2 hover:bg-stone-100 rounded-full"><X size={20} /></button>
                                 </div>
 
-                                {/* Video Call Trigger */}
                                 <div className="mb-4 space-y-2">
                                     {(isMonk || activeBookingForRoom.callStatus === 'active') && (
                                         <button
@@ -940,12 +929,11 @@ export default function DashboardPage() {
                                     )}
                                 </div>
 
-                                {/* Chat Window */}
                                 <div className="flex-1 overflow-hidden rounded-xl border border-stone-200">
                                     <ChatWindow
                                         bookingId={activeBookingForRoom._id}
                                         currentUserId={profile?._id || user?.id || "anon"}
-                                        currentUserName={profile?.name?.[langKey] || user?.fullName || "Anonymous"}
+                                        currentUserName={profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "Anonymous"}
                                     />
                                 </div>
                             </motion.div>
@@ -953,7 +941,6 @@ export default function DashboardPage() {
                     )}
                 </AnimatePresence>
 
-                {/* --- CLIENT BOOKING MODAL --- */}
                 <AnimatePresence>
                     {isBookingModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -961,17 +948,15 @@ export default function DashboardPage() {
                                 <div className="flex justify-between items-center mb-6"><h3 className="text-xl font-bold font-serif text-[#451a03]">{TEXT.modalBookTitle}</h3><button onClick={() => setIsBookingModalOpen(false)}><X size={24} /></button></div>
                                 <div className="space-y-6">
 
-                                    {/* 1. Select Guide */}
                                     <div>
                                         <label className="block text-xs font-bold uppercase text-stone-400 mb-2">{TEXT.selectGuide}</label>
                                         <div className="grid grid-cols-2 gap-2">
                                             {allMonks.map(m => (
-                                                <button key={m._id} onClick={() => setBookingForm({ ...bookingForm, monkId: m._id, serviceId: "", time: "" })} className={`p-3 rounded-xl border text-left transition-all ${bookingForm.monkId === m._id ? 'bg-[#451a03] text-white' : 'bg-stone-50 border-stone-100'}`}><p className="font-bold text-sm">{m.name?.[langKey]}</p></button>
+                                                <button key={m._id} onClick={() => setBookingForm({ ...bookingForm, monkId: m._id, serviceId: "", time: "" })} className={`p-3 rounded-xl border text-left transition-all ${bookingForm.monkId === m._id ? 'bg-[#451a03] text-white' : 'bg-stone-50 border-stone-100'}`}><p className="font-bold text-sm">{m.name?.[langKey] || m.phone}</p></button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* 2. Date */}
                                     {bookingForm.monkId && (
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-stone-400 mb-2">{TEXT.selectDate}</label>
@@ -979,7 +964,6 @@ export default function DashboardPage() {
                                         </div>
                                     )}
 
-                                    {/* 3. Smart Time Slots */}
                                     {bookingForm.date && (
                                         <div className="grid grid-cols-4 gap-2">
                                             {(() => {
@@ -996,7 +980,6 @@ export default function DashboardPage() {
 
                                                 while (curr < end) {
                                                     const timeStr = curr.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                                                    // Check if blocked by Monk
                                                     const isBlocked = selectedMonk?.blockedSlots?.some(b => b.date === bookingForm.date && b.time === timeStr);
 
                                                     slots.push(
@@ -1016,7 +999,6 @@ export default function DashboardPage() {
                                         </div>
                                     )}
 
-                                    {/* 4. Service */}
                                     {bookingForm.time && (
                                         <div>
                                             <label className="block text-xs font-bold uppercase text-stone-400 mb-2">{TEXT.selectService}</label>
@@ -1037,7 +1019,6 @@ export default function DashboardPage() {
                     )}
                 </AnimatePresence>
 
-                {/* --- SERVICE MODAL --- */}
                 <AnimatePresence>
                     {isServiceModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -1062,7 +1043,6 @@ export default function DashboardPage() {
                     )}
                 </AnimatePresence>
 
-                {/* --- EDIT PROFILE MODAL --- */}
                 <AnimatePresence>
                     {isEditProfileModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -1076,11 +1056,10 @@ export default function DashboardPage() {
 
                                 <div className="space-y-6">
 
-                                    {/* Profile Image */}
                                     <div className="flex flex-col items-center gap-4">
                                         <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#FDE68A] shadow-lg group">
                                             <img
-                                                src={editForm.image || editForm.avatar || user?.imageUrl}
+                                                src={editForm.image || editForm.avatar || user?.avatar}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />
@@ -1092,9 +1071,7 @@ export default function DashboardPage() {
                                         <p className="text-xs text-stone-400 font-bold uppercase tracking-widest">{TEXT.labelImage}</p>
                                     </div>
 
-                                    {/* FIELDS */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {/* Name */}
                                         {isMonk ? (
                                             <>
                                                 <div className="space-y-1">
@@ -1111,17 +1088,13 @@ export default function DashboardPage() {
                                                 </div>
                                             </>
                                         ) : (
-                                            // Client Name (Usually single field but we support MN/EN for consistency if needed, but lets stick to simple if client)
-                                            // Dashboard uses profile.name.mn/en. If client is "temp", it constructs from user.fullName.
-                                            // If we save, we should save consistent structure.
                                             <>
                                                 <div className="space-y-1 col-span-2">
                                                     <label className="text-xs font-bold uppercase text-[#D97706]">{language === 'mn' ? TEXT.labelNameMN : TEXT.labelNameEN}</label>
-                                                    {/* We update both EN and MN for client to keep it simple or just update the one matching lang */}
-                                                    <input className="w-full p-3 border rounded-xl" value={editForm.name?.mn || editForm.name?.en || ""}
+                                                    <input className="w-full p-3 border rounded-xl" value={editForm.firstName || editForm.name?.mn || editForm.name?.en || ""}
                                                         onChange={e => {
                                                             const val = e.target.value;
-                                                            setEditForm({ ...editForm, name: { mn: val, en: val } });
+                                                            setEditForm({ ...editForm, firstName: val, name: { mn: val, en: val } });
                                                         }}
                                                     />
                                                 </div>
@@ -1132,7 +1105,6 @@ export default function DashboardPage() {
                                             </>
                                         )}
 
-                                        {/* Monk Specific Fields */}
                                         {isMonk && (
                                             <>
                                                 <div className="space-y-1">
