@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Save, Plus, Trash2 } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 interface MonkEditModalProps {
   monk: any;
@@ -124,7 +125,17 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
 
                 <div className="col-span-full">
                   <InputGroup label="Зураг (URL)" value={formData.image} onChange={(v: string) => handleChange("image", v)} />
-                  {formData.image && <img src={formData.image} alt="Preview" className="w-20 h-20 rounded-xl mt-2 object-cover border-2 border-amber-500" />}
+                  {formData.image && (
+                    <div className="relative w-20 h-20 mt-2">
+                      <Image
+                        src={formData.image}
+                        alt="Preview"
+                        fill
+                        className="rounded-xl object-cover border-2 border-amber-500"
+                        sizes="80px"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-span-full flex items-center gap-3 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">

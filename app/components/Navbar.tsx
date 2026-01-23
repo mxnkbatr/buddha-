@@ -54,7 +54,6 @@ export default function OverlayNavbar() {
     { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
     { name: { mn: "Бүтээл", en: "Blog" }, href: "/blog" },
     { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
-    { name: { mn: "Заавар", en: "Guide" }, href: "/guide" },
   ];
 
   const mobileNav = [
@@ -62,7 +61,6 @@ export default function OverlayNavbar() {
     { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
     { id: "blog", icon: Feather, href: "/blog", label: { mn: "Бүтээл", en: "Blog" } },
     { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" } },
-    { id: "guide", icon: BookOpen, href: "/guide", label: { mn: "Заавар", en: "Guide" } },
     { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
   ];
 

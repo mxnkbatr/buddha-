@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaTrash, FaBlog, FaSpinner, FaImage, FaTimes, FaPen } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface ContentManagerProps {
     blogs: any[];
@@ -140,11 +141,21 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                         <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Cover Image</label>
                                         <div onClick={() => fileInputRef.current?.click()} className={`border-2 border-dashed border-stone-300 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-stone-50 transition-colors ${uploadingImage && 'opacity-50'}`}>
                                             {uploadingImage ? <FaSpinner className="animate-spin text-2xl text-[#D97706]" /> :
-                                                formData.imageUrl ? <img src={formData.imageUrl} className="w-full h-full object-cover rounded-2xl" /> :
+                                                formData.imageUrl ? (
+                                                    <div className="relative w-full h-full">
+                                                        <Image
+                                                            src={formData.imageUrl}
+                                                            alt="Cover Preview"
+                                                            fill
+                                                            className="object-cover rounded-2xl"
+                                                            sizes="(max-width: 768px) 100vw, 800px"
+                                                        />
+                                                    </div>
+                                                ) : (
                                                     <div className="text-center text-stone-400">
                                                         <FaImage className="text-3xl mx-auto mb-2" />
                                                         <span className="font-bold">Click to Upload Image</span>
-                                                    </div>}
+                                                    </div>)}
                                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
                                         </div>
                                     </div>
@@ -188,8 +199,18 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                         {blogs.map((item: any) => (
                             <tr key={item._id || item.id} className="hover:bg-stone-50/50 transition-colors group">
                                 <td className="p-6 w-32">
-                                    <div className="w-20 h-14 bg-stone-100 rounded-xl border border-stone-200 overflow-hidden">
-                                        {item.cover || item.thumbnail ? (<img src={item.cover || item.thumbnail} className="w-full h-full object-cover" />) : (<div className="flex items-center justify-center h-full text-stone-300"><FaImage /></div>)}
+                                    <div className="w-20 h-14 bg-stone-100 rounded-xl border border-stone-200 overflow-hidden relative">
+                                        {(item.cover || item.thumbnail) ? (
+                                            <Image
+                                                src={item.cover || item.thumbnail}
+                                                alt={item.title?.mn || "Blog Thumbnail"}
+                                                fill
+                                                className="object-cover"
+                                                sizes="80px"
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-stone-300"><FaImage /></div>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="p-6">
