@@ -24,6 +24,7 @@ const lato = Lato({
 })
 
 export const metadata = {
+  metadataBase: new URL('https://gevabal.mn'),
   title: 'Gevabal - Spiritual Guidance',
   description: 'Book spiritual consultations with experienced monks',
   icons: {
@@ -53,6 +54,7 @@ export default function RootLayout({
               <link rel="preconnect" href="https://www.transparenttextures.com" />
               <link rel="preconnect" href="https://clerk-telemetry.com" />
               <link rel="preconnect" href="https://img.clerk.com" />
+              <link rel="canonical" href="https://gevabal.mn" />
             </head>
             <body className={`${playfair.variable} ${lato.variable} font-sans`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>

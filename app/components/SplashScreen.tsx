@@ -54,9 +54,10 @@ export default function SplashScreen() {
                                     src="/logo.png"
                                     alt="Gevabal Logo"
                                     fill
-                                    sizes="(max-width: 768px) 128px, 160px"
+                                    sizes="(max-width: 768px) 110px, 140px"
                                     className="object-contain"
                                     priority
+                                    loading="eager"
                                 />
                             </div>
                         </motion.div>

@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
+  trailingSlash: false,
+  skipMiddlewareUrlNormalize: true,
   images: {
     remotePatterns: [
       {
