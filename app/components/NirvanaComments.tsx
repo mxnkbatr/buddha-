@@ -8,7 +8,7 @@ import {
   useSpring,
   useMotionTemplate,
   useMotionValue,
-  useTransform
+  useTransform,
 } from "framer-motion";
 import {
   Sparkles,
@@ -16,14 +16,25 @@ import {
   Sun,
   Orbit,
   Star,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Comment } from "@/database/types";
 
+// --- TYPES ---
+interface CelestialAtmosphereProps {
+  isDark: boolean;
+}
+
+interface ArcanaCardProps {
+  comment: Comment;
+  index: number;
+  isDark: boolean;
+}
+
 // --- ZODIAC GALAXY ATMOSPHERE ---
-const CelestialAtmosphere = React.memo(({ isDark }: { isDark: boolean }) => (
+const CelestialAtmosphere = React.memo(({ isDark }: CelestialAtmosphereProps) => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
     <div className={`absolute inset-0 transition-opacity duration-1000 ${isDark ? "bg-[#05051a] opacity-100" : "bg-[#FDFBF7] opacity-100"
       }`} />
@@ -94,7 +105,7 @@ const STATIC_COMMENTS: Comment[] = [
 ];
 
 export default function CelestialRiverComments() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage(); // Fixed: Added language here
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [comments, setComments] = useState<Comment[]>(STATIC_COMMENTS);
@@ -126,7 +137,6 @@ export default function CelestialRiverComments() {
 
     const displayName = user ? (user.firstName || user.name?.mn || user.name?.en || user.phone || "You") : "Pilgrim";
 
-    // Simulate adding a comment
     const newEntry: Comment = {
       _id: Date.now().toString(),
       authorName: displayName,
@@ -157,7 +167,6 @@ export default function CelestialRiverComments() {
 
       <div className="relative z-10 container mx-auto px-4 lg:px-12 flex flex-col h-full">
 
-        {/* ================= HEADER ================= */}
         <div className="text-center mb-24 relative">
           <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="inline-block mb-6">
             <div className={`p-4 rounded-full border shadow-2xl transition-all duration-700 ${isDark ? "bg-[#0C164F]/60 border-cyan-400/50 text-cyan-300" : "bg-white border-amber-200 text-amber-500"
@@ -176,7 +185,6 @@ export default function CelestialRiverComments() {
           </div>
         </div>
 
-        {/* ================= INPUT SEAL ================= */}
         <div className="relative max-w-2xl w-full mx-auto mb-32 z-20" onMouseMove={handleMouseMove}>
           <motion.div className="absolute -inset-20 opacity-40 blur-3xl z-0 pointer-events-none" style={{ background: glowTemplate }} />
 
@@ -186,8 +194,11 @@ export default function CelestialRiverComments() {
               {isDark ? <Sparkles className="text-[#C72075]" size={24} /> : <Flower className="text-amber-400" size={24} />}
             </div>
             <input
-              type="text" disabled={!user} value={newComment} onChange={(e) => setNewComment(e.target.value)}
-              placeholder={!user ? (language === 'mn' ? "Нэвтэрч сэтгэгдэл үлдээнэ үү" : "Please login to comment") : (isDark ? "Write your star sign..." : "Сэтгэгдэл бичих...")}
+              type="text" 
+              disabled={!user} 
+              value={newComment} 
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={!user ? t({ mn: "Нэвтэрч сэтгэгдэл үлдээнэ үү", en: "Please login to comment" }) : (isDark ? "Write your star sign..." : "Сэтгэгдэл бичих...")}
               className={`flex-1 bg-transparent border-none outline-none font-serif text-lg h-16 ${isDark ? "text-white placeholder-cyan-400/20" : "text-[#451a03] placeholder-amber-900/20"}`}
             />
             <motion.button disabled={!user || isSubmitting} whileHover={{ scale: user ? 1.05 : 1 }} whileTap={{ scale: user ? 0.95 : 1 }} className={`px-10 py-5 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-2xl flex items-center gap-3 transition-all ${!user ? "bg-stone-200 text-stone-400 cursor-not-allowed" : isDark ? "bg-gradient-to-r from-[#C72075] to-[#7B337D] text-white shadow-[#C72075]/30" : "bg-amber-500 text-white hover:bg-amber-600"
@@ -197,7 +208,6 @@ export default function CelestialRiverComments() {
           </form>
         </div>
 
-        {/* ================= THE NEBULA CARDS ================= */}
         <div
           ref={scrollRef}
           className="flex overflow-x-auto gap-8 px-4 md:px-[20vw] py-10 hide-scrollbar scroll-smooth snap-x pb-20"
@@ -217,7 +227,7 @@ export default function CelestialRiverComments() {
 
 // --- SUB-COMPONENT: 3D NEBULA CARD ---
 
-function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: number, isDark: boolean }) {
+function ArcanaCard({ comment, index, isDark }: ArcanaCardProps) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useSpring(useTransform(y, [-100, 100], [12, -12]), { stiffness: 60, damping: 20 });
@@ -246,10 +256,8 @@ function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: numbe
           : "bg-white/95 border-amber-100 text-[#451a03] shadow-[0_20px_40px_-10px_rgba(245,158,11,0.1)]"
           }`}
       >
-        {/* Ornate Frame Inside Card */}
         <div className={`absolute inset-3 border rounded-[1.5rem] transition-colors opacity-10 pointer-events-none ${isDark ? "border-cyan-400" : "border-amber-500"}`} />
 
-        {/* Identity */}
         <div className="relative z-10 flex flex-col items-center text-center mb-8 pt-2">
           <span className={`text-[8px] font-black tracking-[0.8em] uppercase mb-6 opacity-50 transition-colors ${isDark ? 'text-cyan-300' : 'text-amber-800'}`}>
             {isDark ? "NEBULA ARCANA" : "REVIEW"} {index + 1}
@@ -268,14 +276,12 @@ function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: numbe
           </p>
         </div>
 
-        {/* Soul Message */}
         <div className="relative z-10 flex-1 flex flex-col justify-start items-center px-2 overflow-hidden">
           <p className="text-sm md:text-base font-medium leading-relaxed italic text-center opacity-80 font-serif">
             &quot;{comment.text}&quot;
           </p>
         </div>
 
-        {/* Footer Archetype */}
         <div className="relative z-10 pt-6 flex justify-between items-center opacity-40">
           <div className="h-px flex-1 bg-current mr-4" />
           <div className="flex items-center gap-2 text-[10px] font-black tracking-widest">
@@ -284,7 +290,6 @@ function ArcanaCard({ comment, index, isDark }: { comment: Comment, index: numbe
           <div className="h-px flex-1 bg-current ml-4" />
         </div>
 
-        {/* Cosmic Glare Effect */}
         <div className={`absolute inset-0 bg-linear-to-tr from-transparent ${isDark ? 'via-cyan-400/5' : 'via-amber-400/10'} to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[1.5s] pointer-events-none rounded-[2rem]`} />
       </motion.div>
     </motion.div>
