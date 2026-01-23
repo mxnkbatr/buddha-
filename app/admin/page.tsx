@@ -141,16 +141,21 @@ export default function AdminDashboard() {
         body: JSON.stringify(serviceData)
       });
 
-      if (res.ok) {
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
         await fetchAdminData();
         setIsServiceModalOpen(false);
         setEditingService(null);
+        console.log(`Service ${id ? 'updated' : 'created'} successfully:`, responseData);
       } else {
-        alert("Failed to save service");
+        const errorMessage = responseData.message || `Failed to ${id ? 'update' : 'create'} service`;
+        alert(`Error: ${errorMessage}`);
+        console.error(`Service ${id ? 'update' : 'creation'} failed:`, responseData);
       }
     } catch (e) {
-      console.error(e);
-      alert("Error saving service");
+      console.error(`Error ${id ? 'updating' : 'creating'} service:`, e);
+      alert(`Network error during service ${id ? 'update' : 'creation'}. Please try again.`);
     }
   };
 
@@ -162,15 +167,20 @@ export default function AdminDashboard() {
         body: JSON.stringify(updatedData)
       });
 
-      if (res.ok) {
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
         await fetchAdminData();
         setEditingMonk(null);
+        console.log(`Monk ${id} updated successfully:`, responseData);
       } else {
-        alert("Failed to update monk");
+        const errorMessage = responseData.message || "Failed to update monk";
+        alert(`Error: ${errorMessage}`);
+        console.error(`Monk update failed:`, responseData);
       }
     } catch (e) {
-      console.error(e);
-      alert("Error updating monk");
+      console.error("Error updating monk:", e);
+      alert("Network error during monk update. Please try again.");
     }
   };
 
@@ -182,15 +192,20 @@ export default function AdminDashboard() {
         body: JSON.stringify(updatedData)
       });
 
-      if (res.ok) {
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
         await fetchAdminData();
         setEditingUser(null);
+        console.log(`User ${id} updated successfully:`, responseData);
       } else {
-        alert("Failed to update user");
+        const errorMessage = responseData.message || "Failed to update user";
+        alert(`Error: ${errorMessage}`);
+        console.error(`User update failed:`, responseData);
       }
     } catch (e) {
-      console.error(e);
-      alert("Error updating user");
+      console.error("Error updating user:", e);
+      alert("Network error during user update. Please try again.");
     }
   };
 
@@ -203,9 +218,25 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
       });
-      if (res.ok) await fetchAdminData();
-    } catch (e) { console.error(e); }
-    finally { setProcessingId(null); }
+
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
+        // Only refresh data if the operation was successful
+        await fetchAdminData();
+        console.log(`${action} operation completed successfully:`, responseData.data);
+      } else {
+        // Show error message to user
+        const errorMessage = responseData.message || `Failed to ${action} application`;
+        alert(`Error: ${errorMessage}`);
+        console.error(`${action} operation failed:`, responseData);
+      }
+    } catch (e) {
+      console.error(`Error during ${action} operation:`, e);
+      alert(`Network error during ${action} operation. Please try again.`);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   // 2. Delete User
@@ -214,8 +245,25 @@ export default function AdminDashboard() {
     setProcessingId(userId);
     try {
       const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-      if (res.ok) setData((prev) => prev ? ({ ...prev, users: prev.users.filter(u => u._id !== userId) }) : null);
-    } catch (e) { console.error(e); } finally { setProcessingId(null); }
+
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
+        // Only refresh data if the operation was successful
+        await fetchAdminData();
+        console.log(`User deletion completed successfully:`, responseData);
+      } else {
+        // Show error message to user
+        const errorMessage = responseData.message || "Failed to delete user";
+        alert(`Error: ${errorMessage}`);
+        console.error(`User deletion failed:`, responseData);
+      }
+    } catch (e) {
+      console.error("Error during user deletion:", e);
+      alert("Network error during user deletion. Please try again.");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   // 3. Approve/Reject/Delete Services
@@ -228,14 +276,24 @@ export default function AdminDashboard() {
         body: JSON.stringify({ action })
       });
 
-      if (res.ok && data) {
-        const updatedServices = data.services.map(s =>
-          s.id === serviceId ? { ...s, status: action === 'approve' ? 'active' : 'rejected' } : s
-        );
-        setData({ ...data, services: updatedServices });
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
+        // Only refresh data if the operation was successful
+        await fetchAdminData();
+        console.log(`Service ${action} operation completed successfully:`, responseData.data);
+      } else {
+        // Show error message to user
+        const errorMessage = responseData.message || `Failed to ${action} service`;
+        alert(`Error: ${errorMessage}`);
+        console.error(`Service ${action} operation failed:`, responseData);
       }
-    } catch (e) { console.error(e); }
-    finally { setProcessingId(null); }
+    } catch (e) {
+      console.error(`Error during service ${action} operation:`, e);
+      alert(`Network error during service ${action} operation. Please try again.`);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const handleDeleteService = async (serviceId: string) => {
@@ -243,10 +301,25 @@ export default function AdminDashboard() {
     setProcessingId(serviceId);
     try {
       const res = await fetch(`/api/admin/services/${serviceId}`, { method: 'DELETE' });
-      if (res.ok && data) {
-        setData({ ...data, services: data.services.filter(s => s.id !== serviceId) });
+
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
+        // Only refresh data if the operation was successful
+        await fetchAdminData();
+        console.log(`Service deletion completed successfully:`, responseData.data);
+      } else {
+        // Show error message to user
+        const errorMessage = responseData.message || "Failed to delete service";
+        alert(`Error: ${errorMessage}`);
+        console.error(`Service deletion failed:`, responseData);
       }
-    } catch (e) { console.error(e); } finally { setProcessingId(null); }
+    } catch (e) {
+      console.error("Error during service deletion:", e);
+      alert("Network error during service deletion. Please try again.");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   // 4. Handle Bookings
@@ -258,11 +331,25 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: action })
       });
-      if (res.ok && data) {
-        const updatedBookings = data.bookings.map(b => b._id === bookingId ? { ...b, status: action } : b);
-        setData({ ...data, bookings: updatedBookings });
+
+      const responseData = await res.json();
+
+      if (res.ok && responseData.success) {
+        // Only refresh data if the operation was successful
+        await fetchAdminData();
+        console.log(`Booking ${action} operation completed successfully:`, responseData);
+      } else {
+        // Show error message to user
+        const errorMessage = responseData.message || `Failed to ${action} booking`;
+        alert(`Error: ${errorMessage}`);
+        console.error(`Booking ${action} operation failed:`, responseData);
       }
-    } catch (e) { console.error(e); } finally { setProcessingId(null); }
+    } catch (e) {
+      console.error(`Error during booking ${action} operation:`, e);
+      alert(`Network error during booking ${action} operation. Please try again.`);
+    } finally {
+      setProcessingId(null);
+    }
   }
 
   // Filters with Rust WASM

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { Resend } from "resend";
+import { executeAdminOperation, validateAdminAccess, validateUserData, checkDataConsistency } from "@/lib/admin-utils";
+import { currentUser } from "@clerk/nextjs/server";
+import { logSuccess, logFailure, createOperationContext } from "@/lib/admin-logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -12,26 +15,149 @@ type Props = {
 export async function PATCH(request: Request, props: Props) {
     try {
         const { id } = await props.params;
-        const { action } = await request.json();
 
+        // 1. Validate ID
         if (!ObjectId.isValid(id)) {
-            return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+            return NextResponse.json({
+                success: false,
+                message: "Invalid application ID format",
+                error: "INVALID_ID_FORMAT"
+            }, { status: 400 });
         }
 
-        const { db } = await connectToDatabase();
+        // 2. Parse and validate request body
+        let body;
+        try {
+            body = await request.json();
+        } catch (parseError) {
+            return NextResponse.json({
+                success: false,
+                message: "Invalid JSON in request body",
+                error: "INVALID_JSON"
+            }, { status: 400 });
+        }
 
-        // 1. Fetch the applicant data
-        const applicant = await db.collection("users").findOne({ _id: new ObjectId(id) });
+        const { action } = body;
+
+        if (!action || !['approve', 'reject'].includes(action)) {
+            return NextResponse.json({
+                success: false,
+                message: "Invalid action. Must be 'approve' or 'reject'",
+                error: "INVALID_ACTION"
+            }, { status: 400 });
+        }
+
+        // 3. Connect to database
+        let db;
+        try {
+            const connection = await connectToDatabase();
+            db = connection.db;
+        } catch (dbError) {
+            console.error("Database connection failed:", dbError);
+            return NextResponse.json({
+                success: false,
+                message: "Database connection failed",
+                error: "DATABASE_CONNECTION_ERROR"
+            }, { status: 500 });
+        }
+
+        // 4. Fetch the applicant data
+        let applicant;
+        try {
+            applicant = await db.collection("users").findOne({ _id: new ObjectId(id) });
+        } catch (fetchError: any) {
+            console.error("Failed to fetch applicant:", fetchError);
+            return NextResponse.json({
+                success: false,
+                message: "Failed to fetch applicant data",
+                error: "APPLICANT_FETCH_FAILED",
+                details: fetchError.message
+            }, { status: 500 });
+        }
 
         if (!applicant) {
-            return NextResponse.json({ message: "User not found" }, { status: 404 });
+            return NextResponse.json({
+                success: false,
+                message: "Applicant not found",
+                error: "APPLICANT_NOT_FOUND"
+            }, { status: 404 });
+        }
+
+        // 5. Check admin access
+        const user = await currentUser();
+        if (!user || !await validateAdminAccess(user.id)) {
+            logFailure(
+                createOperationContext("Application Processing", user?.id, id, "application"),
+                `Unauthorized ${action} attempt`,
+                "INSUFFICIENT_PERMISSIONS"
+            );
+            return NextResponse.json({
+                success: false,
+                message: "Unauthorized - Admin access required",
+                error: "INSUFFICIENT_PERMISSIONS"
+            }, { status: 401 });
+        }
+
+        // 6. Validate applicant state
+        if (applicant.role === 'monk' && applicant.monkStatus === 'approved') {
+            logFailure(
+                createOperationContext("Application Processing", user.id, id, "application"),
+                "approve already approved applicant",
+                "ALREADY_APPROVED"
+            );
+            return NextResponse.json({
+                success: false,
+                message: "Applicant is already approved as a monk",
+                error: "ALREADY_APPROVED"
+            }, { status: 400 });
+        }
+
+        // 7. Data consistency check
+        const consistency = await checkDataConsistency('approve_monk', { userId: id });
+        if (!consistency.consistent) {
+            console.warn("Data consistency warnings for monk approval:", consistency.warnings);
+            // Log warnings but proceed with operation
+        }
+
+        // 8. Validate applicant data completeness
+        const applicantValidation = validateUserData(applicant);
+        if (!applicantValidation.valid) {
+            logFailure(
+                createOperationContext("Application Processing", user.id, id, "application"),
+                "approve applicant with invalid data",
+                applicantValidation.errors.join(", ")
+            );
+            return NextResponse.json({
+                success: false,
+                message: "Applicant data is incomplete or invalid",
+                error: "INVALID_APPLICANT_DATA",
+                details: applicantValidation.errors
+            }, { status: 400 });
         }
 
         if (action === 'approve') {
-            // --- A. Database Updates ---
+            // --- A. Database Updates with Transaction-like Behavior ---
 
-            // Fetch all services from the services collection
-            const allServices = await db.collection("services").find({}).toArray();
+            const operationContext = createOperationContext("Application Processing", user.id, id, "application");
+
+            // 8. Fetch all services from the services collection
+            let allServices;
+            try {
+                allServices = await db.collection("services").find({}).toArray();
+            } catch (servicesFetchError: any) {
+                console.error("Failed to fetch services:", servicesFetchError);
+                logFailure(
+                    operationContext,
+                    `Failed to fetch services for ${action}`,
+                    servicesFetchError.message
+                );
+                return NextResponse.json({
+                    success: false,
+                    message: "Failed to fetch available services",
+                    error: "SERVICES_FETCH_FAILED",
+                    details: servicesFetchError.message
+                }, { status: 500 });
+            }
 
             // Map services to the format expected in user.services array
             const serviceRefs = allServices.map((svc: any) => ({
@@ -42,50 +168,82 @@ export async function PATCH(request: Request, props: Props) {
                 status: 'active'
             }));
 
-            // 2. Update User Role in 'users' collection and assign ALL services
-            await db.collection("users").updateOne(
-                { _id: new ObjectId(id) },
-                {
-                    $set: {
-                        role: "monk",
-                        monkStatus: "approved",
-                        services: serviceRefs, // Assign all services
-                        updatedAt: new Date()
-                    }
-                }
-            );
-
-            // 3. Create or Update Public Profile in 'monks' collection
-            // We map fields from the User document (filled during onboarding) to the Monk document
+            // 9. Execute monk approval as a transactional operation
             const monkProfile = {
                 userId: applicant._id,
                 clerkId: applicant.clerkId,
-                email: applicant.email, // Useful for booking notifications
+                email: applicant.email,
                 name: applicant.name || { mn: "", en: "" },
                 title: applicant.title || { mn: "", en: "" },
                 image: applicant.image || "",
                 bio: applicant.bio || { mn: "", en: "" },
                 specialties: applicant.specialties || [],
-                services: applicant.services || [],
+                services: serviceRefs,
                 yearsOfExperience: applicant.yearsOfExperience || 0,
                 education: applicant.education || { mn: "", en: "" },
                 philosophy: applicant.philosophy || { mn: "", en: "" },
-                rating: 5.0, // Default starting rating
+                rating: 5.0,
                 isAvailable: true,
                 isVerified: true,
-                schedule: [], // Empty schedule to start
+                schedule: [],
                 blockedSlots: [],
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
 
-            await db.collection("monks").updateOne(
-                { userId: applicant._id },
-                { $set: monkProfile },
-                { upsert: true }
+            const approvalResult = await executeAdminOperation(
+                `Monk Approval for ${applicant._id}`,
+                [
+                    // Update user role and services
+                    {
+                        collection: "users",
+                        operation: "update",
+                        query: { _id: new ObjectId(id) },
+                        data: {
+                            $set: {
+                                role: "monk",
+                                monkStatus: "approved",
+                                services: serviceRefs,
+                                updatedAt: new Date()
+                            }
+                        }
+                    },
+                    // Create/update monk profile
+                    {
+                        collection: "monks",
+                        operation: "update",
+                        query: { userId: applicant._id },
+                        data: { $set: monkProfile },
+                        options: { upsert: true }
+                    }
+                ]
+            );
+
+            if (!approvalResult.success) {
+                logFailure(
+                    operationContext,
+                    "approve application",
+                    approvalResult.error || "Unknown error during approval"
+                );
+                return NextResponse.json({
+                    success: false,
+                    message: "Failed to approve monk application",
+                    error: "MONK_APPROVAL_FAILED",
+                    details: approvalResult.error
+                }, { status: 500 });
+            }
+
+            logSuccess(
+                operationContext,
+                "approve application",
+                {
+                    servicesAssigned: serviceRefs.length,
+                    monkProfileCreated: true
+                }
             );
 
             // --- B. Send Approval Email ---
+            let emailSent = false;
             if (applicant.email) {
                 try {
                     // Determine the name to greet them with (English or first available)
@@ -100,26 +258,26 @@ export async function PATCH(request: Request, props: Props) {
                             <div style="text-align: center; margin-bottom: 20px;">
                                 <h1 style="color: #D97706; margin: 0;">Welcome to the Sangha</h1>
                             </div>
-                            
+
                             <p>Dear <strong>${greetingName}</strong>,</p>
-                            
+
                             <p>We are honored to accept your application. Your profile has been reviewed and is now <strong>live</strong> on the Nirvana platform.</p>
-                            
+
                             <p>You can now log in to your dashboard to:</p>
                             <ul>
                                 <li>Set your weekly schedule</li>
                                 <li>Manage your service offerings</li>
                                 <li>Accept rituals and video calls</li>
                             </ul>
-                            
+
                             <br/>
-                            
+
                             <div style="text-align: center;">
                                 <a href="${process.env.NEXT_PUBLIC_URL}/dashboard" style="background-color: #D97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
                                     Go to Dashboard
                                 </a>
                             </div>
-                            
+
                             <br/><br/>
                             <hr style="border: 0; border-top: 1px solid #eee;" />
                             <p style="font-size: 12px; color: #888; text-align: center;">
@@ -129,33 +287,86 @@ export async function PATCH(request: Request, props: Props) {
                         </div>
                     `
                     });
+                    emailSent = true;
                     console.log(`Approval email sent to ${applicant.email}`);
                 } catch (emailError) {
                     console.error("Failed to send approval email:", emailError);
-                    // Note: We do NOT throw error here, so the database update remains successful even if email fails
+                    // Note: We do NOT fail the operation here, so the database update remains successful even if email fails
                 }
             }
 
-            return NextResponse.json({ message: "Approved and email sent" });
+            // 8. Log successful approval
+            console.log(`Applicant ${id} approved successfully:`, {
+                userId: id,
+                email: applicant.email,
+                servicesAssigned: serviceRefs.length,
+                emailSent
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: "Application approved successfully",
+                data: {
+                    applicantId: id,
+                    newRole: "monk",
+                    servicesAssigned: serviceRefs.length,
+                    emailSent,
+                    monkProfileCreated: true
+                }
+            });
 
         } else if (action === 'reject') {
-            // --- Handle Rejection ---
+            // --- Handle Rejection with Transaction-like Behavior ---
 
-            // 1. Update User Status
-            await db.collection("users").updateOne(
-                { _id: new ObjectId(id) },
-                {
-                    $set: {
-                        monkStatus: "rejected",
-                        updatedAt: new Date()
+            const operationContext = createOperationContext("Application Processing", user.id, id, "application");
+
+            // 6. Execute monk rejection as a transactional operation
+            const rejectionResult = await executeAdminOperation(
+                `Monk Rejection for ${applicant._id}`,
+                [
+                    // Update user status
+                    {
+                        collection: "users",
+                        operation: "update",
+                        query: { _id: new ObjectId(id) },
+                        data: {
+                            $set: {
+                                monkStatus: "rejected",
+                                updatedAt: new Date()
+                            }
+                        }
+                    },
+                    // Remove monk profile if it exists (cleanup)
+                    {
+                        collection: "monks",
+                        operation: "delete",
+                        query: { userId: new ObjectId(id) }
                     }
-                }
+                ]
             );
 
-            // 2. Remove from 'monks' collection if it exists (cleanup)
-            await db.collection("monks").deleteOne({ userId: new ObjectId(id) });
+            if (!rejectionResult.success) {
+                logFailure(
+                    operationContext,
+                    "reject application",
+                    rejectionResult.error || "Unknown error during rejection"
+                );
+                return NextResponse.json({
+                    success: false,
+                    message: "Failed to reject monk application",
+                    error: "MONK_REJECTION_FAILED",
+                    details: rejectionResult.error
+                }, { status: 500 });
+            }
 
-            // 3. Send Rejection Email
+            logSuccess(
+                operationContext,
+                "reject application",
+                { monkProfileCleaned: true }
+            );
+
+            // 8. Send Rejection Email
+            let emailSent = false;
             if (applicant.email) {
                 try {
                     const greetingName = applicant.name?.en || applicant.name?.mn || "Applicant";
@@ -175,19 +386,48 @@ export async function PATCH(request: Request, props: Props) {
                         </div>
                     `
                     });
+                    emailSent = true;
                     console.log(`Rejection email sent to ${applicant.email}`);
                 } catch (emailError) {
                     console.error("Failed to send rejection email:", emailError);
+                    // Don't fail operation for email errors
                 }
             }
 
-            return NextResponse.json({ message: "Application rejected" });
+            // 9. Log successful rejection
+            console.log(`Applicant ${id} rejected successfully:`, {
+                userId: id,
+                email: applicant.email,
+                emailSent,
+                monkProfileCleaned: true
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: "Application rejected successfully",
+                data: {
+                    applicantId: id,
+                    newStatus: "rejected",
+                    emailSent,
+                    monkProfileCleaned: true
+                }
+            });
         }
 
-        return NextResponse.json({ message: "Invalid action" }, { status: 400 });
+        // Invalid action
+        return NextResponse.json({
+            success: false,
+            message: "Invalid action specified",
+            error: "INVALID_ACTION"
+        }, { status: 400 });
 
     } catch (error: any) {
-        console.error("Admin PATCH Error:", error);
-        return NextResponse.json({ message: "Server Error", error: error.message }, { status: 500 });
+        console.error("Admin Application PATCH Error:", error);
+        return NextResponse.json({
+            success: false,
+            message: "Internal server error during application processing",
+            error: "INTERNAL_SERVER_ERROR",
+            details: error.message
+        }, { status: 500 });
     }
 }
