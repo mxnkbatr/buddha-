@@ -47,6 +47,7 @@ export default function Hero() {
         <OptimizedVideo
           id="hero-video"
           src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133484/video_kakyvu.mp4"
+          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto,f_auto,c_limit,w_1920,h_1080,so_0/video_kakyvu.jpg"
           width={1920}
           height={1080}
           className="hidden md:block w-full h-full object-cover brightness-90 md:brightness-100"
@@ -68,6 +69,7 @@ export default function Hero() {
           {/* Main Title with Highlight */}
           <h1
             className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu animate-fade-in-right"
+            style={{ textRendering: 'optimizeLegibility' }}
           >
             <span className="text-[#FFB84D]">{content.highlight}</span> {content.main}
           </h1>

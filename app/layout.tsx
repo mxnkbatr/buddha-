@@ -45,9 +45,12 @@ export default function RootLayout({
           <html lang="en" suppressHydrationWarning>
             <head>
               <link rel="preconnect" href="https://res.cloudinary.com" />
+              <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+              <link rel="preconnect" href="https://fonts.googleapis.com" />
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
               <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
+              <link rel="dns-prefetch" href="https://grainy-gradients.vercel.app" />
               <link rel="preconnect" href="https://www.transparenttextures.com" />
-              <link rel="preconnect" href="https://i.pravatar.cc" />
               <link rel="preconnect" href="https://clerk-telemetry.com" />
               <link rel="preconnect" href="https://img.clerk.com" />
             </head>

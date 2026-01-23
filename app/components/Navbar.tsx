@@ -78,6 +78,7 @@ export default function OverlayNavbar() {
           height={44}
           className="w-full h-full object-cover rounded-full"
           priority
+          loading="eager"
         />
       </div>
 

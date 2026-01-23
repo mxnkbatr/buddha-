@@ -313,7 +313,8 @@ function ActualAboutContent() {
                   <div className="aspect-[4/5] relative">
                     <OptimizedVideo
                       id="philosophy-video"
-                      src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133950/num2_ocygii.mp4"
+                      src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133311/num2_ocygii.mp4"
+                      poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto,f_auto,c_limit,w_800,h_1000,so_0/num2_ocygii.jpg"
                       width={800}
                       height={1000}
                       className="w-full h-full object-cover transition-all duration-1000 ease-out"
