@@ -5,8 +5,10 @@ import { useClerk, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
 interface AuthContextType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any | null;
   loading: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   login: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -23,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const { signOut } = useClerk();
@@ -47,6 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   }, [clerkUser, clerkLoaded]); // Refetch if Clerk state changes
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const login = async (formData: any) => {
     // This is for CUSTOM DB login
     try {

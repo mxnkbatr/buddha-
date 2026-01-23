@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         } 
     });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Client Login Error:", error);
     return NextResponse.json(

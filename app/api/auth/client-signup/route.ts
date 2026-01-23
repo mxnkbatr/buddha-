@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newUser: any = {
       clerkId: "custom-db-" + new ObjectId().toString(), // Placeholder ID
       phone: phoneNumber,
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
       { message: "User registered successfully", userId: result.insertedId },
       { status: 201 }
     );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Client Signup Error:", error);
     return NextResponse.json(

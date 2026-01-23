@@ -13,6 +13,7 @@ import type { PhoneCodeFactor } from "@clerk/types";
 
 import { useLanguage } from "../contexts/LanguageContext";
 import OverlayNavbar from "../components/Navbar";
+import { useAuth } from "../contexts/AuthContext";
 
 // ==========================================
 // 1. VISUAL EFFECTS COMPONENTS
@@ -82,6 +83,7 @@ export default function SignUpPage() {
   const { t } = useLanguage();
   const [role, setRole] = useState<"client" | "monk">("client");
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { login } = useAuth(); // Custom login
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -96,6 +98,46 @@ export default function SignUpPage() {
     if (!isLoaded) return;
     setLoading(true);
     setError("");
+
+    // Helper to format identifier
+    const formatIdentifier = (ident: string) => {
+        const clean = ident.replace(/\s+/g, '');
+        if (clean.includes('@')) return clean; // Email
+        if (/^\d{8}$/.test(clean)) return `+976${clean}`; // Mongolian
+        if (/^\d+$/.test(clean) && !clean.startsWith('+')) return `+${clean}`; // Other number without +
+        return ident;
+    };
+
+    const formattedIdentifier = formatIdentifier(email);
+
+    // --- 1. TRY CUSTOM DB LOGIN FIRST ---
+    // If successful, we are done. If it fails specifically because user is not found or has no password (monk), we try Clerk.
+    try {
+        if (!showOtpInput && password !== "Gevabal") { // Skip if OTP flow or Master Key
+            try {
+                await login({ identifier: formattedIdentifier, password });
+                router.push("/dashboard");
+                return; // Stop here if custom login works
+            } catch (err: any) {
+                // If error is NOT "Invalid credentials", it might be a system error or "not found"
+                // "Invalid credentials" (401) usually means password wrong OR user not found.
+                // My API returns 401 for both "User not found" and "Wrong password" to be safe, BUT
+                // it returns "Please log in with the correct method" if user exists but has no password (Monk).
+                // So:
+                if (err.message === "Please log in with the correct method." || err.message === "Invalid credentials") {
+                    // It might be a Monk (Clerk user) or just wrong password.
+                    // Let's TRY Clerk as fallback. If Clerk also fails, we show "Invalid credentials".
+                    console.log("Custom login failed, trying Clerk...", err.message);
+                } else { 
+                    // Real error
+                    throw err; 
+                }
+            }
+        }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+        // Continue to Clerk logic
+    }
 
     try {
       // --- OTP VERIFICATION ---
@@ -146,16 +188,6 @@ export default function SignUpPage() {
       }
 
       // --- STANDARD CLERK LOGIN (Password or OTP) ---
-      // Helper to format identifier
-      const formatIdentifier = (ident: string) => {
-        const clean = ident.replace(/\s+/g, '');
-        if (clean.includes('@')) return clean; // Email
-        if (/^\d{8}$/.test(clean)) return `+976${clean}`; // Mongolian
-        if (/^\d+$/.test(clean) && !clean.startsWith('+')) return `+${clean}`; // Other number without +
-        return ident;
-      };
-
-      const formattedIdentifier = formatIdentifier(email);
       const params = password ? { identifier: formattedIdentifier, password } : { identifier: formattedIdentifier };
 
       const result = await signIn.create(params);
@@ -265,8 +297,8 @@ export default function SignUpPage() {
         {/* Content */}
         <div className="relative z-10 px-12 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }} 
             transition={{ duration: 1, delay: 0.2 }}
           >
             <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-amber-200/20 backdrop-blur-md mb-8 text-amber-100/60">

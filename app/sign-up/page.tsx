@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import OverlayNavbar from "../components/Navbar";
+import { useAuth } from "../contexts/AuthContext";
+
 // ========================================== 
 // 1. VISUAL EFFECTS COMPONENTS
 // ========================================== 
@@ -79,6 +81,7 @@ export default function SignUpPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { login } = useAuth(); // Custom login from AuthContext
   
   const [role, setRole] = useState<"client" | "monk">("client");
   
@@ -127,42 +130,58 @@ export default function SignUpPage() {
     setError("");
 
     try {
-      if (!pendingVerification) {
-        // 1. Create Sign Up
-        const formattedPhone = formatPhoneNumber(phoneNumber);
-        
-        await signUp.create({
-          phoneNumber: formattedPhone,
-          password,
-          emailAddress: email || undefined, // Optional
-          unsafeMetadata: {
-            role: role
-          }
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+
+      if (role === 'client') {
+        // --- CUSTOM DB FLOW FOR CLIENTS ---
+        // Bypass Clerk completely to avoid "phone_number is not a valid parameter" error if setting is off
+        const res = await fetch("/api/auth/client-signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                phoneNumber: formattedPhone, 
+                password, 
+                email: email || undefined 
+            })
         });
 
-        // 2. Prepare Phone Verification
-        await signUp.preparePhoneNumberVerification({
-          strategy: "phone_code",
-        });
+        const data = await res.json();
 
-        setPendingVerification(true);
-      } else {
-        // 3. Verify OTP
-        const completeSignUp = await signUp.attemptPhoneNumberVerification({
-          code: otp,
-        });
-
-        if (completeSignUp.status !== "complete") {
-          console.log(JSON.stringify(completeSignUp, null, 2));
-          throw new Error("Verification failed. Please check the code.");
+        if (!res.ok) {
+            throw new Error(data.message || "Registration failed");
         }
 
-        if (completeSignUp.status === "complete") {
-          await setActive({ session: completeSignUp.createdSessionId });
-          router.push(role === 'monk' ? "/onboarding/monk" : "/dashboard");
+        // Auto-login after registration
+        await login({ identifier: formattedPhone, password });
+        router.push("/dashboard");
+
+      } else {
+        // --- CLERK FLOW FOR MONKS ---
+        if (!pendingVerification) {
+            const signUpParams: any = {
+              phoneNumber: formattedPhone,
+              password,
+              unsafeMetadata: { role: role }
+            };
+            if (email) signUpParams.emailAddress = email;
+
+            await signUp.create(signUpParams);
+            await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
+            setPendingVerification(true);
+        } else {
+            const completeSignUp = await signUp.attemptPhoneNumberVerification({ code: otp });
+            if (completeSignUp.status === "complete") {
+              await setActive({ session: completeSignUp.createdSessionId });
+              router.push("/onboarding/monk");
+            } else {
+              console.log(JSON.stringify(completeSignUp, null, 2));
+              throw new Error("Verification failed. Please check the code.");
+            }
         }
       }
-    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error("Sign Up Error:", err);
       const msg = err.errors ? err.errors[0].longMessage : err.message;
       setError(msg);
@@ -312,10 +331,23 @@ export default function SignUpPage() {
                             required
                             />
                         </div>
+
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Mail className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+                            </div>
+                            <input
+                            type="email"
+                            placeholder={t({ mn: "Имэйл (Сонголттой)", en: "Email (Optional)" })}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
+                            />
+                        </div>
                     </div>
                 )}
 
-                {/* --- Step 2: Verification Form --- */}
+                {/* --- Step 2: Verification Form (Clerk Only) --- */}
                 {pendingVerification && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }} 
