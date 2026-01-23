@@ -16,12 +16,14 @@ import {
   LogIn,
   UserCircle,
   BookOpen,
-  Flower
+  Flower,
+  LogOut
 } from "lucide-react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CONTENT = {
   logo: { mn: "Гэвабaл", en: "Gevabal" },
@@ -37,6 +39,7 @@ export default function OverlayNavbar() {
   const { language: lang, setLanguage } = useLanguage();
   const { resolvedTheme, setTheme } = useTheme();
   const { scrollY } = useScroll();
+  const { user, logout } = useAuth();
 
   // Prevent hydration mismatch
   useEffect(() => setMounted(true), []);
@@ -122,22 +125,33 @@ export default function OverlayNavbar() {
 
             <div className="h-8 w-[1px] bg-current/10 mx-1" />
 
-            <SignedIn>
+            {user ? (
               <div className="flex items-center gap-4">
                 <Link href="/dashboard" className="text-[10px] font-black uppercase tracking-widest opacity-70 hover:opacity-100 border-b-2 border-amber-500/50">
                   {CONTENT.dashboard[lang]}
                 </Link>
-                <div className="scale-110"><UserButton /></div>
+                <div className="scale-110">
+                    {user.authType === 'clerk' ? (
+                        <UserButton />
+                    ) : (
+                        <div className="relative group">
+                            <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer">
+                                {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.firstName?.[0] || <UserCircle size={20} />}
+                            </div>
+                            <button onClick={logout} className="absolute top-full right-0 mt-2 bg-white border shadow-xl p-2 rounded-xl text-red-500 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap">
+                                <LogOut size={14} /> Log Out
+                            </button>
+                        </div>
+                    )}
+                </div>
               </div>
-            </SignedIn>
-
-            <SignedOut>
+            ) : (
               <Link href="/sign-in">
                 <button className="px-8 py-3 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-amber-900/20 transition-all active:scale-95">
                   {CONTENT.login[lang]}
                 </button>
               </Link>
-            </SignedOut>
+            )}
           </div>
         </nav>
       </motion.header>
@@ -156,7 +170,7 @@ export default function OverlayNavbar() {
 
         <div className="flex items-center gap-2 pointer-events-auto flex-shrink-0">
           {/* VERY OBVIOUS LOGIN BUTTON FOR MOBILE */}
-          <SignedOut>
+          {!user && (
             <Link href="/sign-in">
               <motion.button
                 whileTap={{ scale: 0.9 }}
@@ -165,7 +179,7 @@ export default function OverlayNavbar() {
                 {CONTENT.login[lang]}
               </motion.button>
             </Link>
-          </SignedOut>
+          )}
 
           {/* Quick Action Circle Buttons */}
           <div className="flex gap-1 p-1 rounded-full bg-black/5 backdrop-blur-md border border-white/10">
@@ -180,9 +194,15 @@ export default function OverlayNavbar() {
 
           </div>
 
-          <SignedIn>
-            <div className="ml-1 scale-125 drop-shadow-lg"><UserButton /></div>
-          </SignedIn>
+          {user && (
+            <div className="ml-1 scale-125 drop-shadow-lg">
+                {user.authType === 'clerk' ? <UserButton /> : (
+                    <Link href="/dashboard" className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-white">
+                        {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user.firstName?.[0] || <UserCircle size={16} />}
+                    </Link>
+                )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -214,17 +234,15 @@ export default function OverlayNavbar() {
                 </AnimatePresence>
 
                 <div className={`transition-all duration-300 mb-1 ${isActive ? (isDark ? "text-amber-400 scale-110" : "text-[#451a03] scale-110") : "opacity-40"}`}>
-                  <SignedIn>
-                    {item.id === 'dashboard' ? <item.icon size={22} strokeWidth={2.5} /> : <item.icon size={22} strokeWidth={2} />}
-                  </SignedIn>
-                  <SignedOut>
-                    {item.id === 'dashboard' ? <LogIn size={22} strokeWidth={2.5} /> : <item.icon size={22} strokeWidth={2} />}
-                  </SignedOut>
+                  {user ? (
+                    item.id === 'dashboard' ? <item.icon size={22} strokeWidth={2.5} /> : <item.icon size={22} strokeWidth={2} />
+                  ) : (
+                    item.id === 'dashboard' ? <LogIn size={22} strokeWidth={2.5} /> : <item.icon size={22} strokeWidth={2} />
+                  )}
                 </div>
 
                 <span className={`text-[9px] font-black uppercase tracking-tight transition-all ${isActive ? "opacity-100" : "opacity-30"}`}>
-                  <SignedIn>{item.label[lang]}</SignedIn>
-                  <SignedOut>{item.id === 'dashboard' ? CONTENT.login[lang] : item.label[lang]}</SignedOut>
+                  {user ? item.label[lang] : (item.id === 'dashboard' ? CONTENT.login[lang] : item.label[lang])}
                 </span>
               </Link>
             );

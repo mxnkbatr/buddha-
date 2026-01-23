@@ -2,12 +2,13 @@ import { ObjectId } from "mongodb";
 
 export interface User {
   _id?: ObjectId | string;
-  clerkId: string; // Links to Clerk Auth
+  clerkId: string; // Links to Clerk Auth (or 'custom-db' for direct users)
   email?: string;
   firstName?: string;
   lastName?: string;
   avatar?: string;
   phone?: string;
+  password?: string; // Hashed password for direct DB auth
 
   // Spiritual Stats
   karma: number;

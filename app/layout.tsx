@@ -8,6 +8,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
 import 'next-cloudinary/dist/cld-video-player.css';
+import { AuthProvider } from '@/contexts/AuthContext'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -40,21 +41,23 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <LanguageProvider>
-        <html lang="en" suppressHydrationWarning>
-          <head>
-            <link rel="preconnect" href="https://res.cloudinary.com" />
-            <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
-            <link rel="preconnect" href="https://www.transparenttextures.com" />
-            <link rel="preconnect" href="https://i.pravatar.cc" />
-          </head>
-          <body className={`${playfair.variable} ${lato.variable} font-sans`}>
-            <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
-              <SplashScreen />
-              {children}
-              <Footer />
-            </ThemeProvider>
-          </body>
-        </html>
+        <AuthProvider>
+          <html lang="en" suppressHydrationWarning>
+            <head>
+              <link rel="preconnect" href="https://res.cloudinary.com" />
+              <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
+              <link rel="preconnect" href="https://www.transparenttextures.com" />
+              <link rel="preconnect" href="https://i.pravatar.cc" />
+            </head>
+            <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+              <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                <SplashScreen />
+                {children}
+                <Footer />
+              </ThemeProvider>
+            </body>
+          </html>
+        </AuthProvider>
       </LanguageProvider>
     </ClerkProvider>
   )

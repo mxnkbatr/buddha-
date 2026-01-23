@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import OverlayNavbar from "../components/Navbar";
-
 // ========================================== 
 // 1. VISUAL EFFECTS COMPONENTS
 // ========================================== 
