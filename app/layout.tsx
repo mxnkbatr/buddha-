@@ -8,6 +8,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
 import { AuthProvider } from '@/contexts/AuthContext'
+import SmoothScroll from './components/SmoothScroll'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -50,6 +51,7 @@ export default function RootLayout({
             </head>
             <body className={`${playfair.variable} ${lato.variable} font-sans`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                <SmoothScroll />
                 <SplashScreen />
                 {children}
                 <Footer />
