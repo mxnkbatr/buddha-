@@ -11,7 +11,7 @@ import OverlayNavbar from "../components/Navbar";
 import { useLanguage } from "../contexts/LanguageContext";
 import LiveRitualRoom from "../components/LiveRitualRoom";
 import ChatWindow from "../components/ChatWindow";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- TYPES ---
 interface ServiceItem {
