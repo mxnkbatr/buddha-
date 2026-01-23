@@ -145,7 +145,11 @@ export default function GoldenNirvanaFooter() {
                               } border`}
                         />
                      </div>
-                     <button className={`group relative overflow-hidden px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-xl ${theme.btn}`}>
+                     <button 
+                        type="submit"
+                        aria-label={content.btnJoin}
+                        className={`group relative overflow-hidden px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-xl ${theme.btn}`}
+                     >
                         <span className="relative z-10 flex items-center justify-center gap-3">
                            {content.btnJoin} <ArrowUp size={18} className="rotate-45 group-hover:rotate-90 transition-transform" />
                         </span>
@@ -202,9 +206,9 @@ export default function GoldenNirvanaFooter() {
 
                {/* LINKS */}
                <div className="md:col-span-3">
-                  <h4 className="font-black text-[11px] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                  <h3 className="font-black text-[11px] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
                      <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-cyan-400 shadow-[0_0_8px_#50F2CE]' : 'bg-amber-500'}`} /> The Path
-                  </h4>
+                  </h3>
                   <ul className="space-y-5">
                      {['Zodiac Chart', 'Dharma Astrology', 'Nebula Rituals', 'Arcana Archive', 'The Sangha', 'How to Use'].map((name) => (
                         <li key={name}>
@@ -253,6 +257,7 @@ export default function GoldenNirvanaFooter() {
                   {/* ASCENSION BUTTON */}
                   <button
                      onClick={scrollToTop}
+                     aria-label={t({ mn: "Дээшээ буцах", en: "Scroll to top" })}
                      className={`group relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-700 hover:-translate-y-3 ${isDark ? "bg-gradient-to-t from-[#C72075] to-[#7B337D] shadow-[0_0_30px_rgba(199,32,117,0.5)]" : "bg-gradient-to-t from-[#B45309] to-[#F59E0B] shadow-xl"
                         } text-white`}
                   >

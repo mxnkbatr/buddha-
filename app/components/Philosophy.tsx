@@ -13,7 +13,8 @@ import {
   useVelocity,
   useAnimationFrame
 } from "framer-motion";
-import CountUp from "react-countup";
+import dynamic from "next/dynamic";
+const CountUp = dynamic(() => import("react-countup"), { ssr: false });
 import { TypeAnimation } from "react-type-animation";
 import {
   ArrowRight, Sparkles, Star, Target, Zap, Flower, Play, ExternalLink,
@@ -326,10 +327,11 @@ function ActualAboutContent() {
                           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                           <p className="text-[9px] uppercase tracking-widest font-bold opacity-80">{t.liveText}</p>
                         </div>
-                        <h4 className="text-2xl font-bold font-sans">Divine Wisdom</h4>
+                        <h2 className="text-2xl font-bold font-sans">Divine Wisdom</h2>
                       </div>
                       <motion.div
                         whileHover={{ scale: 1.1 }}
+                        aria-label="Divine Wisdom Action"
                         className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center bg-black/20 backdrop-blur-md cursor-pointer hover:bg-white hover:text-black transition-colors"
                       >
                         <Flower size={24} />
@@ -355,7 +357,7 @@ function ActualAboutContent() {
                 </h2>
               </motion.div>
             </div>
-            <p className={`max-w-xs text-xs uppercase tracking-widest leading-loose font-bold border-l-2 pl-6 ${theme.borderColor} ${theme.mutedText}`}>
+            <p className={`max-w-xs text-xs uppercase tracking-widest leading-loose font-bold border-l-2 pl-6 ${theme.borderColor} ${isNight ? "text-amber-100/80" : "text-[#78350F]/80"}`}>
               {t.philosophyDesc}
             </p>
           </div>
@@ -369,7 +371,7 @@ function ActualAboutContent() {
                       {React.cloneElement(p.icon as React.ReactElement, { size: 28, strokeWidth: 1.5 } as any)}
                     </div>
                     <h3 className="text-3xl font-bold mb-4 uppercase tracking-tighter">{p.title}</h3>
-                    <p className={`text-sm leading-relaxed ${theme.mutedText}`}>{p.desc}</p>
+                    <p className={`text-sm leading-relaxed ${isNight ? "text-amber-100/80" : "text-[#78350F]/80"}`}>{p.desc}</p>
                   </div>
                   <div className="mt-8 flex justify-end">
                     <ArrowUpRight className={`opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${theme.accentText}`} />
@@ -421,7 +423,7 @@ function ActualAboutContent() {
       </section>
 
       {/* --- INFINITE MARQUEE --- */}
-      <section className="py-20 border-y border-current/5 overflow-hidden relative">
+      <section className="py-20 border-y border-current/5 overflow-hidden relative" aria-hidden="true">
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[var(--bg-color)] to-transparent z-10" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[var(--bg-color)] to-transparent z-10" />
 

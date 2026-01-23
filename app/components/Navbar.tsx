@@ -170,7 +170,7 @@ export default function OverlayNavbar() {
 
               {user ? (
                 <div className="flex items-center gap-4">
-                  <Link href="/dashboard" className={`text-[10px] font-black uppercase tracking-widest border-b-2 border-transparent hover:border-amber-500 transition-all ${isDark ? "text-amber-200" : "text-slate-500 hover:text-amber-600"}`}>
+                  <Link href="/dashboard" className={`text-xs font-black uppercase tracking-widest border-b-2 border-transparent hover:border-amber-600 transition-all ${isDark ? "text-amber-200" : "text-slate-600 hover:text-amber-700"}`}>
                     {CONTENT.dashboard[lang]}
                   </Link>
                   <div className="scale-105">
@@ -178,7 +178,7 @@ export default function OverlayNavbar() {
                       <UserButton />
                     ) : (
                       <div className="relative group">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer shadow-lg shadow-amber-500/20">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 text-white flex items-center justify-center font-bold overflow-hidden cursor-pointer shadow-lg shadow-amber-600/20">
                           {user.avatar ? (
                             <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" />
                           ) : user.firstName ? (
@@ -187,7 +187,7 @@ export default function OverlayNavbar() {
                             <UserCircle size={20} />
                           )}
                         </div>
-                        <button onClick={logout} className="absolute top-full right-0 mt-3 bg-white border border-slate-100 shadow-xl p-3 rounded-2xl text-red-500 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap z-50">
+                        <button onClick={logout} className="absolute top-full right-0 mt-3 bg-white border border-slate-100 shadow-xl p-3 rounded-2xl text-red-600 text-xs font-bold hidden group-hover:flex items-center gap-2 whitespace-nowrap z-50">
                           <LogOut size={14} /> Log Out
                         </button>
                       </div>
@@ -196,7 +196,7 @@ export default function OverlayNavbar() {
                 </div>
               ) : (
                 <Link href="/sign-up">
-                  <button className="px-7 py-2.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-500 hover:to-amber-400 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all active:scale-95 hover:-translate-y-0.5">
+                  <button className="px-7 py-2.5 rounded-full bg-gradient-to-r from-amber-700 to-amber-600 hover:to-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 transition-all active:scale-95 hover:-translate-y-0.5">
                     {CONTENT.login[lang]}
                   </button>
                 </Link>
@@ -220,7 +220,7 @@ export default function OverlayNavbar() {
             <Link href="/sign-in">
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                className="px-5 h-10 rounded-full bg-amber-500 text-white text-[10px] font-black tracking-widest uppercase shadow-lg shadow-amber-500/30"
+                className="px-5 h-10 rounded-full bg-amber-600 text-white text-[10px] font-black tracking-widest uppercase shadow-lg shadow-amber-600/30"
               >
                 {CONTENT.login[lang]}
               </motion.button>
