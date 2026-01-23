@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useMotionTemplate, useMotionValue, AnimatePresence } from "framer-motion";
-import { SignUpButton, SignInButton, ClerkLoaded, ClerkLoading, useSignIn } from "@clerk/nextjs";
+import { SignInButton, ClerkLoaded, ClerkLoading, useSignIn } from "@clerk/nextjs";
 import {
   Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, KeyRound
 } from "lucide-react";
@@ -30,6 +30,7 @@ const Nebulas = () => (
 );
 
 // High-End Role Card with "Liquid" Selection
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RoleSelector = ({ role, setRole, content }: any) => (
   <div className="grid grid-cols-2 gap-4 mb-8">
     {(["client", "monk"] as const).map((r) => {
@@ -145,7 +146,17 @@ export default function SignUpPage() {
       }
 
       // --- STANDARD CLERK LOGIN (Password or OTP) ---
-      const params = password ? { identifier: email, password } : { identifier: email };
+      // Helper to format identifier
+      const formatIdentifier = (ident: string) => {
+        const clean = ident.replace(/\s+/g, '');
+        if (clean.includes('@')) return clean; // Email
+        if (/^\d{8}$/.test(clean)) return `+976${clean}`; // Mongolian
+        if (/^\d+$/.test(clean) && !clean.startsWith('+')) return `+${clean}`; // Other number without +
+        return ident;
+      };
+
+      const formattedIdentifier = formatIdentifier(email);
+      const params = password ? { identifier: formattedIdentifier, password } : { identifier: formattedIdentifier };
 
       const result = await signIn.create(params);
 
@@ -182,6 +193,7 @@ export default function SignUpPage() {
         setError("Sign in requirements not met.");
       }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Login Error:", err);
       let msg = err.errors ? err.errors[0].longMessage : err.message;
@@ -393,17 +405,14 @@ export default function SignUpPage() {
                     <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-[#FDFBF7] px-4 text-stone-400">Or</span></div>
                   </div>
 
-                  <SignUpButton
-                    mode="modal"
-                    forceRedirectUrl={role === 'monk' ? "/onboarding/monk" : "/dashboard"}
-                  >
+                  <Link href="/sign-up" className="block w-full">
                     <motion.button
                       whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.02)" }} whileTap={{ scale: 0.98 }}
                       className="w-full h-14 rounded-[1.5rem] border-2 border-stone-200 text-[#451a03] font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-colors hover:border-amber-300"
                     >
                       <UserPlus size={16} /> {content.registerBtn}
                     </motion.button>
-                  </SignUpButton>
+                  </Link>
                 </>
               )}
 

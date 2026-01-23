@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 export interface User {
   _id?: ObjectId | string;
   clerkId: string; // Links to Clerk Auth
-  email: string;
+  email?: string;
   firstName?: string;
   lastName?: string;
   avatar?: string;

@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useMotionTemplate, useMotionValue, AnimatePresence } from "framer-motion";
-import { SignUpButton, SignInButton, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
+import { ClerkLoaded, ClerkLoading, useSignUp } from "@clerk/nextjs";
 import {
-  Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, Phone
+  Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, Phone, KeyRound, Mail
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import OverlayNavbar from "../components/Navbar";
 
-// ==========================================
+// ========================================== 
 // 1. VISUAL EFFECTS COMPONENTS
-// ==========================================
+// ========================================== 
 
 const Nebulas = () => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -26,6 +27,7 @@ const Nebulas = () => (
 );
 
 // High-End Role Card with "Liquid" Selection
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RoleSelector = ({ role, setRole, content }: any) => (
   <div className="grid grid-cols-2 gap-4 mb-8">
     {(["client", "monk"] as const).map((r) => {
@@ -36,6 +38,7 @@ const RoleSelector = ({ role, setRole, content }: any) => (
           onClick={() => setRole(r)}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          type="button"
           className={`relative flex flex-col items-center justify-center py-6 rounded-[2rem] border overflow-hidden transition-all duration-300 ${isActive
             ? "border-amber-500 shadow-[0_10px_30px_-10px_rgba(245,158,11,0.4)]"
             : "border-transparent bg-white/40 hover:bg-white/60"
@@ -69,14 +72,26 @@ const RoleSelector = ({ role, setRole, content }: any) => (
   </div>
 );
 
-// ==========================================
+// ========================================== 
 // 2. MAIN PAGE
-// ==========================================
+// ========================================== 
 
 export default function SignUpPage() {
   const { t } = useLanguage();
+  const router = useRouter();
+  const { isLoaded, signUp, setActive } = useSignUp();
+  
   const [role, setRole] = useState<"client" | "monk">("client");
+  
+  // Form State
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Mouse Torch Effect
   const mouseX = useMotionValue(0);
@@ -89,18 +104,87 @@ export default function SignUpPage() {
     mouseY.set(clientY);
   };
 
+  const formatPhoneNumber = (phone: string) => {
+    // Basic cleanup
+    const clean = phone.replace(/\s+/g, '');
+    
+    // If user types just 8 digits (Mongolian standard), add +976
+    if (/^\d{8}$/.test(clean)) {
+        return `+976${clean}`;
+    }
+    // If it doesn't start with +, add it (assuming they typed a country code or we need to enforce one)
+    // But safely, let's assume if it's not +976 and not 8 digits, they better type +Code
+    if (!clean.startsWith('+')) {
+       // Default to Mongolia if ambiguous or just prepend +
+       return `+${clean}`;
+    }
+    return clean;
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      if (!pendingVerification) {
+        // 1. Create Sign Up
+        const formattedPhone = formatPhoneNumber(phoneNumber);
+        
+        await signUp.create({
+          phoneNumber: formattedPhone,
+          password,
+          emailAddress: email || undefined, // Optional
+          unsafeMetadata: {
+            role: role
+          }
+        });
+
+        // 2. Prepare Phone Verification
+        await signUp.preparePhoneNumberVerification({
+          strategy: "phone_code",
+        });
+
+        setPendingVerification(true);
+      } else {
+        // 3. Verify OTP
+        const completeSignUp = await signUp.attemptPhoneNumberVerification({
+          code: otp,
+        });
+
+        if (completeSignUp.status !== "complete") {
+          console.log(JSON.stringify(completeSignUp, null, 2));
+          throw new Error("Verification failed. Please check the code.");
+        }
+
+        if (completeSignUp.status === "complete") {
+          await setActive({ session: completeSignUp.createdSessionId });
+          router.push(role === 'monk' ? "/onboarding/monk" : "/dashboard");
+        }
+      }
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      console.error("Sign Up Error:", err);
+      const msg = err.errors ? err.errors[0].longMessage : err.message;
+      setError(msg);
+    } finally {
+        setLoading(false);
+    }
+  };
+
   const content = {
     leftTitle: t({ mn: "Хязгааргүй<br/>Боломж", en: "Infinite<br/>Potential" }),
     leftSubtitle: t({ mn: "Таны аялал эндээс эхэлнэ.", en: "Your journey starts here." }),
     quote: t({
-      mn: "\"Мянган бээрийн аялал нэг алхмаас эхэлдэг. Бидэнтэй нэгдэж, амар амгалан, гэгээрлийн төлөөх замаа өнөөдөр эхлүүлээрэй.\"",
-      en: "\"A journey of a thousand miles begins with a single step. Join us and begin your path towards peace and enlightenment today.\""
+      mn: '"Мянган бээрийн аялал нэг алхмаас эхэлдэг. Бидэнтэй нэгдэж, амар амгалан, гэгээрлийн төлөөх замаа өнөөдөр эхлүүлээрэй."',
+      en: '"A journey of a thousand miles begins with a single step. Join us and begin your path towards peace and enlightenment today."'
     }),
     welcome: t({ mn: "Тавтай морил", en: "Welcome Home" }),
     instruction: t({ mn: "Та хэн болохыг сонгоно уу?", en: "How will you join us?" }),
     roleClient: t({ mn: "Хэрэглэгч", en: "Seeker" }),
     roleMonk: t({ mn: "Багш (Лам)", en: "Guide" }),
     registerBtn: role === "monk" ? t({ mn: "Багшаар бүртгүүлэх", en: "Register as Monk" }) : t({ mn: "Бүртгүүлэх", en: "Register" }),
+    verifyBtn: t({ mn: "Баталгаажуулах", en: "Verify Account" }),
     loginBtn: t({ mn: "Нэвтрэх", en: "Enter Sanctuary" }),
     forgotPassword: t({ mn: "Нууц үгээ мартсан уу?", en: "Forgot Password?" }),
     footer: t({ mn: "Эв нэгдэл • Нигүүлсэл • Мэргэн ухаан", en: "Unity • Compassion • Wisdom" }),
@@ -133,7 +217,7 @@ export default function SignUpPage() {
         {/* Content */}
         <div className="relative z-10 px-12 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 30 }} 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
           >
@@ -159,10 +243,10 @@ export default function SignUpPage() {
       {/* --- RIGHT SIDE: INTERACTIVE FORM --- */}
       <div className="w-full lg:w-7/12 relative flex flex-col items-center justify-center p-6 sm:p-12 md:p-24">
 
-        {/* Magic Background Torch */}
-        <motion.div className="absolute inset-0 pointer-events-none" style={{ background: torchBg }} />
+        {/* Magic Background Torch (Hidden on Mobile) */}
+        <motion.div className="hidden md:block absolute inset-0 pointer-events-none" style={{ background: torchBg }} />
 
-        <div className="absolute top-0 right-0 p-12 pointer-events-none opacity-5">
+        <div className="hidden md:block absolute top-0 right-0 p-12 pointer-events-none opacity-5">
           <Flower size={300} />
         </div>
 
@@ -173,33 +257,21 @@ export default function SignUpPage() {
           className="relative z-10 w-full max-w-lg"
         >
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 md:mb-12">
             <motion.div
               initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-              className="inline-block p-4 rounded-2xl bg-white shadow-xl mb-6 text-amber-600 border border-amber-100"
+              className="inline-block p-4 rounded-2xl bg-white shadow-xl mb-4 md:mb-6 text-amber-600 border border-amber-100"
             >
               <Sparkles size={32} />
             </motion.div>
-            <h2 className="text-4xl md:text-5xl font-bold text-[#2a1a12] mb-3 tracking-tight">{content.welcome}</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-[#2a1a12] mb-3 tracking-tight">{content.welcome}</h2>
             <p className="text-[#5c4033] font-sans opacity-60 uppercase tracking-widest text-xs font-bold">{content.instruction}</p>
           </div>
 
-          {/* Role Selection */}
-          <RoleSelector role={role} setRole={setRole} content={content} />
-
-          {/* Phone Input (Optional/Required based on preference, here optional but encouraged) */}
-          <div className="w-full mb-8 relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Phone className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
-            </div>
-            <input
-              type="tel"
-              placeholder={t({ mn: "Утасны дугаар", en: "Phone Number" })}
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
-            />
-          </div>
+          {/* Role Selection (Only show if not verifying) */}
+          {!pendingVerification && (
+             <RoleSelector role={role} setRole={setRole} content={content} />
+          )}
 
           {/* Auth Actions */}
           <div className="space-y-4">
@@ -208,47 +280,121 @@ export default function SignUpPage() {
             </ClerkLoading>
 
             <ClerkLoaded>
-              {/* 1. Primary Register Button */}
-              <SignUpButton
-                mode="modal"
-                forceRedirectUrl={role === 'monk' ? "/onboarding/monk" : "/dashboard"}
-              >
+              
+              <form onSubmit={handleSignUp} className="space-y-4">
+                
+                {/* --- Step 1: Registration Form --- */}
+                {!pendingVerification && (
+                    <div className="space-y-3">
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Phone className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+                            </div>
+                            <input
+                            type="tel"
+                            placeholder={t({ mn: "Утасны дугаар (99112233)", en: "Phone Number (+976...)" })}
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
+                            required
+                            />
+                        </div>
+
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <KeyRound className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+                            </div>
+                            <input
+                            type="password"
+                            placeholder={t({ mn: "Нууц үг", en: "Password" })}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
+                            required
+                            />
+                        </div>
+
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Mail className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+                            </div>
+                            <input
+                            type="email"
+                            placeholder={t({ mn: "Имэйл (Сонголттой)", en: "Email (Optional)" })}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* --- Step 2: Verification Form --- */}
+                {pendingVerification && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="space-y-3"
+                    >
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                            <p className="text-sm text-amber-800 font-sans">
+                                {t({ mn: `Бид таны ${phoneNumber} дугаар луу код илгээлээ.`, en: `We sent a code to ${phoneNumber}.` })}
+                            </p>
+                        </div>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <ShieldCheck className="text-stone-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+                            </div>
+                            <input
+                            type="text"
+                            placeholder={t({ mn: "Баталгаажуулах код", en: "Verification Code" })}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-white/50 border border-stone-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all font-sans text-stone-700 placeholder:text-stone-400"
+                            required
+                            autoFocus
+                            />
+                        </div>
+                    </motion.div>
+                )}
+
+                {error && <p className="text-red-500 text-xs text-center font-bold px-4">{error}</p>}
+
+                {/* Submit Button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  className="group relative w-full h-16 rounded-[1.5rem] overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-900/20"
+                  disabled={loading}
+                  className="group relative w-full h-16 rounded-[1.5rem] overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-900/20 disabled:opacity-50 mt-4"
                 >
-                  {/* Shimmer */}
                   <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
                   <div className="relative z-10 flex items-center justify-center gap-3 font-bold text-sm uppercase tracking-[0.2em]">
-                    <UserPlus size={18} /> {content.registerBtn}
+                    {loading ? <Loader2 className="animate-spin" /> : <UserPlus size={18} />}
+                    {pendingVerification ? content.verifyBtn : content.registerBtn}
                   </div>
                 </motion.button>
-              </SignUpButton>
+              
+              </form>
 
               {/* 2. Secondary Login Button */}
-              <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200" /></div>
-                <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-[#FDFBF7] px-4 text-stone-400">Or</span></div>
-              </div>
+              {!pendingVerification && (
+                  <>
+                    <div className="relative py-4">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200" /></div>
+                        <div className="relative flex justify-center text-xs uppercase tracking-widest"><span className="bg-[#FDFBF7] px-4 text-stone-400">Or</span></div>
+                    </div>
 
-              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <motion.button
-                  whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.02)" }} whileTap={{ scale: 0.98 }}
-                  className="w-full h-14 rounded-[1.5rem] border-2 border-stone-200 text-[#451a03] font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-colors hover:border-amber-300"
-                >
-                  <ShieldCheck size={16} /> {content.loginBtn}
-                </motion.button>
-              </SignInButton>
+                    <Link href="/sign-in" className="block w-full">
+                        <motion.button
+                        whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.02)" }} whileTap={{ scale: 0.98 }}
+                        className="w-full h-14 rounded-[1.5rem] border-2 border-stone-200 text-[#451a03] font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-colors hover:border-amber-300"
+                        >
+                        <ShieldCheck size={16} /> {content.loginBtn}
+                        </motion.button>
+                    </Link>
+                  </>
+              )}
 
-              <div className="text-center mt-6">
-                <Link
-                  href="/forgot-password"
-                  className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600/60 hover:text-amber-600 hover:underline transition-colors"
-                >
-                  {content.forgotPassword}
-                </Link>
-              </div>
             </ClerkLoaded>
           </div>
 

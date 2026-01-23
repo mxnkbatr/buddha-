@@ -264,6 +264,7 @@ export default function AdminDashboard() {
         console.log(`User deletion completed successfully:`, responseData);
       } else {
         // Show error message to user
+    
         const errorMessage = responseData.message || "Failed to delete user";
         alert(`Error: ${errorMessage}`);
         console.error(`User deletion failed:`, responseData);
