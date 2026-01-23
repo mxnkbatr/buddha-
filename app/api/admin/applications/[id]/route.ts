@@ -159,12 +159,32 @@ export async function PATCH(request: Request, props: Props) {
                 }, { status: 500 });
             }
 
+            if (allServices.length === 0) {
+                logFailure(
+                    operationContext,
+                    "approve monk with no services available",
+                    "NO_SERVICES_AVAILABLE"
+                );
+                return NextResponse.json({
+                    success: false,
+                    message: "No services available. Please create services first.",
+                    error: "NO_SERVICES_AVAILABLE"
+                }, { status: 400 });
+            }
+
             // Map services to the format expected in user.services array
+            // Include ALL service details for comprehensive monk profiles
             const serviceRefs = allServices.map((svc: any) => ({
                 id: svc.id || svc._id.toString(),
                 name: svc.name,
+                title: svc.title,
+                type: svc.type,
                 price: svc.price,
                 duration: svc.duration,
+                desc: svc.desc,
+                subtitle: svc.subtitle,
+                image: svc.image,
+                quote: svc.quote,
                 status: 'active'
             }));
 
@@ -305,13 +325,14 @@ export async function PATCH(request: Request, props: Props) {
 
             return NextResponse.json({
                 success: true,
-                message: "Application approved successfully",
+                message: `Application approved successfully. Monk now has access to all ${serviceRefs.length} universal services.`,
                 data: {
                     applicantId: id,
                     newRole: "monk",
                     servicesAssigned: serviceRefs.length,
                     emailSent,
-                    monkProfileCreated: true
+                    monkProfileCreated: true,
+                    universalServices: true
                 }
             });
 

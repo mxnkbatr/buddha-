@@ -8,7 +8,7 @@ import {
   ShieldAlert, Users, Calendar, LayoutDashboard,
   Search, Trash2, CheckCircle, XCircle,
   Loader2, UserCog, ScrollText, TrendingUp, Check, X,
-  FileText, Clock, Edit, Plus
+  FileText, Clock, Edit, Plus, RefreshCw
 } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useTheme } from "next-themes";
@@ -40,11 +40,20 @@ interface User {
 interface Service {
   id: string;
   name?: LocalizedString;
+  title?: LocalizedString;
+  type?: string;
   price?: number;
   duration?: string;
+  desc?: string;
+  subtitle?: string;
+  image?: string;
+  quote?: string;
   monkName?: LocalizedString;
   status?: string;
   description?: LocalizedString;
+  availableMonks?: number;
+  isUniversal?: boolean;
+  source?: string;
 }
 
 interface Booking {
@@ -515,7 +524,26 @@ export default function AdminDashboard() {
           {/* 3. SERVICES */}
           {activeTab === "services" && (
             <motion.div key="services" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/admin/sync-services', { method: 'POST' });
+                      const result = await res.json();
+                      if (res.ok && result.success) {
+                        alert(`Амжилттай: ${result.message}`);
+                        await fetchAdminData();
+                      } else {
+                        alert(`Алдаа: ${result.message}`);
+                      }
+                    } catch (error) {
+                      alert('Синхрончлох явцад алдаа гарлаа');
+                    }
+                  }}
+                  className="bg-blue-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-lg shadow-blue-900/20 hover:bg-blue-600 transition-all flex items-center gap-2"
+                >
+                  <RefreshCw size={16} /> Бүх лам нартай синхрончлох
+                </button>
                 <button
                   onClick={() => setIsServiceModalOpen(true)}
                   className="bg-amber-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-lg shadow-amber-900/20 hover:bg-amber-600 transition-all flex items-center gap-2"
@@ -529,11 +557,14 @@ export default function AdminDashboard() {
                   <div key={s.id} className={`p-6 rounded-[2rem] border relative overflow-hidden flex flex-col justify-between ${isDark ? "bg-white/5 border-white/10" : "bg-white border-amber-100"}`}>
                     <div className="mb-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-black text-sm">{s.name?.mn || s.name?.en}</h4>
+                        <h4 className="font-black text-sm">{s.name?.mn || s.name?.en || s.title?.mn || s.title?.en}</h4>
                         <StatusBadge status={s.status || 'pending'} />
                       </div>
                       <p className="text-xs opacity-50 mb-1 font-bold">Үнэ: {s.price}₮ • {s.duration}</p>
-                      <p className="text-[10px] opacity-40">Лам: {s.monkName?.mn || s.monkName?.en || "Тодорхойгүй"}</p>
+                      <p className="text-[10px] opacity-40">
+                        {s.isUniversal ? "Бүх лам нартай" : "Лам: " + (s.monkName?.mn || s.monkName?.en || "Тодорхойгүй")}
+                        {s.availableMonks && ` (${s.availableMonks} лам)`}
+                      </p>
                     </div>
 
                     <div className="flex gap-2 border-t pt-4 border-black/5 dark:border-white/5">

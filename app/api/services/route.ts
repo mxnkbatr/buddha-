@@ -7,29 +7,28 @@ export async function GET() {
   try {
     const { db } = await connectToDatabase();
 
-    // AUTOMATION: Check and populate empty service arrays for all monks
+    // AUTOMATION: Ensure ALL monks have ALL available services
     const allServicesInCollection = await db.collection("services").find({}).toArray();
 
     if (allServicesInCollection.length > 0) {
-      // Map to service reference format
+      // Map to service reference format with all details
       const serviceRefs = allServicesInCollection.map((svc: any) => ({
         id: svc.id || svc._id.toString(),
         name: svc.name,
+        title: svc.title,
+        type: svc.type,
         price: svc.price,
         duration: svc.duration,
+        desc: svc.desc,
+        subtitle: svc.subtitle,
+        image: svc.image,
+        quote: svc.quote,
         status: 'active'
       }));
 
-      // Find monks with empty/missing services and populate them
+      // Update ALL monks to have exactly these services (not just empty ones)
       await db.collection("users").updateMany(
-        {
-          role: "monk",
-          $or: [
-            { services: { $exists: false } },
-            { services: { $size: 0 } },
-            { services: null }
-          ]
-        },
+        { role: "monk" },
         {
           $set: {
             services: serviceRefs,
@@ -39,40 +38,30 @@ export async function GET() {
       );
     }
 
-    // 1. Fetch "Official" Services from the 'services' collection
-    const standardServices = await db.collection("services").find({}).toArray();
+    // 1. Fetch all services from the 'services' collection
+    // These are the universal services available to ALL monks
+    const allServices = await db.collection("services").find({}).toArray();
 
-    // 2. Fetch "Monk" Services from the 'users' collection
-    // We only want users who are monks and actually have services listed
-    const monks = await db.collection("users").find({
+    // 2. Get count of available monks for each service
+    const monkCount = await db.collection("users").countDocuments({
       role: "monk",
-      services: { $exists: true, $not: { $size: 0 } }
-    }).toArray();
-
-    // 3. Extract and Flatten Monk Services
-    const monkServices = monks.flatMap((monk) => {
-      if (!monk.services || !Array.isArray(monk.services)) return [];
-
-      return monk.services
-        // FILTER: Only show active/approved services (or those without status which might be legacy)
-        .filter((svc: any) => svc.status === 'active' || !svc.status)
-        .map((svc: any) => ({
-          ...svc,
-          _id: svc.id, // Ensure it has a top-level _id (using the UUID generated in the form)
-          source: "monk", // Flag to help UI distinguish
-          monkId: monk._id.toString(),
-          providerName: monk.name, // Pass the monk's name object
-          type: "Monk Service", // Fallback type
-
-          // Ensure price is a number
-          price: Number(svc.price)
-        }));
+      monkStatus: "approved"
     });
 
-    // 4. Combine both lists
-    const allServices = [...standardServices, ...monkServices];
+    // 3. Transform services to include availability information
+    const servicesWithAvailability = allServices.map((svc: any) => ({
+      ...svc,
+      _id: svc._id.toString(),
+      id: svc.id || svc._id.toString(),
+      // All services are now universally available to all monks
+      availableMonks: monkCount,
+      isUniversal: true, // Flag indicating this service is available from any monk
+      source: "universal", // All services are universal now
+      // Ensure price is a number
+      price: Number(svc.price)
+    }));
 
-    return NextResponse.json(allServices, { status: 200 });
+    return NextResponse.json(servicesWithAvailability, { status: 200 });
   } catch (error) {
     console.error("Database Error:", error);
     return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 });
@@ -127,20 +116,32 @@ export async function POST(request: Request) {
 
     const result = await db.collection("services").insertOne(newService);
 
-    // Broadcast this new service to ALL monks
+    // Update ALL monks to include this new service in their services array
+    // Instead of pushing, we need to rebuild the entire services array for all monks
+    const allExistingServices = await db.collection("services").find({}).toArray();
+    const allServiceRefs = allExistingServices.map((svc: any) => ({
+      id: svc.id || svc._id.toString(),
+      name: svc.name,
+      title: svc.title,
+      type: svc.type,
+      price: svc.price,
+      duration: svc.duration,
+      desc: svc.desc,
+      subtitle: svc.subtitle,
+      image: svc.image,
+      quote: svc.quote,
+      status: 'active'
+    }));
+
+    // Update ALL monks with the complete updated services list
     await db.collection("users").updateMany(
       { role: "monk" },
       {
-        $push: {
-          services: {
-            id: newService.id,
-            name: newService.name,
-            price: newService.price,
-            duration: newService.duration,
-            status: 'active'
-          }
+        $set: {
+          services: allServiceRefs,
+          updatedAt: new Date()
         }
-      } as any
+      }
     );
 
     return NextResponse.json({ message: "Service created", id: result.insertedId }, { status: 201 });
