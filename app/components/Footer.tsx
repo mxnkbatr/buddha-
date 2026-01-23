@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -167,9 +168,8 @@ export default function GoldenNirvanaFooter() {
                {/* BRANDING */}
                <div className="md:col-span-5 flex flex-col items-start gap-8">
                   <Link href="/" className="flex items-center gap-4 group">
-                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-2xl transition-all duration-1000 ${isDark ? "bg-gradient-to-tr from-[#C72075] to-[#7B337D] shadow-[#C72075]/30" : "bg-gradient-to-br from-[#F59E0B] to-[#B45309]"
-                        }`}>
-                        <InfinityIcon size={28} />
+                     <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl transition-all duration-1000 ${isDark ? "shadow-[#C72075]/30" : "shadow-amber-900/20"}`}>
+                        <Image src="/logo.png" alt="Gevabal Logo" width={56} height={56} className="object-cover w-full h-full" />
                      </div>
                      <div className="flex flex-col">
                         <span className="font-serif font-black text-3xl leading-none tracking-tight">

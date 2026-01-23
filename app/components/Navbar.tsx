@@ -55,7 +55,6 @@ export default function OverlayNavbar() {
   const desktopNav = [
     { name: { mn: "Нүүр", en: "Home" }, href: "/" },
     { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
-    { name: { mn: "Үйлчилгээ", en: "Services" }, href: "/services" },
     { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
     { name: { mn: "Заавар", en: "Guide" }, href: "/guide" },
   ];
@@ -63,7 +62,6 @@ export default function OverlayNavbar() {
   const mobileNav = [
     { id: "home", icon: Home, href: "/", label: { mn: "Нүүр", en: "Home" } },
     { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
-    { id: "services", icon: Flower, href: "/services", label: { mn: "Засал", en: "Ritual" }, isMain: true },
     { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" } },
     { id: "guide", icon: BookOpen, href: "/guide", label: { mn: "Заавар", en: "Guide" } },
     { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
@@ -89,11 +87,11 @@ export default function OverlayNavbar() {
             : "bg-white/80 border-amber-100 text-[#451a03] shadow-amber-900/10"}
         `}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-4 group" aria-label="Gevabal Home">
-            <div className="relative w-11 h-11 overflow-hidden rounded-full border-2 border-amber-500/20 shadow-inner">
-              <Image src="/logo.png" alt="Logo" width={44} height={44} priority className="object-cover group-hover:scale-110 transition-transform duration-500" />
+          <Link href="/" className="flex items-center gap-3 group" aria-label="Gevabal Home">
+            <div className="relative w-10 h-10 overflow-hidden rounded-full border-2 border-amber-500/20 shadow-inner">
+              <Image src="/logo.png" alt="Logo" width={40} height={40} priority className="object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
-            <span className="font-serif font-black text-2xl tracking-tighter">{CONTENT.logo[lang]}</span>
+            <span className="font-serif font-black text-xl tracking-tighter">{CONTENT.logo[lang]}</span>
           </Link>
 
           {/* Links */}
@@ -148,14 +146,15 @@ export default function OverlayNavbar() {
       {/* ========================================================= */}
       {/* 2. MOBILE TOP BAR (High Obviousness Login)               */}
       {/* ========================================================= */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 px-5 py-4 flex justify-between items-center pointer-events-none">
-        <Link href="/" className="pointer-events-auto" aria-label="Gevabal Home">
-          <div className="p-1 rounded-full bg-white/10 backdrop-blur-xl border border-white/30 shadow-2xl">
-            <Image src="/logo.png" alt="Logo" width={38} height={38} sizes="38px" className="rounded-full" />
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 flex justify-between items-center pointer-events-none">
+        <Link href="/" className="pointer-events-auto flex items-center gap-2 group max-w-[40%]" aria-label="Gevabal Home">
+          <div className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-amber-400/30 shadow-inner group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+            <Image src="/logo.png" alt="Logo" width={32} height={32} sizes="32px" className="object-cover" />
           </div>
+          <span className="font-serif font-black text-sm tracking-tight text-white drop-shadow-md truncate">{CONTENT.logo[lang]}</span>
         </Link>
 
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-2 pointer-events-auto flex-shrink-0">
           {/* VERY OBVIOUS LOGIN BUTTON FOR MOBILE */}
           <SignedOut>
             <Link href="/sign-in">
