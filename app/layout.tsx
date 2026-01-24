@@ -4,11 +4,13 @@ import './globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { ThemeProvider } from 'next-themes'
-import Navbar from './components/Navbar'
-import Footer from './components/Footer'
-import SplashScreen from './components/SplashScreen'
+import dynamic from 'next/dynamic'
 import { AuthProvider } from '@/contexts/AuthContext'
 import SmoothScroll from './components/SmoothScroll'
+import Navbar from './components/Navbar'
+
+const Footer = dynamic(() => import('./components/Footer'))
+const SplashScreen = dynamic(() => import('./components/SplashScreen'), { ssr: false })
 
 const playfair = Playfair_Display({
   subsets: ['latin'],

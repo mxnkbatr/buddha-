@@ -66,9 +66,9 @@ export default function Hero() {
       >
         <div className="max-w-4xl space-y-6">
 
-          {/* Main Title with Highlight */}
+          {/* Main Title with Highlight - Accelerated for LCP */}
           <h1
-            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu animate-fade-in-right"
+            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu"
             style={{ textRendering: 'optimizeLegibility' }}
           >
             <span className="text-[#FFB84D]">{content.highlight}</span> {content.main}
@@ -76,7 +76,7 @@ export default function Hero() {
 
           {/* Subtitle */}
           <p
-            className="max-w-2xl text-lg md:text-2xl text-white/90 font-medium leading-relaxed drop-shadow-md safari-gpu animate-fade-in-right delay-200"
+            className="max-w-2xl text-lg md:text-2xl text-white/90 font-medium leading-relaxed drop-shadow-md safari-gpu"
           >
             {content.desc}
           </p>
