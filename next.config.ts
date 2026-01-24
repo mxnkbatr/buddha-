@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
   trailingSlash: false,
-  skipMiddlewareUrlNormalize: true,
+  skipProxyUrlNormalize: true,
   images: {
     remotePatterns: [
       {

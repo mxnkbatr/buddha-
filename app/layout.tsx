@@ -10,7 +10,7 @@ import SmoothScroll from './components/SmoothScroll'
 import Navbar from './components/Navbar'
 
 const Footer = dynamic(() => import('./components/Footer'))
-const SplashScreen = dynamic(() => import('./components/SplashScreen'), { ssr: false })
+const SplashScreen = dynamic(() => import('./components/SplashScreen'))
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
