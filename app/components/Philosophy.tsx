@@ -163,22 +163,22 @@ function ActualAboutContent() {
     mn: {
       badge: "Бидний Эрхэм Зорилго",
       typeSequence: ["Уламжлалт Соёлыг", 1500, "Орчин үеийн Технологиор", 1500, "Таны Гартаа", 2000],
-      subheadline: "Монголчуудын олон зуун жилийн оюун санааны өв соёлыг дижитал шилжилттэй холбож, хүн бүрт амар амгаланг хүртээмжтэй түгээх нь бидний зорилго юм.",
+      subheadline: "Монголчуудын олон зуун жилийн оюун санааны өв соёлыг дижитал шилжилттэй холбож, хүн бүрт хүртээмжтэй түгээх нь бидний зорилго юм.",
       cta: "Үйлчилгээ үзэх",
       masters: "120+ Багш нар",
       philosophyTitle: "Бидний Баримтлах",
       philosophySubtitle: "Гурван Тулгуур",
       philosophyDesc: "Эртний мэргэн ухааныг гэрлийн хурдтай холбож, орчин үеийн хүмүүсийн сэтгэл зүйд нийцүүлэх нь бидний гүүр юм.",
       philosophies: [
-        { title: "Оюун санаа", desc: "Дотоод амар амгаланг олоход тань туслах зөвлөгөө.", icon: <Star /> },
+        { title: "Оюун санаа", desc: "Дотоод тэнцвэрийг олоход тань туслах зөвлөгөө.", icon: <Star /> },
         { title: "Уламжлал", desc: "Монгол зан заншил, өв соёлоо дижитал хэлбэрт хадгалах.", icon: <Flower /> },
         { title: "Технологи", desc: "Дэлхийн хаанаас ч холбогдох хязгааргүй боломжийг нээх.", icon: <Globe /> }
       ],
-      marquee: "МОНГОЛ ӨВ СОЁЛ  •  ДИЖИТАЛ АМАР АМГАЛАН  •  УЛАМЖЛАЛТ МЭРГЭН УХААН  •  ",
+      marquee: "МОНГОЛ ӨВ СОЁЛ  •  ДИЖИТАЛ ЕРТӨНЦ  •  УЛАМЖЛАЛТ МЭРГЭН УХААН  •  ",
       stats: [
         { label: "Мэргэжлийн Багш нар", end: 120, icon: <Users /> },
         { label: "Нийт Хамрах Хүрээ", end: 21, icon: <Globe /> },
-        { label: "Амар Амгаланг Эрэлхийлэгчид", end: 5000, icon: <Heart /> }
+        { label: "Гэгээрлийг Эрэлхийлэгчид", end: 5000, icon: <Heart /> }
       ],
       storyTitle: "Мэргэн Ухааны Зам",
       storyText: "Бид зөвхөн вэбсайт биш, энэ бол оюун санааны аялал юм. Технологийн тусламжтайгаар орон зай, цаг хугацааны саадыг даван туулж, таныг жинхэнэ өөртэйгөө уулзахад тусална.",
@@ -187,7 +187,7 @@ function ActualAboutContent() {
     en: {
       badge: "Our Noble Mission",
       typeSequence: ["Traditional Heritage", 1500, "Modern Technology", 1500, "In Your Hands", 2000],
-      subheadline: "Our mission is to bridge centuries of Mongolian spiritual wisdom with digital innovation, making inner peace accessible to everyone, everywhere.",
+      subheadline: "Our mission is to bridge centuries of Mongolian spiritual wisdom with digital innovation, making spiritual guidance accessible to everyone, everywhere.",
       cta: "Explore Services",
       masters: "120+ Masters",
       philosophyTitle: "Our Philosophy",
@@ -198,14 +198,14 @@ function ActualAboutContent() {
         { title: "Heritage", desc: "Preserving Mongolian traditions for the digital age.", icon: <Flower /> },
         { title: "Innovation", desc: "Unlocking borderless access to spiritual guidance via tech.", icon: <Globe /> }
       ],
-      marquee: "MONGOLIAN HERITAGE  •  DIGITAL PEACE  •  TRADITIONAL WISDOM  •  ",
+      marquee: "MONGOLIAN HERITAGE  •  DIGITAL WISDOM  •  TRADITIONAL WISDOM  •  ",
       stats: [
         { label: "Trusted Masters", end: 120, icon: <Users /> },
         { label: "Global Coverage", end: 21, icon: <Globe /> },
-        { label: "Peace Seekers", end: 5000, icon: <Heart /> }
+        { label: "Wisdom Seekers", end: 5000, icon: <Heart /> }
       ],
       storyTitle: "The Wisdom Path",
-      storyText: "We are more than just a platform; we are a spiritual vessel. Through technology, we dissolve the barriers of time and distance, connecting you to the source of peace.",
+      storyText: "We are more than just a platform; we are a spiritual vessel. Through technology, we dissolve the barriers of time and distance, connecting you to the source of wisdom.",
       liveText: "Live Atmosphere"
     }
   };

@@ -183,8 +183,8 @@ export default function AboutPage() {
                 <BlurReveal delay={0.4} className="mt-8 max-w-2xl mx-auto">
                   <p className={`text-lg md:text-2xl font-light leading-relaxed ${theme.textMuted}`}>
                     {t({
-                      mn: "Эртний мэргэн ухааныг орчин үеийн технологитой хослуулан, хүн бүрт амар амгаланг түгээх нь бидний зорилго.",
-                      en: "Bridging ancient wisdom with modern technology to bring peace and clarity to the digital age."
+                      mn: "Эртний мэргэн ухааныг орчин үеийн технологитой хослуулан, хүн бүрт хүртээмжтэй түгээх нь бидний зорилго.",
+                      en: "Bridging ancient wisdom with modern technology to bring clarity to the digital age."
                     })}
                   </p>
                 </BlurReveal>
@@ -214,7 +214,7 @@ export default function AboutPage() {
                       </p>
                       <div className={`pl-6 border-l-2 border-amber-500/30`}>
                         <p className="font-bold italic text-xl">
-                          &quot;{t({ mn: "Амар амгалан таны гарт.", en: "Inner peace in your hands." })}&quot;
+                          &quot;{t({ mn: "Мэргэн ухаан таны гарт.", en: "Wisdom in your hands." })}&quot;
                         </p>
                       </div>
                     </BlurReveal>

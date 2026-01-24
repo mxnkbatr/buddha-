@@ -276,7 +276,7 @@ export async function PATCH(request: Request, props: Props) {
                         html: `
                         <div style="font-family: sans-serif; color: #451a03; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
                             <div style="text-align: center; margin-bottom: 20px;">
-                                <h1 style="color: #D97706; margin: 0;">Welcome to the Sangha</h1>
+                                <h1 style="color: #D97706; margin: 0;">Welcome to the Community</h1>
                             </div>
 
                             <p>Dear <strong>${greetingName}</strong>,</p>

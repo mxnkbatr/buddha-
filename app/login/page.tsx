@@ -31,14 +31,14 @@ export default function LoginPage() {
   const content = {
     leftTitle: t({ mn: "Дотоод сүмдээ <br/> эргэн ирээрэй", en: "Return to the <br/> Inner Temple" }),
     leftDesc: t({
-      mn: "\"Амар амгалан дотроос тань ирдэг. Үүнийг гаднаас бүү хай. Гэгээрлийн зүг аяллаа үргэлжлүүлэхийн тулд нэвтэрнэ үү.\"",
-      en: "\"Peace comes from within. Do not seek it without. Sign in to continue your journey towards enlightenment.\""
+      mn: "\"Мэргэн ухаан дотроос тань ирдэг. Үүнийг гаднаас бүү хай. Гэгээрлийн зүг аяллаа үргэлжлүүлэхийн тулд нэвтэрнэ үү.\"",
+      en: "\"Wisdom comes from within. Do not seek it without. Sign in to continue your journey towards enlightenment.\""
     }),
     welcomeBack: t({ mn: "Тавтай морилно уу", en: "Welcome Back" }),
-    identifyDesc: t({ mn: "Cангхад нэвтрэхийн тулд өөрийгөө таниулна уу.", en: "Identify yourself to access the  texts and sangha." }),
+    identifyDesc: t({ mn: "Нэвтрэхийн тулд өөрийгөө таниулна уу.", en: "Identify yourself to access the mentors and community." }),
     loadingText: t({ mn: "Сүнс сэргэж байна...", en: "Awakening Spirits..." }),
     enterBtn: t({ mn: "Нэвтрэх", en: "Enter" }),
-    joinBtn: t({ mn: "Сангхад нэвтрэх", en: "Join the Sangha" }),
+    joinBtn: t({ mn: "Бүртгүүлэх", en: "Join the Community" }),
     or: t({ mn: "- ЭСВЭЛ -", en: "- OR -" }),
     agreeText: t({ mn: "Нэвтэрснээр та ", en: "By entering, you agree to follow the " }),
     eightfoldPath: t({ mn: "Найман зөв зам-ын дагуу байхыг зөвшөөрч байна.", en: "Eightfold Path of Conduct" }),

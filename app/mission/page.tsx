@@ -79,15 +79,15 @@ export default function MissionPage() {
   const content = {
     heroTag: t({ mn: "Цаг хугацаа үгүй, орон зай үгүй", en: "Beyond Time and Space" }),
     heroHeadline1: t({ mn: "Цаг хугацаа, орон зайг", en: "Transcending" }),
-    heroHeadline2: t({ mn: "үл хамааран", en: "Infinite Realms" }),
-    heroSubtitle: t({ mn: "Оюун санааны амар амгаланг танд түгээнэ.", en: "Distributing the light of inner peace." }),
+    heroHeadline2: t({ mn: "үл хамааран", en: "Everywhere" }),
+    heroSubtitle: t({ mn: "Оюун санааны гэгээрлийг танд түгээнэ.", en: "Distributing the light of inner wisdom." }),
     missionTag: t({ mn: "Бидний Эрхэм Зорилго", en: "Our  Mission" }),
-    missionTitle: t({ mn: "Амар амгалангийн үрийг тарих", en: "Planting Seeds of Peace" }),
+    missionTitle: t({ mn: "Мэргэн ухааны үрийг тарих", en: "Planting Seeds of Wisdom" }),
     stats: [
-      { number: "24/7", label: t({ mn: "Онлайн Зөвлөгөө", en: "Eternal Guide" }), icon: <Star /> },
-      { number: "108+", label: t({ mn: "Ном Судар", en: "Ancient Arcanas" }), icon: <BookOpen /> },
-      { number: "50+", label: t({ mn: "Лам Хувраг", en: "Venerable Souls" }), icon: <Eye /> },
-      { number: "∞", label: t({ mn: "Амар Амгалан", en: "Infinite Peace" }), icon: <InfinityIcon /> }
+      { number: "24/7", label: t({ mn: "Онлайн Зөвлөгөө", en: "Daily Guide" }), icon: <Star /> },
+      { number: "108+", label: t({ mn: "Ном Судар", en: "Ancient Teachings" }), icon: <BookOpen /> },
+      { number: "50+", label: t({ mn: "Багш нар", en: "Experienced Teachers" }), icon: <Eye /> },
+      { number: "∞", label: t({ mn: "Endless Wisdom", en: "Endless Wisdom" }), icon: <InfinityIcon /> }
     ],
   };
 
@@ -100,7 +100,7 @@ export default function MissionPage() {
       <main 
         ref={containerRef}
         onMouseMove={(e) => { mouseX.set(e.clientX); mouseY.set(e.clientY); }}
-        className={`relative w-full min-h-screen transition-colors duration-1000 font-ethereal overflow-hidden ${theme.bgMain} ${theme.textMain}`}
+        className={`relative w-full min-h-screen transition-colors duration-1000 font-sans overflow-hidden ${theme.bgMain} ${theme.textMain}`}
       >
         {/* ATMOSPHERE */}
         <motion.div className="fixed inset-0 pointer-events-none z-10 opacity-50 mix-blend-screen blur-3xl" style={{ background: lightBackground }} />
@@ -108,7 +108,7 @@ export default function MissionPage() {
 
 
         {/* --- SECTION 1: THE GREAT VOW (Hero) --- */}
-        <section className="relative min-h-screen flex flex-col items-center justify-center px-6">
+        <section className="relative min-h-screen flex flex-col items-center justify-center px-6"> 
            
            <motion.div 
              animate={{ rotate: isNight ? -360 : 360 }}
@@ -128,7 +128,7 @@ export default function MissionPage() {
                  </span>
               </motion.div>
 
-              <h1 className="text-6xl md:text-9xl font-celestial font-black leading-none tracking-tighter">
+              <h1 className="text-6xl md:text-9xl font-bold leading-none tracking-tighter">
                 {content.heroHeadline1} <br />
                 <span className="italic text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-500 to-orange-600">
                    {content.heroHeadline2}
@@ -147,20 +147,20 @@ export default function MissionPage() {
 
 
         {/* --- SECTION 2: THE SACRED GOAL (Artifact Rows) --- */}
-        <section className={`relative py-48 transition-colors duration-1000 ${theme.bgSec}`}>
+        <section className={`relative py-48 transition-colors duration-1000 ${theme.bgSec}`}> 
            <div className="container mx-auto px-6 lg:px-24">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
                  <div className="space-y-12">
                      <span className={`text-[10px] font-black uppercase tracking-[0.5em] flex items-center gap-3 ${theme.textSub}`}>
                         {theme.icon} {content.missionTag}
                      </span>
-                     <h2 className="text-5xl md:text-7xl font-celestial font-bold leading-tight">
+                     <h2 className="text-5xl md:text-7xl font-bold leading-tight">
                         {content.missionTitle}
                      </h2>
                      <div className={`w-32 h-[1px] bg-linear-to-r from-current to-transparent ${theme.accent}`} />
                      <p className={`text-xl md:text-2xl leading-relaxed font-medium transition-colors italic ${isNight ? 'text-indigo-100/70' : 'text-amber-950/70'}`}>
                         {t({
-                          mn: "Бид технологийн дэвшлийг ашиглан оюун санааны амар амгаланг таны дэргэд авчирч байна.",
+                          mn: "Бид технологийн дэвшлийг ашиглан оюун санааны зөвлөгөөг таны дэргэд авчирч байна.",
                           en: "We breathe life into ancient lineage through digital ethers, bringing the stillness of the monastery directly to your side."
                         })}
                      </p>
@@ -195,8 +195,8 @@ export default function MissionPage() {
            
            <div className="container mx-auto px-6 relative z-10 text-center">
               <header className="max-w-4xl mx-auto mb-32">
-                 <h2 className="text-5xl md:text-8xl font-celestial font-bold mb-8">
-                    The Global Sangha
+                 <h2 className="text-5xl md:text-8xl font-bold mb-8">
+                    The Global Community
                  </h2>
                  <p className={`text-2xl font-serif italic ${isNight ? 'text-indigo-400' : 'text-amber-600'}`}>
                     "Gevabal at your fingertips"
@@ -220,12 +220,12 @@ export default function MissionPage() {
               </motion.div>
               
               <p className="text-3xl md:text-5xl font-serif font-light leading-snug drop-shadow-2xl italic">
-                 {language === 'mn' ? "\"Амар амгалан гаднаас ирдэггүй, дотроосоо ундардаг.\"" : "\"Peace is not found in the world, but within the observer.\""}
+                 {language === 'mn' ? "\"Гэгээрэл гаднаас ирдэггүй, дотроосоо ундардаг.\"" : "\"Wisdom is not found in the world, but within the observer.\""}
               </p>
 
               <div className={`mt-20 pt-10 border-t ${isNight ? 'border-indigo-500/20' : 'border-white/10'}`}>
-                 <span className="font-celestial text-xs uppercase tracking-[0.6em] text-amber-500 opacity-60">
-                    Gandantegchinlen Archives
+                 <span className="text-xs uppercase tracking-[0.6em] text-amber-500 opacity-60">
+                    Gandan Archives
                  </span>
               </div>
            </div>
@@ -235,6 +235,7 @@ export default function MissionPage() {
     </>
   );
 }
+
 
 // --- ARTISTIC SUB-COMPONENTS ---
 
@@ -248,7 +249,7 @@ function MissionArtifact({ icon, title, desc, isNight, theme }: any) {
             {React.cloneElement(icon, { size: 28 })}
          </div>
          <div>
-            <h4 className="text-3xl font-celestial font-bold mb-2 tracking-tight">{title}</h4>
+            <h4 className="text-3xl font-bold mb-2 tracking-tight">{title}</h4>
             <p className={`text-base font-medium opacity-60`}>{desc}</p>
          </div>
       </motion.div>
@@ -265,7 +266,7 @@ function StatOrb({ number, label, icon, theme, delay, isNight }: any) {
         className={`flex flex-col items-center justify-center p-14 rounded-[3rem] border-2 shadow-2xl transition-all duration-1000 ${theme.cardBg} ${theme.border}`}
       >
          <div className={`${isNight ? 'text-indigo-400' : 'text-amber-500'} mb-6`}>{React.cloneElement(icon, { size: 40 })}</div>
-         <span className="text-5xl font-celestial font-black mb-4">{number}</span>
+         <span className="text-5xl font-black mb-4">{number}</span>
          <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">{label}</span>
          
          {/* Glass Glare */}

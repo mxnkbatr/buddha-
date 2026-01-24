@@ -43,7 +43,7 @@ export default function MonkOnboarding() {
   const TEXT = {
     en: {
       headerTitle: "Monk Profile Setup",
-      headerDesc: "Complete your profile to join the Sangha.",
+      headerDesc: "Complete your profile to join the community.",
       sectionBasic: "Basic Information",
       sectionMedia: "Media",
       sectionDetails: "Details",

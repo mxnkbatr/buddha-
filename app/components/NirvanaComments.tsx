@@ -65,7 +65,7 @@ const STATIC_COMMENTS: Comment[] = [
   {
     _id: "c1",
     authorName: "Munkhbaatar D.",
-    authorRole: "Elder Pilgrim",
+    authorRole: "User",
     avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
     text: "Хүүхдүүд маань энэ сайтыг зааж өгөөд, багштай холбож өгсөн. Ном уншиж байхад дүрс нь маш тод, дуу нь цэвэрхэн сонсогдож байна лээ. Их буянтай ажил байна, амжилт хүсье.",
     karma: 108,
@@ -75,7 +75,7 @@ const STATIC_COMMENTS: Comment[] = [
   {
     _id: "c2",
     authorName: "Sarnai B.",
-    authorRole: "Modern Seeker",
+    authorRole: "User",
     avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
     text: "Монголд ийм платформ байгуулагдсанд үнэхээр их баяртай байна. Заавал хийд явж дугаарлахгүйгээр, гэрээсээ бүх үйлчилгээгээ аваад, төлбөрөө төлчихдөг цаг завыг маань маш их хэмнэсэн.",
     karma: 88,
@@ -85,7 +85,7 @@ const STATIC_COMMENTS: Comment[] = [
   {
     _id: "c3",
     authorName: "Bold E.",
-    authorRole: "Fate Walker",
+    authorRole: "User",
     avatar: "https://i.pravatar.cc/150?u=a04258114e29026302d",
     text: "Хөзрийн мэргэ үзүүлж, ирээдүйд гаргах шийдвэртээ тусламж авлаа. Үзмэрч маань маш тодорхой, ойлгомжтой тайлбарлаж өгсөн. Вэбсайт нь хэрэглэхэд маш хялбар юм байна.",
     karma: 45,
@@ -95,9 +95,9 @@ const STATIC_COMMENTS: Comment[] = [
   {
     _id: "c4",
     authorName: "Tsetseg O.",
-    authorRole: "Soul Healer",
+    authorRole: "User",
     avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-    text: "Сэтгэл санаа үймрээд, хэнд хандахаа мэдэхгүй байхдаа багштай холбогдож ярилцсан. Маш их эргэлзээг минь тайлж, дотоод сэтгэлийн амар амгаланг өгсөн. Нууцлал тал дээр маш найдвартай санагдсан.",
+    text: "Сэтгэл санаа үймрээд, хэнд хандахаа мэдэхгүй байхдаа багштай холбогдож ярилцсан. Маш их эргэлзээг минь тайлж, дотоод сэтгэлийн тэнцвэрийг өгсөн. Нууцлал тал дээр маш найдвартай санагдсан.",
     karma: 200,
     element: "water",
     createdAt: new Date()

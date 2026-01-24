@@ -207,6 +207,7 @@ export default function SignUpPage() {
     verifyCode: t({ mn: "Баталгаажуулах", en: "Verify Code" }),
     registerBtn: t({ mn: "Бүртгүүлэх", en: "Create Account" }),
     forgotPassword: t({ mn: "Нууц үгээ мартсан уу?", en: "Forgot Password?" }),
+    
     noAccount: t({ mn: "Бүртгэлгүй юу?", en: "Don't have an account?" }),
   };
 

@@ -23,11 +23,11 @@ export default function Hero() {
   const { isSignedIn } = useUser();
 
   const content = {
-    highlight: t({ mn: "Оюун", en: "Spiritual" }),
-    main: t({ mn: "санааны амар амгаланг гэрээсээ...", en: "peace from the comfort of home..." }),
+    highlight: t({ mn: "Бид таны", en: "We help you" }),
+    main: t({ mn: "асуудлын шийдлийг олоход тань тусална.", en: "find solutions to your problems." }),
     desc: t({
-      mn: "Гэвабал номын өргөө болон бусад лам нартай шууд холбогдоно.",
-      en: "Connect directly with experienced monks from Gandantegchinlen and other major monasteries."
+      mn: "Танд тулгамдаж буй асуудлыг шийдвэрлэхэд туршлагатай багш нар туслах болно.",
+      en: "Experienced mentors will help you solve the challenges you are facing."
     }),
     btn: isSignedIn ? t({ mn: "Цаг захиалах", en: "Book Now" }) : t({ mn: "Нэвтрэх", en: "Sign In" }),
     href: isSignedIn ? "/monks" : "/sign-in",

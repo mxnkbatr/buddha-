@@ -37,20 +37,20 @@ export default function GoldenNirvanaFooter() {
 
    const content = {
       newsletterTag: t({ mn: "Одот тамга", en: "Zodiac Alignment" }),
-      newsletterTitle: isDark ? t({ mn: "Одот тэнгэрийн хэлхээ", en: "Voices of the Nebula" }) : t({ mn: "Амар амгалангийн мэдээг цаг алдалгүй ав", en: "Receive the news of peace without delay" }),
+      newsletterTitle: isDark ? t({ mn: "Одот тэнгэрийн хэлхээ", en: "Voices of the Nebula" }) : t({ mn: "Мэдээг цаг алдалгүй ав", en: "Receive the news without delay" }),
       newsletterDesc: t({
-         mn: "Та шинээр нэмэгдэж буй багш нарын мэдээлэл, засал номын цаг болон оюун санааны зөвлөгөөг тогтмол имэйлээрээ хүлээн авахыг хүсвэл бүртгүүлээрэй.",
-         en: "If you would like to regularly receive information about newly added teachers, correction class schedules, and mental guidance via email, please register."
+         mn: "Та шинээр нэмэгдэж буй багш нарын мэдээлэл, засал номын цаг болон зөвлөгөөг тогтмол имэйлээрээ хүлээн авахыг хүсвэл бүртгүүлээрэй.",
+         en: "If you would like to regularly receive information about newly added teachers, correction class schedules, and guidance via email, please register."
       }),
       emailPlaceholder: t({ mn: "Таны цахим хаяг...", en: "Your cosmic address..." }),
       btnJoin: isDark ? t({ mn: "Ододтой нэгдэх", en: "Align Stars" }) : t({ mn: "Нэгдэх", en: "Join Circle" }),
-      monastery: isDark ? t({ mn: "Одот Зам", en: "Celestial Zodiac" }) : t({ mn: "Хийд", en: "Monastery" }),
+      monastery: isDark ? t({ mn: "Уламжлалт зам", en: "Traditional Path" }) : t({ mn: "Хийд", en: "Monastery" }),
       aboutDesc: t({
-         mn: "Бид уламжлалт засал ном, зурхай, оюун санааны зөвлөгөөг орчин үеийн технологийн тусламжтайгаар таны байгаа газарт хүргэж байна. Мянган жилийн соёл, нэг товшилтын зайд.",
+         mn: "Бид уламжлалт засал ном, зурхай, зөвлөгөөг орчин үеийн технологийн тусламжтайгаар таны байгаа газарт хүргэж байна. Мянган жилийн соёл, нэг товшилтын зайд.",
          en: "We bring traditional healing, astrology, and spiritual guidance to your location with the help of modern technology. A thousand years of culture, just a click away."
       }),
       location: t({ mn: "Улаанбаатар, Монгол", en: "Ulaanbaatar, Mongolia" }),
-      peace: t({ mn: "Амгалан", en: "Peace" }),
+      peace: t({ mn: "Энэрэл", en: "Compassion" }),
       gandantitle: t({ mn: "Гэвабaл", en: "Gevabal" }),
    };
 
@@ -210,7 +210,7 @@ export default function GoldenNirvanaFooter() {
                      <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-cyan-400 shadow-[0_0_8px_#50F2CE]' : 'bg-amber-500'}`} /> The Path
                   </h3>
                   <ul className="space-y-5">
-                     {['Zodiac Chart', 'Dharma Astrology', 'Nebula Rituals', 'Arcana Archive', 'The Sangha', 'How to Use'].map((name) => (
+                     {['Zodiac Chart', 'Astrology', 'Rituals', 'Mentors Archive', 'Community', 'How to Use'].map((name) => (
                         <li key={name}>
                            <Link href={name === 'How to Use' ? '/guide' : '#'} className="group flex items-center gap-3 opacity-60 hover:opacity-100 transition-all">
                               <span className={`h-[1px] w-0 group-hover:w-6 transition-all duration-500 ${isDark ? 'bg-cyan-400' : 'bg-amber-600'}`} />

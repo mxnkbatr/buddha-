@@ -12,6 +12,7 @@ import { Sparkles, ShieldCheck } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "next-themes";
 import OptimizedVideo from "./OptimizedVideo";
+import { Monk } from "@/database/types";
 
 // --- 1. STYLES ---
 const sectionStyles = `
@@ -90,11 +91,7 @@ const VikingCorner: React.FC<{ theme: ThemeConfig; className?: string }> = ({ th
   </svg>
 );
 
-import { Monk } from "@/database/types";
-
 const RUNES = ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ"];
-
-const MONKS_DATA: MonkData[] = []; // Placeholder to avoid breaking other parts if referenced, though we replace usage.
 
 export default function MajesticTarotSection() {
   const { language, t } = useLanguage();
@@ -154,7 +151,7 @@ export default function MajesticTarotSection() {
 
   if (!mounted) return <div className="h-screen bg-[#05051a]" />;
 
-  const isNight = false;
+  const isNight = false; // You might want to connect this to resolvedTheme later
 
   // --- ZODIAC GALAXY THEME CONFIG ---
   const theme: ThemeConfig = isNight ? {
@@ -205,9 +202,9 @@ export default function MajesticTarotSection() {
           </motion.div>
 
           <h2 className={`text-6xl md:text-8xl font-celestial font-light tracking-tighter ${theme.textColor}`}>
-            {t({ mn: "Мэргэ", en: "Tarot card" })}{" "}
+            {t({ mn: "Тусламж", en: "Help" })}{" "}
             <span className={`italic text-transparent bg-clip-text bg-linear-to-b ${theme.titleGradient}`}>
-              {t({ mn: "үзүүлэх", en: "prediction" })}
+              {t({ mn: "зөвлөгөө", en: "and guidance" })}
             </span>
           </h2>
           <div className={`w-40 h-px bg-linear-to-r from-transparent via-current to-transparent ${theme.mandalaColor}`} />
@@ -230,7 +227,22 @@ export default function MajesticTarotSection() {
   );
 }
 
-function MajesticCard({ monk, index, language, theme, isNight }: { monk: MonkData; index: number; language: "mn" | "en"; theme: ThemeConfig; isNight: boolean; }) {
+function MajesticCard({
+  monk,
+  index,
+  language,
+  theme,
+  isNight
+}: {
+  monk: MonkData;
+  index: number;
+  language: "mn" | "en";
+  theme: ThemeConfig;
+  isNight: boolean;
+}) {
+  // --- FIX: Import t from hook here ---
+  const { t } = useLanguage(); 
+
   const [isHovered, setIsHovered] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -289,7 +301,7 @@ function MajesticCard({ monk, index, language, theme, isNight }: { monk: MonkDat
             animate={isHovered ? { y: 5, scale: 1.1, color: "#C72075" } : { y: 0, scale: 1 }}
             className={`font-celestial text-4xl font-black tracking-[0.2em] drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] ${theme.accentColor}`}
           >
-            {monk.arcana}
+            {t({ mn: "Багш", en: "Master" })}
           </motion.div>
         </div>
 
