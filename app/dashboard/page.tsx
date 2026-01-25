@@ -132,7 +132,8 @@ export default function DashboardPage() {
             roomClosed: "Room Closed",
             startVideo: "Start Video Call",
             signOut: "Sign Out",
-            signingOut: "Signing Out..."
+            signingOut: "Signing Out...",
+            chat: "Chat"
         },
         mn: {
             clientRole: "Эрхэм сүсэгтэн",
@@ -190,7 +191,8 @@ export default function DashboardPage() {
             roomClosed: "Хаагдсан",
             startVideo: "Видео дуудлага эхлүүлэх",
             signOut: "Гарах",
-            signingOut: "Гарч байна..."
+            signingOut: "Гарч байна...",
+            chat: "Чат"
         }
     }[langKey];
 
@@ -207,6 +209,7 @@ export default function DashboardPage() {
     const [activeRoomName, setActiveRoomName] = useState<string | null>(null);
     const [activeBookingForRoom, setActiveBookingForRoom] = useState<Booking | null>(null);
     const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
+    const [activeChatBooking, setActiveChatBooking] = useState<Booking | null>(null);
 
     // --- MODALS ---
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -625,7 +628,7 @@ export default function DashboardPage() {
                                                         }}
                                                         className="w-5 h-5 accent-[#D97706]"
                                                     />
-                                                    <span className="font-bold text-[#451a03] min-w-[100px]">{DAYS_MN[idx]} ({day.slice(0, 3)})</span>
+                                                    <span className="font-bold text-[#451a03] min-w-25">{DAYS_MN[idx]} ({day.slice(0, 3)})</span>
                                                 </div>
 
                                                 {config.active && (
@@ -699,6 +702,12 @@ export default function DashboardPage() {
                                                 <div className="flex items-center md:items-end gap-2 shrink-0">
                                                     {b.status === 'confirmed' ? (
                                                         <>
+                                                            <button
+                                                                onClick={() => setActiveChatBooking(b)}
+                                                                className="w-full md:w-auto px-4 py-2.5 bg-stone-100 text-stone-600 rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-stone-200 transition-transform active:scale-95"
+                                                            >
+                                                                <MessageCircle size={14} /> {TEXT.chat}
+                                                            </button>
                                                             {b.callStatus === 'active' ? (
                                                                 <button
                                                                     onClick={() => {
@@ -765,11 +774,32 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
+                {/* CHAT MODAL */}
+                <AnimatePresence>
+                    {activeChatBooking && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl w-full max-w-lg h-150 shadow-2xl overflow-hidden flex flex-col">
+                                <div className="p-4 border-b flex justify-between items-center bg-stone-50">
+                                    <h3 className="font-bold text-stone-800">{TEXT.chat}</h3>
+                                    <button onClick={() => setActiveChatBooking(null)} className="p-2 hover:bg-stone-200 rounded-full"><X size={20} /></button>
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <ChatWindow
+                                        bookingId={activeChatBooking._id}
+                                        currentUserId={user?.id || ""}
+                                        currentUserName={profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "User"}
+                                    />
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 {/* MODALS (Booking, Service, Profile Edit) same as before... */}
                 <AnimatePresence>
                     {isEditProfileModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-[2rem] p-8 w-full max-w-2xl h-[85vh] overflow-y-auto">
+                            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-4xl p-8 w-full max-w-2xl h-[85vh] overflow-y-auto">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-2xl font-bold font-serif text-[#451a03]">{TEXT.modalProfileTitle}</h3>
                                     <button onClick={() => setIsEditProfileModalOpen(false)}><X size={24} /></button>

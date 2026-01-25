@@ -10,13 +10,13 @@ import {
 import Image from "next/image";
 import {
     ArrowLeft, Calendar, Clock, CheckCircle2, Loader2, Sparkles,
-    ArrowRight, Stars, User, Mail, PenTool, Info, Shield, Hourglass, CreditCard, ChevronDown, LayoutGrid
+    ArrowRight, Stars, User, Mail, PenTool, Info, Shield, Hourglass, CreditCard, ChevronDown, LayoutGrid, Phone
 } from "lucide-react";
 import OverlayNavbar from "../../components/Navbar";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { Monk } from "@/database/types";
 import { useTheme } from "next-themes";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ==========================================
 // 1. VISUAL ASSETS & STYLES
@@ -124,7 +124,9 @@ export default function MonkBookingPage() {
 
     const { language: lang, t } = useLanguage();
     const { resolvedTheme } = useTheme();
-    const { user, isSignedIn } = useUser();
+    // --- AUTH UPDATE ---
+    const { user } = useAuth();
+    const isSignedIn = !!user;
 
     // -- State --
     const [monk, setMonk] = useState<Monk | null>(null);
@@ -135,6 +137,7 @@ export default function MonkBookingPage() {
 
     const [userName, setUserName] = useState("");
     const [userEmail, setUserEmail] = useState("");
+    const [userPhone, setUserPhone] = useState("");
     const [userNote, setUserNote] = useState("");
 
     const [loading, setLoading] = useState(true);
@@ -149,8 +152,12 @@ export default function MonkBookingPage() {
     useEffect(() => {
         setMounted(true);
         if (user) {
-            setUserName(user.fullName || "");
-            setUserEmail(user.primaryEmailAddress?.emailAddress || "");
+            // Handle both Clerk user (fullName) and DB user (firstName/lastName)
+            const name = user.fullName || (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : "");
+            setUserName(name);
+            // AuthContext user object should have email and phone
+            setUserEmail(user.email || user.primaryEmailAddress?.emailAddress || "");
+            setUserPhone(user.phone || "");
         }
 
         async function loadData() {
@@ -273,7 +280,16 @@ export default function MonkBookingPage() {
         const res = await fetch('/api/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ monkId, serviceId: selectedService._id, date: dateStr, time: selectedTime, userName, userEmail, note: userNote })
+            body: JSON.stringify({ 
+                monkId, 
+                serviceId: selectedService._id, 
+                date: dateStr, 
+                time: selectedTime, 
+                userName, 
+                userEmail, // Optional
+                userPhone, // Required
+                note: userNote 
+            })
         });
         if (res.ok) setIsBooked(true);
         else {
@@ -554,7 +570,14 @@ export default function MonkBookingPage() {
                                                                         </div>
                                                                     </div>
                                                                     <div className="space-y-1">
-                                                                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 pl-2">Email</label>
+                                                                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 pl-2">Phone</label>
+                                                                        <div className="relative">
+                                                                            <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" />
+                                                                            <input value={userPhone} onChange={e => setUserPhone(e.target.value)} className={`w-full pl-10 pr-4 py-4 rounded-xl border outline-none font-serif text-base transition-all ${theme.input}`} placeholder="99112233" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 pl-2">Email (Optional)</label>
                                                                         <div className="relative">
                                                                             <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40" />
                                                                             <input value={userEmail} onChange={e => setUserEmail(e.target.value)} className={`w-full pl-10 pr-4 py-4 rounded-xl border outline-none font-serif text-base transition-all ${theme.input}`} placeholder="Email Address" />
@@ -574,7 +597,7 @@ export default function MonkBookingPage() {
                                                                 {isSignedIn ? (
                                                                     <motion.button
                                                                         whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
-                                                                        onClick={handleBooking} disabled={!userName || !userEmail || !selectedService || isSubmitting}
+                                                                        onClick={handleBooking} disabled={!userName || !userPhone || !selectedService || isSubmitting}
                                                                         className="w-full relative group h-16 rounded-2xl overflow-hidden shadow-2xl mt-2 disabled:grayscale disabled:opacity-50"
                                                                     >
                                                                         <div className={`absolute inset-0 bg-gradient-to-r ${isNight ? 'from-cyan-600 to-blue-600' : 'from-amber-500 to-orange-600'} transition-all duration-300`} />

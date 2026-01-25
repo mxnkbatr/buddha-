@@ -2,7 +2,50 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { Message } from "@/database/types";
 import { currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 import { ObjectId } from "mongodb";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+
+// Helper to get authenticated user from Clerk or Custom JWT
+async function getAuthenticatedUser() {
+  // 1. Try Clerk
+  const clerkUser = await currentUser();
+  if (clerkUser) {
+    return {
+      id: clerkUser.id,
+      fullName: clerkUser.fullName,
+      role: clerkUser.publicMetadata.role as string,
+      isClerk: true
+    };
+  }
+
+  // 2. Try Custom JWT
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+      const { db } = await connectToDatabase();
+      const dbUser = await db.collection("users").findOne({ _id: new ObjectId(payload.sub as string) });
+      
+      if (dbUser) {
+        return {
+          id: dbUser._id.toString(),
+          fullName: dbUser.firstName ? `${dbUser.firstName} ${dbUser.lastName || ''}`.trim() : (dbUser.phone || "User"),
+          role: dbUser.role,
+          isClerk: false
+        };
+      }
+    } catch (e) {
+      // Invalid token
+    }
+  }
+
+  return null;
+}
 
 export async function GET(req: NextRequest) {
   const bookingId = req.nextUrl.searchParams.get("bookingId");
@@ -12,7 +55,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const user = await currentUser();
+    const user = await getAuthenticatedUser();
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -20,7 +63,6 @@ export async function GET(req: NextRequest) {
     const { db } = await connectToDatabase();
     
     // 1. Fetch Booking to check permissions
-    // Validate bookingId format first if needed, assuming it's an ObjectId string
     if (!ObjectId.isValid(bookingId)) {
          return NextResponse.json({ error: "Invalid bookingId" }, { status: 400 });
     }
@@ -31,15 +73,21 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Authorization Check
-    const isClient = booking.clientId === user.id;
-    const isAdmin = user.publicMetadata.role === "admin";
+    // Handle both Clerk ID and Custom ID (ObjectId string)
+    const isClient = booking.clientId === user.id || booking.userId === user.id; // Support legacy userId
+    const isAdmin = user.role === "admin";
     
     let isMonk = false;
     if (booking.monkId) {
         try {
-            const monkProfile = await db.collection("users").findOne({ _id: new ObjectId(booking.monkId) });
-            if (monkProfile && monkProfile.clerkId === user.id) {
-                isMonk = true;
+            const monkId = ObjectId.isValid(booking.monkId) ? new ObjectId(booking.monkId) : booking.monkId;
+            const monkProfile = await db.collection("users").findOne({ _id: monkId });
+            
+            if (monkProfile) {
+                // Check if current user matches monk's Clerk ID or DB ID
+                if (monkProfile.clerkId === user.id || monkProfile._id.toString() === user.id) {
+                    isMonk = true;
+                }
             }
         } catch (e) {
             console.error("Error fetching monk for chat auth", e);
@@ -71,7 +119,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const user = await currentUser();
+    const user = await getAuthenticatedUser();
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -87,14 +135,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // 2. Authorization Check
-    const isClient = booking.clientId === user.id;
-    const isAdmin = user.publicMetadata.role === "admin";
+    // 2. CHECK STATUS: Prevent chat if completed or cancelled
+    if (['completed', 'cancelled', 'rejected'].includes(booking.status)) {
+        return NextResponse.json({ error: "Chat is closed for this booking" }, { status: 403 });
+    }
+
+    // 3. Authorization Check
+    const isClient = booking.clientId === user.id || booking.userId === user.id;
+    const isAdmin = user.role === "admin";
     let isMonk = false;
     
     if (booking.monkId) {
-        const monkProfile = await db.collection("users").findOne({ _id: new ObjectId(booking.monkId) });
-        if (monkProfile && monkProfile.clerkId === user.id) {
+        const monkId = ObjectId.isValid(booking.monkId) ? new ObjectId(booking.monkId) : booking.monkId;
+        const monkProfile = await db.collection("users").findOne({ _id: monkId });
+        if (monkProfile && (monkProfile.clerkId === user.id || monkProfile._id.toString() === user.id)) {
             isMonk = true;
         }
     }
@@ -103,7 +157,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // 3. Construct Message with Verified Sender
+    // 4. Construct Message with Verified Sender
     const senderName = user.fullName || bodySenderName || "User";
 
     const message: Message = {

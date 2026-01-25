@@ -64,6 +64,7 @@ interface Booking {
   price?: number;
   clientName?: string;
   clientEmail?: string;
+  userPhone?: string; // Add this field
   date: string | Date;
   time?: string;
   status?: string;
@@ -730,7 +731,10 @@ export default function AdminDashboard() {
                           <div className="text-xs opacity-50">{b.price}₮</div>
                         </td>
                         <td className="p-6">
-                          <div className="font-medium">{b.clientName}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {b.clientName}
+                            {b.userPhone && <span className="text-[10px] bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded opacity-70 font-mono">{b.userPhone}</span>}
+                          </div>
                           <div className="text-xs opacity-50">{b.clientEmail}</div>
                         </td>
                         <td className="p-6">
