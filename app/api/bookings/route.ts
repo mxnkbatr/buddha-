@@ -17,9 +17,10 @@ export async function GET(request: Request) {
     const monkId = searchParams.get("monkId");
     const userEmail = searchParams.get("userEmail"); // Get email from params
     const userId = searchParams.get("userId"); // Get custom userId from params
+    const userPhone = searchParams.get("userPhone"); // Get phone from params
 
-    // FIX: Allow searching by either monkId OR userEmail OR userId
-    if (!monkId && !userEmail && !userId) {
+    // FIX: Allow searching by either monkId OR userEmail OR userId OR userPhone
+    if (!monkId && !userEmail && !userId && !userPhone) {
       return NextResponse.json({ message: "Missing search parameter" }, { status: 400 });
     }
 
@@ -33,6 +34,9 @@ export async function GET(request: Request) {
     }
     if (userEmail) {
       query.userEmail = userEmail;
+    }
+    if (userPhone) {
+      query.userPhone = userPhone;
     }
     if (userId) {
       // userId could be clientId in bookings collection
@@ -149,7 +153,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { monkId, date, time, userName, userEmail, serviceId, note } = body;
+    const { monkId, date, time, userName, userEmail, userPhone, serviceId, note } = body;
+
+    // Validate phone number
+    if (!userPhone) {
+      return NextResponse.json({ message: "Phone number is required." }, { status: 400 });
+    }
 
     const { db } = await connectToDatabase();
 
@@ -233,6 +242,7 @@ export async function POST(request: Request) {
       date,
       time,
       userEmail,
+      userPhone, // Store phone number
       note,
       status: 'pending',
       createdAt: new Date()

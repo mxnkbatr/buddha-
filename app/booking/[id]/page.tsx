@@ -8,13 +8,13 @@ import Image from "next/image";
 const MotionImage = motion(Image);
 import {
     ArrowLeft, Calendar, Clock, CheckCircle2, Loader2,
-    Sparkles, Star, User, ArrowRight, Hourglass, Shield, Info, ChevronDown
+    Sparkles, Star, User, ArrowRight, Hourglass, Shield, Info, ChevronDown, Phone
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useUser } from "@clerk/nextjs";
 import OverlayNavbar from "../../components/Navbar";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { Monk } from "@/database/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- ANIMATION VARIANTS ---
 const containerVar = {
@@ -153,7 +153,10 @@ export default function RitualBookingPage() {
     const lockedMonkId = searchParams.get("monkId"); // Read monk ID from query params
     const { t, language: lang } = useLanguage();
     const { resolvedTheme } = useTheme();
-    const { user, isSignedIn } = useUser();
+    
+    // --- AUTH UPDATE ---
+    const { user } = useAuth();
+    const isSignedIn = !!user;
 
     const [mounted, setMounted] = useState(false);
     const [service, setService] = useState<any | null>(null);
@@ -170,6 +173,7 @@ export default function RitualBookingPage() {
 
     const [userName, setUserName] = useState("");
     const [userEmail, setUserEmail] = useState("");
+    const [userPhone, setUserPhone] = useState("");
     const [userNote, setUserNote] = useState("");
 
     const isNight = resolvedTheme === "dark";
@@ -209,7 +213,14 @@ export default function RitualBookingPage() {
 
     useEffect(() => {
         setMounted(true);
-        if (user) { setUserName(user.fullName || ""); setUserEmail(user.primaryEmailAddress?.emailAddress || ""); }
+        if (user) { 
+            // Handle both Clerk user (fullName) and DB user (firstName/lastName)
+            const name = user.fullName || (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : "");
+            setUserName(name); 
+            // AuthContext user object should have email and phone
+            setUserEmail(user.email || user.primaryEmailAddress?.emailAddress || ""); 
+            setUserPhone(user.phone || "");
+        }
 
         async function loadData() {
             if (!id) return;
@@ -313,7 +324,10 @@ export default function RitualBookingPage() {
                 body: JSON.stringify({
                     monkId: selectedMonk?._id, serviceId: service._id,
                     date: d, time: selectedTime,
-                    userName, userEmail, note: userNote
+                    userName, 
+                    userEmail, // Optional
+                    userPhone, // Required
+                    note: userNote
                 })
             });
 
@@ -673,15 +687,19 @@ export default function RitualBookingPage() {
 
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                             <input value={userName} onChange={e => setUserName(e.target.value)} className={`w-full p-4 rounded-xl border outline-none font-serif text-sm transition-all focus:scale-[1.01] ${theme.input}`} placeholder={t({ mn: "Таны Нэр", en: "Full Name" })} />
-                                                            <input value={userEmail} onChange={e => setUserEmail(e.target.value)} className={`w-full p-4 rounded-xl border outline-none font-serif text-sm transition-all focus:scale-[1.01] ${theme.input}`} placeholder={t({ mn: "И-мэйл", en: "Email Address" })} />
+                                                            <div className="relative">
+                                                                <input value={userPhone} onChange={e => setUserPhone(e.target.value)} className={`w-full p-4 pl-12 rounded-xl border outline-none font-serif text-sm transition-all focus:scale-[1.01] ${theme.input}`} placeholder={t({ mn: "Утасны дугаар (99112233)", en: "Phone Number" })} />
+                                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={16} />
+                                                            </div>
+                                                            <input value={userEmail} onChange={e => setUserEmail(e.target.value)} className={`w-full p-4 rounded-xl border outline-none font-serif text-sm transition-all focus:scale-[1.01] ${theme.input}`} placeholder={t({ mn: "И-мэйл (Заавал биш)", en: "Email Address (Optional)" })} />
                                                         </div>
                                                         <textarea value={userNote} onChange={e => setUserNote(e.target.value)} className={`w-full p-4 rounded-xl border outline-none font-serif h-24 resize-none transition-all focus:scale-[1.01] ${theme.input}`} placeholder={t({ mn: "Хүсэлт / Зорилго...", en: "Intention or questions..." })} />
 
                                                         {isSignedIn ? (
                                                             <motion.button
                                                                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                                                onClick={handleBooking} disabled={!userName || !userEmail || isSubmitting}
-                                                                className={`w-full h-16 rounded-2xl overflow-hidden relative group mt-4 shadow-xl ${!userName || !userEmail ? 'opacity-50 grayscale' : ''}`}
+                                                                onClick={handleBooking} disabled={!userName || !userPhone || isSubmitting}
+                                                                className={`w-full h-16 rounded-2xl overflow-hidden relative group mt-4 shadow-xl ${!userName || !userPhone ? 'opacity-50 grayscale' : ''}`}
                                                             >
                                                                 <div className={`absolute inset-0 bg-gradient-to-r ${theme.btnGradient}`} />
 

@@ -83,11 +83,15 @@ export interface Monk {
 
 export interface Booking {
   _id?: ObjectId | string;
-  userId: string; // Clerk ID
+  userId: string; // Clerk ID or Custom ID
   monkId: ObjectId | string;
   date: Date;
-  type: "Astrology" | "Counseling" | "Prayer" | "Ritual";
-  status: "pending" | "confirmed" | "completed" | "cancelled";
+  time?: string; // Add time to interface as it is used
+  userPhone?: string;
+  userEmail?: string;
+  type?: "Astrology" | "Counseling" | "Prayer" | "Ritual"; // Made optional as it might be derived from service
+  serviceName?: { mn: string; en: string }; // Add serviceName to interface
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "rejected"; // Add rejected
   notes?: string;
   createdAt: Date;
 }
