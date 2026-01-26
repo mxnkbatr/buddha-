@@ -3,6 +3,8 @@ import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { clerkClient } from "@clerk/nextjs/server";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -67,59 +69,59 @@ export async function PATCH(request: Request, props: Props) {
 
     // We return the updated document to get the correct Clerk ID if we didn't have it
     const result = await db.collection("users").findOneAndUpdate(
-        query,
-        { $set: updateFields },
-        { upsert: false, returnDocument: 'after' } 
+      query,
+      { $set: updateFields },
+      { upsert: false, returnDocument: 'after' }
     );
 
     let updatedUser = result;
 
     if (!updatedUser) {
-        // Handle Upsert Logic for new Client (if applicable)
-        // Note: findOneAndUpdate with upsert=false returns null if not found.
-        
-        // If we want to support creation via PATCH for clients:
-        const upsertResult = await db.collection("users").findOneAndUpdate(
-            { clerkId: id }, // Assume id is clerkId
-            { 
-                $set: { 
-                    ...updateFields, 
-                    role: "client", 
-                    createdAt: new Date(),
-                    clerkId: id 
-                } 
-            },
-            { upsert: true, returnDocument: 'after' }
-        );
-        updatedUser = upsertResult;
+      // Handle Upsert Logic for new Client (if applicable)
+      // Note: findOneAndUpdate with upsert=false returns null if not found.
+
+      // If we want to support creation via PATCH for clients:
+      const upsertResult = await db.collection("users").findOneAndUpdate(
+        { clerkId: id }, // Assume id is clerkId
+        {
+          $set: {
+            ...updateFields,
+            role: "client",
+            createdAt: new Date(),
+            clerkId: id
+          }
+        },
+        { upsert: true, returnDocument: 'after' }
+      );
+      updatedUser = upsertResult;
     }
 
     // 2. Sync to Clerk Metadata
     if (updatedUser && updatedUser.clerkId) {
-        const client = await clerkClient();
-        await client.users.updateUser(updatedUser.clerkId, {
-            publicMetadata: {
-                role: updatedUser.role,
-                monkStatus: updatedUser.monkStatus, // Might be undefined for clients, which is fine
-            },
-            unsafeMetadata: {
-                phone: updatedUser.phone,
-                name: updatedUser.name
-            }
-        });
-
-        // 3. Add Phone Number as Login Identifier (Auto-Verified for MVP)
-        if (updatedUser.phone) {
-            try {
-                await client.phoneNumbers.createPhoneNumber({
-                    userId: updatedUser.clerkId,
-                    phoneNumber: updatedUser.phone,
-                    verified: true 
-                });
-            } catch (e) {
-                console.log("Note: Could not add phone number to Clerk (might already exist):", e);
-            }
+      const client = await clerkClient();
+      await client.users.updateUser(updatedUser.clerkId, {
+        publicMetadata: {
+          role: updatedUser.role,
+          monkStatus: updatedUser.monkStatus, // Might be undefined for clients, which is fine
+        },
+        unsafeMetadata: {
+          phone: updatedUser.phone,
+          name: updatedUser.name
         }
+      });
+
+      // 3. Add Phone Number as Login Identifier (Auto-Verified for MVP)
+      if (updatedUser.phone) {
+        try {
+          await client.phoneNumbers.createPhoneNumber({
+            userId: updatedUser.clerkId,
+            phoneNumber: updatedUser.phone,
+            verified: true
+          });
+        } catch (e) {
+          console.log("Note: Could not add phone number to Clerk (might already exist):", e);
+        }
+      }
     }
 
     return NextResponse.json({ message: "User profile updated", success: true });

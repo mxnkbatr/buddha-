@@ -24,12 +24,14 @@ export async function POST() {
 
     const updateData: any = {
       clerkId: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
       avatar: user.imageUrl,
-      // role: role, // REMOVED from default $set to prevent overwriting Admin/Monk with 'client'
       updatedAt: new Date(),
     };
+
+    if (user.firstName) updateData.firstName = user.firstName;
+    if (user.lastName) updateData.lastName = user.lastName;
+    // We don't sync zodiacYear from Clerk yet as it's custom, 
+    // but we ensure we don't overwrite it by not including it in updateData unless we have a source.
 
     if (email) {
       updateData.email = email;

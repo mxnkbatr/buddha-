@@ -11,6 +11,8 @@ export interface User {
   password?: string; // Hashed password for direct DB auth
 
   // Spiritual Stats
+  dateOfBirth?: string; // YYYY-MM-DD
+  zodiacYear?: string;
   karma: number;
   meditationDays: number;
   totalMerits: number;

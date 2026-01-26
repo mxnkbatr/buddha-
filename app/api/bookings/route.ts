@@ -39,10 +39,27 @@ export async function GET(request: Request) {
       query.userPhone = userPhone;
     }
     if (userId) {
-      // userId could be clientId in bookings collection
+      // Resolve User Identity to match both ObjectId and ClerkId
+      // This fixes cases where Dashboard sends ObjectId but Booking stores ClerkId (or vice versa)
+      const userIdsToSearch = [userId];
+
+      try {
+        // If it looks like an ObjectId, find the user
+        if (ObjectId.isValid(userId)) {
+          const u = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+          if (u && u.clerkId) userIdsToSearch.push(u.clerkId);
+        }
+        // If it looks like a Clerk ID (starts with user_), find the user to get _id
+        else if (userId.startsWith("user_")) {
+          const u = await db.collection("users").findOne({ clerkId: userId });
+          if (u) userIdsToSearch.push(u._id.toString());
+        }
+      } catch (e) { /* ignore lookups if invalid */ }
+
+      // Query bookings where userId/clientId matches ANY of the user's known IDs
       query.$or = [
-        { userId: userId },
-        { clientId: userId }
+        { userId: { $in: userIdsToSearch } },
+        { clientId: { $in: userIdsToSearch } }
       ];
     }
 

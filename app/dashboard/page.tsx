@@ -14,6 +14,7 @@ import OverlayNavbar from "../components/Navbar";
 import { useLanguage } from "../contexts/LanguageContext";
 import LiveRitualRoom from "../components/LiveRitualRoom";
 import ChatWindow from "../components/ChatWindow";
+import BookingDetailModal from "../admin/BookingDetailModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 // --- TYPES ---
@@ -51,11 +52,15 @@ interface UserProfile {
     video?: string;
     phone?: string;
     firstName?: string;
+    lastName?: string;
+    dateOfBirth?: string;
+    zodiacYear?: string;
 }
 
 interface Booking {
     _id: string;
     monkId: string;
+    clientId?: string;
     clientName: string;
     serviceName: any;
     date: string;
@@ -207,6 +212,8 @@ export default function DashboardPage() {
     // --- VIDEO CALL STATE ---
     const [activeRoomToken, setActiveRoomToken] = useState<string | null>(null);
     const [activeRoomName, setActiveRoomName] = useState<string | null>(null);
+    const [chatProfileUser, setChatProfileUser] = useState<any>(null); // For viewing profile in chat
+    const [chatClientInfo, setChatClientInfo] = useState<any>(null); // For displaying in chat header
     const [activeBookingForRoom, setActiveBookingForRoom] = useState<Booking | null>(null);
     const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
     const [activeChatBooking, setActiveChatBooking] = useState<Booking | null>(null);
@@ -269,7 +276,7 @@ export default function DashboardPage() {
                     }
                 } else {
                     // For Clients, fetch generic user data
-                    const userRes = await fetch(`/api/users/${userId}`);
+                    const userRes = await fetch(`/api/users/${userId}`, { cache: 'no-store' });
                     if (userRes.ok) {
                         profileData = await userRes.json();
                     }
@@ -288,6 +295,12 @@ export default function DashboardPage() {
                         const bRes = await fetch(`/api/bookings?monkId=${profileData._id}`);
                         if (bRes.ok) setBookings(await bRes.json());
                     } else {
+                        // CHECK PROFILE COMPLETENESS (Client Only)
+                        if (!profileData.firstName || !profileData.lastName || !profileData.dateOfBirth) {
+                            router.push("/complete-profile");
+                            return;
+                        }
+
                         const bRes = await fetch(`/api/bookings?userId=${profileData._id}`);
                         if (bRes.ok) setBookings(await bRes.json());
                         const allMonksRes = await fetch('/api/monks');
@@ -299,7 +312,18 @@ export default function DashboardPage() {
                         role: "client",
                         name: { mn: user.firstName || "Хэрэглэгч", en: user.firstName || "User" },
                         phone: user.phone || "",
+                        firstName: user.firstName,
+                        lastName: user.lastName,
                     };
+
+                    // Check completion for fallbacks too? 
+                    // Usually temp profile comes from context which might be incomplete.
+                    // If we rely on temp profile, we should also check.
+                    if (!tempClientProfile.firstName || !tempClientProfile.lastName /* we can't check DOB here easily if it's not in user context */) {
+                        // It's safer to let the API fetch handle the gate. 
+                        // If API failed, we might be offline or something.
+                    }
+
                     setProfile(tempClientProfile);
                     const allMonksRes = await fetch('/api/monks');
                     if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
@@ -329,7 +353,9 @@ export default function DashboardPage() {
                 const [h, m] = timeStr.split(':').map(part => part.trim().padStart(2, '0'));
                 timeStr = `${h}:${m}`;
             }
-            const bookingDate = new Date(`${b.date}T${timeStr}`);
+            // Robust parsing: Handle if date is "YYYY-MM-DD" or ISO string
+            const dateOnly = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+            const bookingDate = new Date(`${dateOnly}T${timeStr}`);
             // If booking is pending or confirmed and in future (or very recent past < 2 hours), it's upcoming
             // But if it's explicitly completed/cancelled/rejected, it's history
             const isCompleted = ['completed', 'cancelled', 'rejected'].includes(b.status);
@@ -343,9 +369,17 @@ export default function DashboardPage() {
         });
 
         // Sort upcoming by date ascending (soonest first)
-        upcoming.sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+        upcoming.sort((a, b) => {
+            const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
+            const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+            return new Date(`${dateA}T${a.time}`).getTime() - new Date(`${dateB}T${b.time}`).getTime();
+        });
         // Sort history by date descending (newest first)
-        history.sort((a, b) => new Date(`${b.date}T${b.time}`).getTime() - new Date(`${a.date}T${a.time}`).getTime());
+        history.sort((a, b) => {
+            const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
+            const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+            return new Date(`${dateA}T${a.time}`).getTime() - new Date(`${dateB}T${b.time}`).getTime();
+        });
 
         return { upcomingBookings: upcoming, historyBookings: history };
     }, [bookings]);
@@ -703,7 +737,21 @@ export default function DashboardPage() {
                                                     {b.status === 'confirmed' ? (
                                                         <>
                                                             <button
-                                                                onClick={() => setActiveChatBooking(b)}
+                                                                onClick={async () => {
+                                                                    setActiveChatBooking(b);
+                                                                    // If monk, fetch client info to display in chat
+                                                                    if (isMonk && b.clientId) {
+                                                                        try {
+                                                                            const res = await fetch(`/api/users/${b.clientId}`);
+                                                                            if (res.ok) {
+                                                                                const userData = await res.json();
+                                                                                setChatClientInfo(userData);
+                                                                            }
+                                                                        } catch (e) {
+                                                                            console.error("Failed to fetch client info", e);
+                                                                        }
+                                                                    }
+                                                                }}
                                                                 className="w-full md:w-auto px-4 py-2.5 bg-stone-100 text-stone-600 rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-stone-200 transition-transform active:scale-95"
                                                             >
                                                                 <MessageCircle size={14} /> {TEXT.chat}
@@ -781,13 +829,27 @@ export default function DashboardPage() {
                             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl w-full max-w-lg h-150 shadow-2xl overflow-hidden flex flex-col">
                                 <div className="p-4 border-b flex justify-between items-center bg-stone-50">
                                     <h3 className="font-bold text-stone-800">{TEXT.chat}</h3>
-                                    <button onClick={() => setActiveChatBooking(null)} className="p-2 hover:bg-stone-200 rounded-full"><X size={20} /></button>
+                                    <button onClick={() => { setActiveChatBooking(null); setChatClientInfo(null); }} className="p-2 hover:bg-stone-200 rounded-full"><X size={20} /></button>
                                 </div>
                                 <div className="flex-1 overflow-hidden">
                                     <ChatWindow
                                         bookingId={activeChatBooking._id}
                                         currentUserId={user?.id || ""}
                                         currentUserName={profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "User"}
+                                        clientInfo={chatClientInfo}
+                                        isMonk={isMonk}
+                                        onProfileClick={async (senderId) => {
+                                            if (!isMonk && user?.role !== 'admin') return;
+                                            try {
+                                                const res = await fetch(`/api/users/${senderId}`);
+                                                if (res.ok) {
+                                                    const userData = await res.json();
+                                                    setChatProfileUser(userData);
+                                                }
+                                            } catch (e) {
+                                                console.error("Failed to fetch user", e);
+                                            }
+                                        }}
                                     />
                                 </div>
                             </motion.div>
@@ -824,6 +886,15 @@ export default function DashboardPage() {
                             </motion.div>
                         </div>
                     )}
+
+                    {/* View User Detail from Chat */}
+                    <BookingDetailModal
+                        isOpen={!!chatProfileUser}
+                        booking={activeChatBooking}
+                        user={chatProfileUser}
+                        onClose={() => setChatProfileUser(null)}
+                        onAction={() => { }} // No actions needed for simple view
+                    />
                 </AnimatePresence>
 
             </main>

@@ -8,10 +8,11 @@ import {
   ShieldAlert, Users, Calendar, LayoutDashboard,
   Search, Trash2, CheckCircle, XCircle,
   Loader2, UserCog, ScrollText, TrendingUp, Check, X,
-  FileText, Clock, Edit, Plus, RefreshCw, LogOut
+  FileText, Clock, Edit, Plus, RefreshCw, LogOut, Eye
 } from "lucide-react";
 import OverlayNavbar from "../components/Navbar";
 import { useTheme } from "next-themes";
+import BookingDetailModal from "./BookingDetailModal";
 import MonkEditModal from "./MonkEditModal";
 import ServiceCreateModal from "./ServiceCreateModal";
 import UserEditModal from "./UserEditModal";
@@ -60,6 +61,7 @@ interface Service {
 
 interface Booking {
   _id: string;
+  userId?: string; // Clerk ID or Custom ID
   serviceName?: LocalizedString | string;
   price?: number;
   clientName?: string;
@@ -99,6 +101,7 @@ export default function AdminDashboard() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [editingMonk, setEditingMonk] = useState<any>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [wasm, setWasm] = useState<typeof import("rust-modules") | null>(null);
 
@@ -731,8 +734,14 @@ export default function AdminDashboard() {
                           <div className="text-xs opacity-50">{b.price}₮</div>
                         </td>
                         <td className="p-6">
-                          <div className="font-medium flex items-center gap-2">
+                          <div
+                            onClick={() => setSelectedBooking(b)}
+                            className="font-medium flex items-center gap-2 cursor-pointer hover:text-amber-600 transition-colors"
+                          >
                             {b.clientName}
+                            <div className="p-1 rounded-full bg-stone-100 hover:bg-stone-200">
+                              <Eye size={12} />
+                            </div>
                             {b.userPhone && <span className="text-[10px] bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded opacity-70 font-mono">{b.userPhone}</span>}
                           </div>
                           <div className="text-xs opacity-50">{b.clientEmail}</div>
@@ -795,6 +804,29 @@ export default function AdminDashboard() {
           onClose={() => setEditingUser(null)}
           onSave={handleSaveUser}
         />
+
+        {/* Helper to find user for selected booking */
+          (() => {
+            if (!selectedBooking) return null;
+            // Try to find user by matching _id or clerkId to booking.userId
+            // The booking.userId might be an ObjectID string or Clerk ID
+            const foundUser = data?.users.find(u =>
+              u._id === selectedBooking.userId ||
+              (u as any).clerkId === selectedBooking.userId ||
+              u.phone === selectedBooking.userPhone
+            );
+            return (
+              <BookingDetailModal
+                isOpen={!!selectedBooking}
+                booking={selectedBooking}
+                user={foundUser}
+                onClose={() => setSelectedBooking(null)}
+                onAction={handleBookingAction}
+              />
+            );
+          })()
+        }
+
         <ServiceCreateModal
           isOpen={isServiceModalOpen}
           onClose={() => {

@@ -16,12 +16,18 @@ interface ChatWindowProps {
   bookingId: string;
   currentUserId: string;
   currentUserName: string;
+  onProfileClick?: (userId: string) => void;
+  clientInfo?: { firstName?: string; lastName?: string; dateOfBirth?: string; zodiacYear?: string; phone?: string; email?: string };
+  isMonk?: boolean;
 }
 
 export default function ChatWindow({
   bookingId,
   currentUserId,
   currentUserName,
+  onProfileClick,
+  clientInfo,
+  isMonk = false,
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
@@ -39,9 +45,9 @@ export default function ChatWindow({
   const getInitials = (name: string) => {
     if (!name) return "?";
     if (name.includes("+") || /^\d+$/.test(name.replace(/\s/g, ""))) {
-        // Looks like a phone number
-        const digits = name.replace(/\D/g, "");
-        return digits.slice(-2);
+      // Looks like a phone number
+      const digits = name.replace(/\D/g, "");
+      return digits.slice(-2);
     }
     return name
       .split(" ")
@@ -122,23 +128,59 @@ export default function ChatWindow({
   return (
     <div className="flex flex-col h-full w-full bg-white md:rounded-2xl shadow-xl overflow-hidden border border-stone-100 font-sans">
       {/* Header */}
-      <div className="bg-white p-4 border-b border-stone-100 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-3">
-          <div className="bg-amber-100 p-2 rounded-full text-amber-600">
-            <MessageSquare size={20} />
+      <div className="bg-white border-b border-stone-100 shadow-sm z-10">
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-full text-amber-600">
+              <MessageSquare size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold text-stone-800 text-sm">Booking Discussion</h3>
+              <p className="text-xs text-stone-500 flex items-center gap-1">
+                ID: <span className="font-mono">{bookingId.slice(0, 8)}...</span>
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-stone-800 text-sm">Booking Discussion</h3>
-            <p className="text-xs text-stone-500 flex items-center gap-1">
-              ID: <span className="font-mono">{bookingId.slice(0, 8)}...</span>
-            </p>
+          <div className="flex items-center gap-1 text-xs text-stone-400 bg-stone-50 px-2 py-1 rounded-full border border-stone-100">
+            <Clock size={12} />
+            <span>Live</span>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-xs text-stone-400 bg-stone-50 px-2 py-1 rounded-full border border-stone-100">
-          <Clock size={12} />
-          <span>Live</span>
-        </div>
+
+        {/* Client Info Section (Only for Monks) */}
+        {isMonk && clientInfo && (
+          <div className="px-4 pb-3 border-t border-stone-100 bg-stone-50/50">
+            <div className="flex items-center gap-3 pt-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold border-2 border-amber-200">
+                {clientInfo.firstName?.[0] || clientInfo.lastName?.[0] || "?"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-stone-800 text-sm truncate">
+                  {clientInfo.lastName && clientInfo.firstName ? `${clientInfo.lastName} ${clientInfo.firstName}` : "Client"}
+                </h4>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {clientInfo.dateOfBirth && (
+                    <span className="text-[10px] bg-white px-2 py-0.5 rounded-full border border-stone-200 text-stone-600">
+                      📅 {clientInfo.dateOfBirth}
+                    </span>
+                  )}
+                  {clientInfo.zodiacYear && (
+                    <span className="text-[10px] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 text-amber-700 font-bold">
+                      {clientInfo.zodiacYear}
+                    </span>
+                  )}
+                  {clientInfo.phone && (
+                    <span className="text-[10px] bg-white px-2 py-0.5 rounded-full border border-stone-200 text-stone-600 font-mono">
+                      📞 {clientInfo.phone}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
 
       {/* Messages Area */}
       <div
@@ -168,10 +210,14 @@ export default function ChatWindow({
                 className={`flex gap-3 ${isMe ? "flex-row-reverse" : "flex-row"}`}
               >
                 {/* Avatar */}
-                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${isMe
-                  ? "bg-amber-100 text-amber-700 border-amber-200"
-                  : "bg-white text-stone-600 border-stone-200"
-                  }`}>
+                <div
+                  onClick={() => !isMe && onProfileClick?.(msg.senderId)}
+                  className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-opacity ${isMe
+                    ? "bg-amber-100 text-amber-700 border-amber-200"
+                    : "bg-white text-stone-600 border-stone-200 cursor-pointer hover:opacity-80"
+                    }`}
+                  title={!isMe ? "Click to view profile" : ""}
+                >
                   {getInitials(msg.senderName)}
                 </div>
 
