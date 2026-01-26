@@ -73,7 +73,7 @@ const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday
 const DAYS_MN = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
 
 export default function DashboardPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, logout } = useAuth();
     const { language } = useLanguage();
     const { signOut } = useClerk();
     const router = useRouter();
@@ -207,13 +207,13 @@ export default function DashboardPage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [allMonks, setAllMonks] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isSigningOut, setIsSigningOut] = useState(false); // Sign out loading state
+    const [isSigningOut, setIsSigningOut] = useState(false);
 
     // --- VIDEO CALL STATE ---
     const [activeRoomToken, setActiveRoomToken] = useState<string | null>(null);
     const [activeRoomName, setActiveRoomName] = useState<string | null>(null);
-    const [chatProfileUser, setChatProfileUser] = useState<any>(null); // For viewing profile in chat
-    const [chatClientInfo, setChatClientInfo] = useState<any>(null); // For displaying in chat header
+    const [chatProfileUser, setChatProfileUser] = useState<any>(null);
+    const [chatClientInfo, setChatClientInfo] = useState<any>(null);
     const [activeBookingForRoom, setActiveBookingForRoom] = useState<Booking | null>(null);
     const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
     const [activeChatBooking, setActiveChatBooking] = useState<Booking | null>(null);
@@ -237,10 +237,10 @@ export default function DashboardPage() {
     const [selectedBlockDate, setSelectedBlockDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [isSaving, setIsSaving] = useState(false);
 
-    // --- SIGN OUT HANDLER (FIXED) ---
-    // --- SIGN OUT HANDLER ---
-    const { logout } = useAuth();
+    // --- ROLE CHECK (Moved up for scope access) ---
+    const isMonk = profile?.role === 'monk';
 
+    // --- SIGN OUT HANDLER ---
     const handleSignOut = async () => {
         if (isSigningOut) return;
         setIsSigningOut(true);
@@ -267,22 +267,18 @@ export default function DashboardPage() {
                 const userId = user.id;
                 let profileData = null;
 
-                // --- FIX: Conditional Fetch based on Role ---
-                // Only fetch from /api/monks if the user IS a monk.
                 if (user.role === 'monk') {
                     const monksRes = await fetch(`/api/monks/${userId}`);
                     if (monksRes.ok) {
                         profileData = await monksRes.json();
                     }
                 } else {
-                    // For Clients, fetch generic user data
                     const userRes = await fetch(`/api/users/${userId}`, { cache: 'no-store' });
                     if (userRes.ok) {
                         profileData = await userRes.json();
                     }
                 }
 
-                // Fallback for custom auth or if API fails but we have context
                 if (!profileData && user.authType === 'custom') {
                     profileData = user;
                 }
@@ -295,7 +291,6 @@ export default function DashboardPage() {
                         const bRes = await fetch(`/api/bookings?monkId=${profileData._id}`);
                         if (bRes.ok) setBookings(await bRes.json());
                     } else {
-                        // CHECK PROFILE COMPLETENESS (Client Only)
                         if (!profileData.firstName || !profileData.lastName || !profileData.dateOfBirth) {
                             router.push("/complete-profile");
                             return;
@@ -315,15 +310,6 @@ export default function DashboardPage() {
                         firstName: user.firstName,
                         lastName: user.lastName,
                     };
-
-                    // Check completion for fallbacks too? 
-                    // Usually temp profile comes from context which might be incomplete.
-                    // If we rely on temp profile, we should also check.
-                    if (!tempClientProfile.firstName || !tempClientProfile.lastName /* we can't check DOB here easily if it's not in user context */) {
-                        // It's safer to let the API fetch handle the gate. 
-                        // If API failed, we might be offline or something.
-                    }
-
                     setProfile(tempClientProfile);
                     const allMonksRes = await fetch('/api/monks');
                     if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
@@ -353,13 +339,10 @@ export default function DashboardPage() {
                 const [h, m] = timeStr.split(':').map(part => part.trim().padStart(2, '0'));
                 timeStr = `${h}:${m}`;
             }
-            // Robust parsing: Handle if date is "YYYY-MM-DD" or ISO string
             const dateOnly = b.date.includes('T') ? b.date.split('T')[0] : b.date;
             const bookingDate = new Date(`${dateOnly}T${timeStr}`);
-            // If booking is pending or confirmed and in future (or very recent past < 2 hours), it's upcoming
-            // But if it's explicitly completed/cancelled/rejected, it's history
             const isCompleted = ['completed', 'cancelled', 'rejected'].includes(b.status);
-            const isPast = bookingDate < new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours buffer
+            const isPast = bookingDate < new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
             if (!isCompleted && !isPast) {
                 upcoming.push(b);
@@ -368,13 +351,11 @@ export default function DashboardPage() {
             }
         });
 
-        // Sort upcoming by date ascending (soonest first)
         upcoming.sort((a, b) => {
             const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
             const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
             return new Date(`${dateA}T${a.time}`).getTime() - new Date(`${dateB}T${b.time}`).getTime();
         });
-        // Sort history by date descending (newest first)
         history.sort((a, b) => {
             const dateA = a.date.includes('T') ? a.date.split('T')[0] : a.date;
             const dateB = b.date.includes('T') ? b.date.split('T')[0] : b.date;
@@ -491,19 +472,45 @@ export default function DashboardPage() {
         } catch (e) { console.error(e); }
     };
 
+    // --- VIDEO CALL HANDLER (FIXED) ---
     const joinVideoCall = async (booking: Booking) => {
         setJoiningRoomId(booking._id);
         try {
+            // 1. Optimistic Update (If Monk, mark as active immediately)
             if (isMonk) {
-                await fetch(`/api/bookings/${booking._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ callStatus: 'active' }) });
+                // Update local state so UI reflects 'active' instantly
+                setBookings(prev => prev.map(b =>
+                    b._id === booking._id ? { ...b, callStatus: 'active' } : b
+                ));
+
+                // Send update to server in background
+                await fetch(`/api/bookings/${booking._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callStatus: 'active' })
+                });
             }
+
+            // 2. Prepare Username & Fetch Token
             const username = user?.fullName || user?.firstName || user?.phone || "Anonymous";
-            const res = await fetch(`/api/livekit?room=${booking._id}&username=${username}`);
+            const encodedName = encodeURIComponent(username);
+
+            const res = await fetch(`/api/livekit?room=${booking._id}&username=${encodedName}`);
+
+            if (!res.ok) throw new Error("Failed to get room token");
+
             const data = await res.json();
+
+            // 3. Enter Room
             setActiveRoomToken(data.token);
             setActiveRoomName(booking._id);
             setActiveBookingForRoom(booking);
-        } catch (e) { console.error(e); } finally { setJoiningRoomId(null); }
+        } catch (e) {
+            console.error("Join Video Error:", e);
+            alert("Could not join the video room. Please check your connection.");
+        } finally {
+            setJoiningRoomId(null);
+        }
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -531,7 +538,6 @@ export default function DashboardPage() {
     };
 
     if (!authLoading && !user) return null;
-    const isMonk = profile?.role === 'monk';
 
     if (activeRoomToken && activeRoomName) {
         return <LiveRitualRoom
@@ -546,11 +552,12 @@ export default function DashboardPage() {
                 }
                 setActiveRoomToken(null);
                 setActiveRoomName(null);
+                // Reload to refresh status
+                window.location.reload();
             }}
         />;
     }
 
-    // Pending/Rejected screens...
     if (isMonk && profile?.monkStatus === 'pending') {
         return (
             <div className="min-h-screen bg-[#FFFBEB] flex items-center justify-center p-6 font-serif text-[#451a03]">
@@ -640,7 +647,6 @@ export default function DashboardPage() {
                                         {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} {TEXT.updateBtn}
                                     </button>
                                 </div>
-                                {/* Schedule UI logic... (simplified for space) */}
                                 <div className="space-y-3">
                                     {DAYS_EN.map((day, idx) => {
                                         const config = schedule.find(s => s.day === day) || { day, start: "09:00", end: "17:00", active: false };
@@ -724,6 +730,8 @@ export default function DashboardPage() {
                                 {activeBookingTab === 'upcoming' ? (
                                     upcomingBookings.length > 0 ? upcomingBookings.map((b) => {
                                         const availability = checkRitualAvailability(b);
+                                        const isJoiningThis = joiningRoomId === b._id;
+
                                         return (
                                             <div key={b._id} className="p-4 md:p-5 rounded-2xl border border-stone-100 flex flex-col md:flex-row md:justify-between md:items-center bg-stone-50/50 gap-4 transition-all hover:border-[#D97706]/20">
                                                 <div className="flex-1">
@@ -739,7 +747,6 @@ export default function DashboardPage() {
                                                             <button
                                                                 onClick={async () => {
                                                                     setActiveChatBooking(b);
-                                                                    // If monk, fetch client info to display in chat
                                                                     if (isMonk && b.clientId) {
                                                                         try {
                                                                             const res = await fetch(`/api/users/${b.clientId}`);
@@ -756,23 +763,31 @@ export default function DashboardPage() {
                                                             >
                                                                 <MessageCircle size={14} /> {TEXT.chat}
                                                             </button>
+
+                                                            {/* START OF VIDEO BUTTON LOGIC */}
                                                             {b.callStatus === 'active' ? (
                                                                 <button
                                                                     onClick={() => {
                                                                         setActiveBookingForRoom(b);
                                                                         joinVideoCall(b);
                                                                     }}
-                                                                    className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-green-500/10 hover:bg-green-700 transition-transform active:scale-95"
+                                                                    disabled={isJoiningThis}
+                                                                    className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-green-500/10 hover:bg-green-700 transition-transform active:scale-95 disabled:opacity-70"
                                                                 >
-                                                                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={14} /> : <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
                                                                     <Video size={14} /> Join Video Call
                                                                 </button>
                                                             ) : availability.isOpen ? (
                                                                 <button
-                                                                    onClick={() => setActiveBookingForRoom(b)}
-                                                                    className="w-full md:w-auto px-4 py-2.5 bg-[#D97706] text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 hover:bg-[#B45309] transition-transform active:scale-95"
+                                                                    onClick={() => {
+                                                                        setActiveBookingForRoom(b);
+                                                                        joinVideoCall(b); // CALLS FUNCTION NOW
+                                                                    }}
+                                                                    disabled={isJoiningThis}
+                                                                    className="w-full md:w-auto px-4 py-2.5 bg-[#D97706] text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 hover:bg-[#B45309] transition-transform active:scale-95 disabled:opacity-70"
                                                                 >
-                                                                    <MessageCircle size={14} /> {TEXT.enterRoom}
+                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={14} /> : <Video size={14} />}
+                                                                    {TEXT.enterRoom}
                                                                 </button>
                                                             ) : (
                                                                 <div className="w-full md:w-auto flex items-center justify-end">
@@ -781,6 +796,7 @@ export default function DashboardPage() {
                                                                     </span>
                                                                 </div>
                                                             )}
+                                                            {/* END OF VIDEO BUTTON LOGIC */}
                                                         </>
                                                     ) : <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border ${b.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-stone-100 text-stone-500 border-stone-200'}`}>
                                                         {b.status === 'pending' ? TEXT.pending : b.status}
@@ -857,7 +873,7 @@ export default function DashboardPage() {
                     )}
                 </AnimatePresence>
 
-                {/* MODALS (Booking, Service, Profile Edit) same as before... */}
+                {/* MODALS */}
                 <AnimatePresence>
                     {isEditProfileModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -887,13 +903,12 @@ export default function DashboardPage() {
                         </div>
                     )}
 
-                    {/* View User Detail from Chat */}
                     <BookingDetailModal
                         isOpen={!!chatProfileUser}
                         booking={activeChatBooking}
                         user={chatProfileUser}
                         onClose={() => setChatProfileUser(null)}
-                        onAction={() => { }} // No actions needed for simple view
+                        onAction={() => { }}
                     />
                 </AnimatePresence>
 
