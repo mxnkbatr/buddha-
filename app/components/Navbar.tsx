@@ -52,14 +52,14 @@ export default function OverlayNavbar() {
   const desktopNav = [
     { name: { mn: "Нүүр", en: "Home" }, href: "/" },
     { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
-    { name: { mn: "Бүтээл", en: "Blog" }, href: "/blog" },
+    { name: { mn: "Блог", en: "Blog" }, href: "/blog" },
     { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
   ];
 
   const mobileNav = [
     { id: "home", icon: Home, href: "/", label: { mn: "Нүүр", en: "Home" } },
     { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
-    { id: "blog", icon: Feather, href: "/blog", label: { mn: "Бүтээл", en: "Blog" } },
+    { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog" } },
     { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" } },
     { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
   ];

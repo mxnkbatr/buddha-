@@ -199,7 +199,10 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
                         </div>
                         <div className={`px-4 py-1.5 rounded-full border backdrop-blur-md text-[10px] font-black uppercase tracking-widest ${isDark ? "border-cyan-500/30 bg-cyan-950/30 text-cyan-300" : "border-amber-500/30 bg-amber-50/50 text-amber-700"}`}>Arcana {roman[index] || index + 1}</div>
                         <div className="text-center pb-6">
-                            <h3 className={`text-4xl md:text-5xl font-serif font-black mb-3 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]`}>{monk.name[lang]}</h3>
+                            <div className={`relative inline-block px-8 py-3 mb-4 rounded-2xl border backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.1)] transition-transform duration-500 group-hover:scale-105 ${isDark ? "border-cyan-500/40 bg-cyan-950/30" : "border-amber-200/50 bg-white/10"}`}>
+                                <div className={`absolute inset-0 rounded-2xl opacity-20 ${isDark ? "bg-gradient-to-r from-cyan-500 to-blue-500" : "bg-gradient-to-r from-amber-300 to-orange-300"}`} />
+                                <h3 className={`relative text-3xl md:text-5xl font-serif font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]`}>{monk.name[lang]}</h3>
+                            </div>
                             <div className="flex justify-center mb-4"><div className={`h-[3px] w-20 rounded-full ${isDark ? 'bg-cyan-400' : 'bg-amber-600'}`} /></div>
                             <p className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${isDark ? "text-cyan-100" : "text-amber-900"}`}>{monk.title?.[lang] || "Master of Fate"}</p>
                             <div className={`pointer-events-auto inline-flex items-center gap-4 px-8 py-4 rounded-2xl shadow-2xl relative overflow-hidden ${isDark ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white" : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"}`}>
