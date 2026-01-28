@@ -1,6 +1,43 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware();
+const locales = ['mn', 'en', 'ko'];
+const defaultLocale = 'mn';
+
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/api(.*)',
+  // Add other public routes if needed
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = req.nextUrl;
+
+  // 1. Check if the path excludes specific files/api
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/api')
+  ) {
+    return; // Let Clerk/Next handle it
+  }
+
+  // 2. Check if pathname already has locale
+  const pathnameHasLocale = locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  );
+
+  if (pathnameHasLocale) {
+    // Let Clerk handle authentication for locale routes
+    return;
+  }
+
+  // 3. Redirect if no locale
+  const locale = defaultLocale;
+  const newUrl = new URL(`/${locale}${pathname === '/' ? '' : pathname}`, req.url);
+  return NextResponse.redirect(newUrl);
+});
 
 export const config = {
   matcher: [
