@@ -239,7 +239,6 @@ export default function MonkBookingPage() {
         for (let i = 0; i < 24; i++) {
             const h = i.toString().padStart(2, '0');
             t.push(`${h}:00`);
-            t.push(`${h}:30`);
         }
         return t;
     }, []);
@@ -253,9 +252,25 @@ export default function MonkBookingPage() {
 
         if (!dayConfig.active) return [];
 
-        return times.filter(time => {
+        // 1-Hour Lead Time Enforcer
+        const filteredBySchedule = times.filter(time => {
             return time >= dayConfig.start && time < dayConfig.end;
         });
+
+        const isToday = dateObj.toDateString() === new Date().toDateString();
+        if (isToday) {
+            const now = new Date();
+            const minValidTime = new Date(now.getTime() + 60 * 60 * 1000); // Now + 1 Hour
+
+            return filteredBySchedule.filter(time => {
+                const [h] = time.split(':').map(Number);
+                const slotDate = new Date(dateObj);
+                slotDate.setHours(h, 0, 0, 0);
+                return slotDate >= minValidTime;
+            });
+        }
+
+        return filteredBySchedule;
     }, [selectedDateIndex, monk, calendarDates, times]);
 
     useEffect(() => {
