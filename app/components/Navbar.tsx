@@ -134,7 +134,7 @@ export default function OverlayNavbar() {
           transition={{ type: "spring", stiffness: 200, damping: 25 }}
         >
           <nav className={`
-            pointer-events-auto flex items-center justify-between transition-all duration-700 rounded-full border backdrop-blur-2xl shadow-2xl
+            pointer-events-auto flex items-center justify-between transition-[width,padding,background-color,border-color,box-shadow] duration-700 rounded-full border backdrop-blur-2xl shadow-2xl will-change-[width,padding]
             ${isScrolled
               ? "w-[85%] lg:w-[1100px] py-2 px-8"
               : "w-[90%] lg:w-[1200px] py-4 px-10"}
@@ -148,6 +148,7 @@ export default function OverlayNavbar() {
               <Logo />
             </LocalizedLink>
 
+
             {/* Links Section */}
             <div className="flex items-center gap-1">
               {desktopNav.map((item) => {
@@ -157,7 +158,7 @@ export default function OverlayNavbar() {
                   <LocalizedLink
                     key={item.href}
                     href={item.href}
-                    className={`px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.1em] transition-all relative overflow-hidden group
+                    className={`px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-[0.1em] transition-colors relative overflow-hidden group
                       ${isActive
                         ? "text-white shadow-lg shadow-amber-500/20"
                         : "hover:bg-amber-50 hover:text-amber-700"}`}
@@ -181,7 +182,7 @@ export default function OverlayNavbar() {
             <div className="flex items-center gap-3">
               <button
                 onClick={toggleLanguage}
-                className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all active:scale-90
+                className={`w-10 h-10 rounded-full flex items-center justify-center border transition-[colors,transform] active:scale-90
                    ${isDark ? "border-amber-800/50 hover:bg-amber-900/30" : "border-amber-100 hover:bg-white hover:shadow-sm text-slate-500 hover:text-amber-600"}`}
                 aria-label={lang === 'mn' ? "Switch to English" : "Монгол хэл рүү шилжих"}
               >
@@ -195,7 +196,7 @@ export default function OverlayNavbar() {
 
               {user ? (
                 <div className="flex items-center gap-4">
-                  <LocalizedLink href="/dashboard" className={`text-xs font-black uppercase tracking-widest border-b-2 border-transparent hover:border-amber-600 transition-all ${isDark ? "text-amber-200" : "text-slate-600 hover:text-amber-700"}`}>
+                  <LocalizedLink href="/dashboard" className={`text-xs font-black uppercase tracking-widest border-b-2 border-transparent hover:border-amber-600 transition-colors ${isDark ? "text-amber-200" : "text-slate-600 hover:text-amber-700"}`}>
                     {CONTENT.dashboard[lang]}
                   </LocalizedLink>
                   <div className="scale-105">
@@ -221,15 +222,16 @@ export default function OverlayNavbar() {
                 </div>
               ) : (
                 <LocalizedLink href="/sign-up">
-                  <button className="px-7 py-2.5 rounded-full bg-gradient-to-r from-amber-700 to-amber-600 hover:to-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 transition-all active:scale-95 hover:-translate-y-0.5">
+                  <button className="px-7 py-2.5 rounded-full bg-gradient-to-r from-amber-700 to-amber-600 hover:to-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 transition-[transform,shadow] active:scale-95 hover:-translate-y-0.5">
                     {CONTENT.login[lang]}
                   </button>
                 </LocalizedLink>
               )}
             </div>
           </nav>
-        </motion.header>
-      )}
+        </motion.header >
+      )
+      }
 
 
       {/* ========================================================= */}
@@ -255,7 +257,7 @@ export default function OverlayNavbar() {
           <div className="flex gap-1 p-1 rounded-full bg-white/40 backdrop-blur-md border border-white/40 shadow-sm">
             <button
               onClick={toggleLanguage}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isDark ? "text-amber-200" : "text-amber-800 bg-white shadow-sm"}`}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isDark ? "text-amber-200" : "text-amber-800 bg-white shadow-sm"}`}
             >
               <span className="text-[9px] font-black">{lang.toUpperCase()}</span>
             </button>
@@ -283,7 +285,7 @@ export default function OverlayNavbar() {
       {/* ========================================================= */}
       <div className="md:hidden fixed bottom-6 left-0 right-0 z-50 px-5 flex justify-center pointer-events-none">
         <nav className={`
-          pointer-events-auto flex items-center justify-between w-full max-w-[400px] px-2 py-2 rounded-[2rem] border shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-all duration-700
+          pointer-events-auto flex items-center justify-between w-full max-w-[400px] px-2 py-2 rounded-[2rem] border shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-[background-color,border-color] duration-700
           ${isDark ? "bg-[#1a0f0a]/90 border-amber-900/30" : "bg-white/80 border-white/50"}
         `}>
           {mobileNav.filter(item => user ? true : item.id !== 'dashboard').map((item) => {
@@ -301,13 +303,13 @@ export default function OverlayNavbar() {
                   )}
                 </AnimatePresence>
 
-                <div className={`transition-all duration-300 mb-1 z-10 ${isActive ? "text-white -translate-y-2" : (isDark ? "text-amber-200/50" : "text-slate-400")}`}>
+                <div className={`transition-[transform,color,opacity] duration-300 mb-1 z-10 will-change-transform ${isActive ? "text-white -translate-y-2" : (isDark ? "text-amber-200/50" : "text-slate-400")}`}>
                   {user && item.id === 'dashboard' ? <item.icon size={20} strokeWidth={2.5} /> :
                     !user && item.id === 'dashboard' ? <LogIn size={20} strokeWidth={2.5} /> :
                       <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />}
                 </div>
 
-                <span className={`text-[8px] font-bold uppercase tracking-tight transition-all absolute bottom-1.5 ${isActive ? "opacity-100 text-amber-600 scale-105" : "opacity-0 scale-90"}`}>
+                <span className={`text-[8px] font-bold uppercase tracking-tight transition-[opacity,transform] duration-300 absolute bottom-1.5 will-change-[opacity,transform] ${isActive ? "opacity-100 text-amber-600 scale-105" : "opacity-0 scale-90"}`}>
                   {user ? item.label[lang] : (item.id === 'dashboard' ? CONTENT.login[lang] : item.label[lang])}
                 </span>
               </LocalizedLink>
