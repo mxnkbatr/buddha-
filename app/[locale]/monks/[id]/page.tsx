@@ -280,15 +280,15 @@ export default function MonkBookingPage() {
         const res = await fetch('/api/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                monkId, 
-                serviceId: selectedService._id, 
-                date: dateStr, 
-                time: selectedTime, 
-                userName, 
+            body: JSON.stringify({
+                monkId,
+                serviceId: selectedService._id,
+                date: dateStr,
+                time: selectedTime,
+                userName,
                 userEmail, // Optional
                 userPhone, // Required
-                note: userNote 
+                note: userNote
             })
         });
         if (res.ok) setIsBooked(true);
@@ -333,7 +333,7 @@ export default function MonkBookingPage() {
 
                         {/* 3D Monk Card */}
                         <div className="relative aspect-[3/4] rounded-[30px] overflow-hidden shadow-2xl border-2 border-white/20 group">
-                            <Image src={monk!.image} alt={monk!.name[lang]} fill className="w-full h-full object-cover transform transition-transform duration-[1.5s] group-hover:scale-105" />
+                            <Image src={monk!.image} alt={monk!.name[lang] || monk!.name.en} fill className="w-full h-full object-cover transform transition-transform duration-[1.5s] group-hover:scale-105" />
                             <div className={`absolute inset-0 bg-gradient-to-t ${isNight ? "from-[#020617]" : "from-[#451a03]"} via-transparent to-transparent opacity-90`} />
                             <div className="absolute bottom-0 left-0 w-full p-8 text-center">
                                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/70 mb-2">{monk!.title[lang]}</p>

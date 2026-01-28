@@ -28,10 +28,14 @@ export interface Monk {
   name: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   title: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   image: string;
   video?: string;
@@ -39,11 +43,15 @@ export interface Monk {
   bio: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   isAvailable: boolean;
   quote: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   monkNumber?: number; // Order/Display number
 
@@ -54,16 +62,22 @@ export interface Monk {
   education: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   philosophy: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   services: {
     id: string;
     name: {
       mn: string;
       en: string;
+      ko?: string;
+      de?: string;
     };
     price: number; // in local currency
     duration: string; // e.g., "30 min", "1 hour"
@@ -91,7 +105,7 @@ export interface Booking {
   userPhone?: string;
   userEmail?: string;
   type?: "Astrology" | "Counseling" | "Prayer" | "Ritual"; // Made optional as it might be derived from service
-  serviceName?: { mn: string; en: string }; // Add serviceName to interface
+  serviceName?: { mn: string; en: string; ko?: string; de?: string; }; // Add serviceName to interface
   status: "pending" | "confirmed" | "completed" | "cancelled" | "rejected"; // Add rejected
   notes?: string;
   createdAt: Date;
@@ -114,6 +128,8 @@ export interface Service {
   name: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   price: number
   duration: string; // e.g., "30 min", "1 hour"
@@ -121,19 +137,27 @@ export interface Service {
   desc: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   }
   subtitle: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   title: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
   image?: string;
   quote?: {
     mn: string;
     en: string;
+    ko?: string;
+    de?: string;
   };
 }
 
