@@ -734,8 +734,17 @@ export default function DashboardPage() {
 
                                         return (
                                             <div key={b._id} className="p-4 md:p-5 rounded-2xl border border-stone-100 flex flex-col md:flex-row md:justify-between md:items-center bg-stone-50/50 gap-4 transition-all hover:border-[#D97706]/20">
-                                                <div className="flex-1">
-                                                    <h4 className="font-bold text-[#451a03] text-sm md:text-base">{b.clientName}</h4>
+                                                <div
+                                                    className={`flex-1 ${!isMonk ? "cursor-pointer" : ""}`}
+                                                    onClick={() => {
+                                                        if (!isMonk) {
+                                                            router.push(`/${language}/monks/${b.monkId}`);
+                                                        }
+                                                    }}
+                                                >
+                                                    <h4 className={`font-bold text-[#451a03] text-sm md:text-base ${!isMonk ? "hover:text-[#D97706] transition-colors" : ""}`}>
+                                                        {isMonk ? b.clientName : (allMonks.find(m => m._id === b.monkId)?.name?.[langKey] || b.serviceName?.en || "Monk")}
+                                                    </h4>
                                                     {isMonk && <span className="text-[10px] text-stone-400 uppercase font-black tracking-wider block mb-1">{b.serviceName?.en || "Service"}</span>}
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="text-[10px] md:text-xs text-stone-500 bg-white px-2 py-0.5 rounded-full border border-stone-100">{b.date} • {b.time}</span>
@@ -808,8 +817,17 @@ export default function DashboardPage() {
                                 ) : (
                                     historyBookings.length > 0 ? historyBookings.map((b) => (
                                         <div key={b._id} className="p-4 md:p-5 rounded-2xl border border-stone-100 flex flex-col md:flex-row md:justify-between md:items-center bg-stone-50/20 gap-4 opacity-70 hover:opacity-100 transition-all">
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-[#451a03] text-sm md:text-base line-through opacity-60">{b.clientName}</h4>
+                                            <div
+                                                className={`flex-1 ${!isMonk ? "cursor-pointer" : ""}`}
+                                                onClick={() => {
+                                                    if (!isMonk) {
+                                                        router.push(`/${language}/monks/${b.monkId}`);
+                                                    }
+                                                }}
+                                            >
+                                                <h4 className={`font-bold text-[#451a03] text-sm md:text-base line-through opacity-60 ${!isMonk ? "hover:text-[#D97706] transition-colors" : ""}`}>
+                                                    {isMonk ? b.clientName : (allMonks.find(m => m._id === b.monkId)?.name?.[langKey] || "Monk")}
+                                                </h4>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-[10px] md:text-xs text-stone-400 bg-transparent px-0 py-0">{b.date} • {b.time}</span>
                                                 </div>
