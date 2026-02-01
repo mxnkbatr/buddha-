@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-const locales = ['mn', 'en', 'ko'];
+const locales = ['mn', 'en'];
 const defaultLocale = 'mn';
 
 const isPublicRoute = createRouteMatcher([

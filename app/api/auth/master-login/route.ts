@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
+import { connectToDatabase } from "@/database/db";
+import { User } from "@/database/types";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
 
 export async function POST(request: Request) {
     try {
@@ -20,6 +26,7 @@ export async function POST(request: Request) {
 
         let userList;
         let debugIdentifier = email;
+        let phone = "";
 
         if (isEmail) {
             userList = await client.users.getUserList({ emailAddress: [email], limit: 1 });
@@ -27,7 +34,7 @@ export async function POST(request: Request) {
             // Handle phone number
             // If it's a Mongolian number (8 digits), add +976 prefix
             // Otherwise, ensure it has a + prefix
-            let phone = email.replace(/\s/g, '');
+            phone = email.replace(/\s/g, '');
             if (/^\d{8}$/.test(phone)) {
                 phone = `+976${phone}`;
             } else if (!phone.startsWith("+")) {
@@ -38,15 +45,11 @@ export async function POST(request: Request) {
             userList = await client.users.getUserList({ phoneNumber: [phone], limit: 1 });
 
             // FALLBACK: If not found by verified phone, search in metadata (unsafeMetadata.phone)
-            // This is needed because some users store phone in metadata without verifying it as an identifier.
             if (userList.data.length === 0) {
-                // We search by iterating recent users. Note: This is not efficient for millions of users, 
-                // but acceptable for this specific "master login" use case / smaller user base.
                 const allUsers = await client.users.getUserList({ limit: 100 });
 
-                // Check both with and without country code
-                const rawPhone = email.replace(/\s/g, ''); // Original input cleaned
-                const formattedPhone = phone; // +976...
+                const rawPhone = email.replace(/\s/g, '');
+                const formattedPhone = phone;
 
                 const foundUser = allUsers.data.find(u =>
                     (u.unsafeMetadata?.phone as string)?.includes(rawPhone) ||
@@ -60,20 +63,66 @@ export async function POST(request: Request) {
             }
         }
 
-        if (userList.data.length === 0) {
-            return NextResponse.json({ message: `User not found. Searched: ${debugIdentifier}` }, { status: 404 });
+        // --- 3. CLERK USER FOUND ---
+        if (userList.data.length > 0) {
+            const user = userList.data[0];
+            const signInToken = await client.signInTokens.createSignInToken({
+                userId: user.id,
+                expiresInSeconds: 60
+            });
+            return NextResponse.json({ token: signInToken.token, status: "success", type: "clerk" });
         }
 
-        const user = userList.data[0];
+        // --- 4. CLERK FAILED -> TRY CUSTOM DB ---
+        // If not found in Clerk, check MongoDB for Custom Users
+        const { db } = await connectToDatabase();
+        let customUser: User | null = null;
 
-        // 3. Generate Sign-In Token (valid for 30 days by default, but intended for immediate use)
-        // This allows the client to sign in as this user immediately.
-        const signInToken = await client.signInTokens.createSignInToken({
-            userId: user.id,
-            expiresInSeconds: 60
-        });
+        if (isEmail) {
+            customUser = await db.collection<User>("users").findOne({ email: email });
+        } else {
+            // Identifier is phone
+            // Try formatted phone first
+            customUser = await db.collection<User>("users").findOne({ phone: phone });
 
-        return NextResponse.json({ token: signInToken.token, status: "success" });
+            // If not found, try fallback regex search like client-login
+            if (!customUser) {
+                const digits = phone.replace(/\D/g, '');
+                if (digits.length >= 8) {
+                    const searchPattern = digits.slice(-8);
+                    customUser = await db.collection<User>("users").findOne({
+                        phone: { $regex: searchPattern }
+                    });
+                }
+            }
+        }
+
+        if (customUser) {
+            // Generate JWT for Custom User
+            const token = await new SignJWT({
+                sub: customUser._id?.toString(),
+                role: customUser.role,
+                clerkId: customUser.clerkId
+            })
+                .setProtectedHeader({ alg: "HS256" })
+                .setIssuedAt()
+                .setExpirationTime("30d") // Long-lived session
+                .sign(new TextEncoder().encode(JWT_SECRET));
+
+            // Set Cookie
+            const cookieStore = await cookies();
+            cookieStore.set("auth_token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                maxAge: 60 * 60 * 24 * 30, // 30 days
+                path: "/",
+                sameSite: "lax",
+            });
+
+            return NextResponse.json({ status: "success", type: "custom" });
+        }
+
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
 
     } catch (error: any) {
         console.error("Master Login Error:", error);

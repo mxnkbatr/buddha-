@@ -23,10 +23,10 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CONTENT = {
-  logo: { mn: "Гэвабaл", en: "Gevabal", ko: "Gevabal" },
-  login: { mn: "Нэвтрэх", en: "Sign In", ko: "로그인" },
-  register: { mn: "Бүртгүүлэх", en: "Register", ko: "등록" },
-  dashboard: { mn: "Самбар", en: "Panel", ko: "패널" },
+  logo: { mn: "Гэвабaл", en: "Gevabal" },
+  login: { mn: "Нэвтрэх", en: "Sign In" },
+  register: { mn: "Бүртгүүлэх", en: "Register" },
+  dashboard: { mn: "Самбар", en: "Panel" },
 };
 
 export default function OverlayNavbar() {
@@ -61,23 +61,23 @@ export default function OverlayNavbar() {
   };
 
   const toggleLanguage = () => {
-    const nextLang = lang === "mn" ? "en" : (lang === "en" ? "ko" : "mn");
+    const nextLang = lang === "mn" ? "en" : "mn";
     switchLocale(nextLang);
   };
 
   const desktopNav = [
-    { name: { mn: "Нүүр", en: "Home", ko: "홈" }, href: "/" },
-    { name: { mn: "Үзмэрч", en: "Exhibitor", ko: "전시자" }, href: "/monks" },
-    { name: { mn: "Блог", en: "Blog", ko: "블로그" }, href: "/blog" },
-    { name: { mn: "Бидний тухай", en: "About Us", ko: "회사 소개" }, href: "/about" },
+    { name: { mn: "Нүүр", en: "Home" }, href: "/" },
+    { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
+    { name: { mn: "Блог", en: "Blog" }, href: "/blog" },
+    { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
   ];
 
   const mobileNav = [
-    { id: "home", icon: Home, href: "/", label: { mn: "Нүүр", en: "Home", ko: "홈" } },
-    { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks", ko: "스님" } },
-    { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog", ko: "블로그" } },
-    { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel", ko: "패널" } },
-    { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About", ko: "소개" } },
+    { id: "home", icon: Home, href: "/", label: { mn: "Нүүр", en: "Home" } },
+    { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
+    { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog" } },
+    { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" } },
+    { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
   ];
 
   // Wrapper for Link to include locale

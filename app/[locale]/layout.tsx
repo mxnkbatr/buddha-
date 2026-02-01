@@ -44,7 +44,7 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params;
-  const validLocale = (['mn', 'en', 'ko'].includes(locale) ? locale : 'mn') as any;
+  const validLocale = (['mn', 'en'].includes(locale) ? locale : 'mn') as any;
 
   return (
     <ClerkProvider>

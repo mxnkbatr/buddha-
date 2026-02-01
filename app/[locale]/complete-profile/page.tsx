@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -11,6 +11,12 @@ export default function CompleteProfilePage() {
     const { t } = useLanguage();
     const { user, loading: authLoading } = useAuth(); // We can reload user context after update if needed
     const router = useRouter();
+
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/sign-in');
+        }
+    }, [authLoading, user]);
 
     const [form, setForm] = useState({
         lastName: user?.lastName || "",

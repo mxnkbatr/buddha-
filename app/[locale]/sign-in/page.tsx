@@ -65,17 +65,21 @@ export default function SignUpPage() {
           router.push("/dashboard");
           return; // Stop here if custom login works
         } catch (err: any) {
-          // If error is NOT "Invalid credentials", it might be a system error or "not found"
-          // "Invalid credentials" (401) usually means password wrong OR user not found.
-          // My API returns 401 for both "User not found" and "Wrong password" to be safe, BUT
-          // it returns "Please log in with the correct method" if user exists but has no password (Monk).
-          // So:
-          if (err.message === "Please log in with the correct method." || err.message === "Invalid credentials") {
-            // It might be a Monk (Clerk user) or just wrong password.
-            // Let's TRY Clerk as fallback. If Clerk also fails, we show "Invalid credentials".
-            console.log("Custom login failed, trying Clerk...", err.message);
+          // New logic:
+          // 404 "User not found" -> Try Clerk
+          // 409 "Please log in with the correct method" -> Try Clerk (might be Monk)
+          // 401 "Invalid password" -> STOP and show error. Do NOT try Clerk.
+
+          if (err.message.includes("User not found") || err.message === "Please log in with the correct method.") {
+            console.log("Custom login skipped (" + err.message + "), trying Clerk...");
+            // Fall through to Clerk logic
+          } else if (err.message === "Invalid password") {
+            // Stop here, password is definitely wrong for the existing user
+            setError(t({ mn: "Нууц үг буруу байна", en: "Invalid password" }));
+            setLoading(false);
+            return;
           } else {
-            // Real error
+            // Some other error (500 etc)
             throw err;
           }
         }
@@ -117,6 +121,12 @@ export default function SignUpPage() {
         if (!res.ok) {
           if (res.status === 404) throw new Error(data.message || "User not found.");
           throw new Error(data.message || "Master login failed.");
+        }
+
+        if (data.type === "custom") {
+          // Cookie is already set by the API
+          router.push("/dashboard");
+          return;
         }
 
         const result = await signIn.create({
@@ -207,7 +217,7 @@ export default function SignUpPage() {
     verifyCode: t({ mn: "Баталгаажуулах", en: "Verify Code" }),
     registerBtn: t({ mn: "Бүртгүүлэх", en: "Create Account" }),
     forgotPassword: t({ mn: "Нууц үгээ мартсан уу?", en: "Forgot Password?" }),
-    
+
     noAccount: t({ mn: "Бүртгэлгүй юу?", en: "Don't have an account?" }),
   };
 

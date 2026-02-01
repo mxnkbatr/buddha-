@@ -25,35 +25,48 @@ export async function POST(request: Request) {
 
     // Find user (search by phone)
     // We might want to support email login too if we allow email in signup
-    const user = await db.collection<User>("users").findOne({
-        $or: [
-            { phone: identifier },
-            { phone: phone }
-        ]
+    let user = await db.collection<User>("users").findOne({
+      $or: [
+        { phone: identifier },
+        { phone: phone }
+      ]
     });
 
     if (!user) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+      // Fallback: Try regex on last 8 digits (Mongolian number length) to be robust against formatting +976 vs 89...
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length >= 8) {
+        const searchPattern = digits.slice(-8);
+        user = await db.collection<User>("users").findOne({
+          phone: { $regex: searchPattern }
+        });
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json({
+        message: "User not found"
+      }, { status: 404 });
     }
 
     // Verify Password
     if (!user.password) {
-       // This user might be a Clerk user trying to login via custom form
-       // or a legacy user.
-       return NextResponse.json({ message: "Please log in with the correct method." }, { status: 401 });
+      // This user might be a Clerk user trying to login via custom form
+      // or a legacy user.
+      return NextResponse.json({ message: "Please log in with the correct method." }, { status: 409 });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json({ message: "Invalid password" }, { status: 401 });
     }
 
     // Create JWT
-    const token = await new SignJWT({ 
-        sub: user._id?.toString(),
-        role: user.role,
-        clerkId: user.clerkId 
+    const token = await new SignJWT({
+      sub: user._id?.toString(),
+      role: user.role,
+      clerkId: user.clerkId
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
@@ -70,18 +83,18 @@ export async function POST(request: Request) {
       sameSite: "lax",
     });
 
-    return NextResponse.json({ 
-        success: true,
-        user: {
-            _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            avatar: user.avatar
-        } 
+    return NextResponse.json({
+      success: true,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        avatar: user.avatar
+      }
     });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Client Login Error:", error);
     return NextResponse.json(

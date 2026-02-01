@@ -16,6 +16,7 @@ import LiveRitualRoom from "../../components/LiveRitualRoom";
 import ChatWindow from "../../components/ChatWindow";
 import BookingDetailModal from "../admin/BookingDetailModal";
 import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
 
 // --- TYPES ---
 interface ServiceItem {
@@ -537,7 +538,12 @@ export default function DashboardPage() {
         } catch (e) { console.error(e); } finally { setIsSaving(false); }
     };
 
-    if (!authLoading && !user) return null;
+    if (!authLoading && !user) {
+        if (typeof window !== "undefined") {
+            router.push("/sign-in");
+        }
+        return null;
+    }
 
     if (activeRoomToken && activeRoomName) {
         return <LiveRitualRoom
@@ -629,9 +635,11 @@ export default function DashboardPage() {
                             )}
 
                             {!isMonk && (
-                                <button onClick={() => setIsBookingModalOpen(true)} className="bg-[#D97706] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#B45309] shadow-lg flex items-center gap-3">
-                                    <Plus size={18} /> {TEXT.bookBtn}
-                                </button>
+                                <Link href="/monks">
+                                    <button onClick={() => setIsBookingModalOpen(true)} className="bg-[#D97706] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#B45309] shadow-lg flex items-center gap-3">
+                                        <Plus size={18} /> {TEXT.bookBtn}
+                                    </button>
+                                </Link>
                             )}
                         </div>
                     </div>

@@ -68,7 +68,7 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
         if (isCloudinary && useNative) {
             const cloudName = src.split("res.cloudinary.com/")[1]?.split("/")[0];
             const baseUrl = `https://res.cloudinary.com/${cloudName}/video/upload`;
-            
+
             // Construct responsive sources
             const mobileSrc = `${baseUrl}/q_auto,f_auto,w_640/${publicId}.mp4`;
             const desktopSrc = `${baseUrl}/q_auto,f_auto/${publicId}.mp4`;
@@ -92,7 +92,7 @@ const OptimizedVideo: React.FC<OptimizedVideoProps> = ({
                     height={height}
                     style={{ objectFit: 'cover' }}
                     // @ts-ignore
-                    fetchpriority={isLCP ? "high" : "auto"}
+                    fetchPriority={isLCP ? "high" : "auto"}
                     // preload="none" for non-critical, but since it's usually background autoplay, auto or metadata is preferred
                     preload={isLCP ? "auto" : "metadata"}
                 >

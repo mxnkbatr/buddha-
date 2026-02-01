@@ -17,9 +17,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => {},
-  logout: async () => {},
-  refreshUser: async () => {},
+  login: async () => { },
+  logout: async () => { },
+  refreshUser: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -54,37 +54,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (formData: any) => {
     // This is for CUSTOM DB login
     try {
-        const res = await fetch("/api/auth/client-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
+      const res = await fetch("/api/auth/client-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
-        // Refresh state
-        await fetchUser();
-        return data; // Return data for redirect logic in component
-    } catch (error) {
-        throw error;
+      // Refresh state
+      await fetchUser();
+      return data; // Return data for redirect logic in component
+    } catch (error: any) {
+      throw error;
     }
   };
 
   const logout = async () => {
     setLoading(true);
     try {
-        // 1. Logout Custom
-        await fetch("/api/auth/logout", { method: "POST" });
-        // 2. Logout Clerk
-        await signOut();
-        
-        setUser(null);
-        router.push("/sign-in");
+      // 1. Logout Custom
+      await fetch("/api/auth/logout", { method: "POST" });
+      // 2. Logout Clerk
+      await signOut();
+
+      setUser(null);
+      router.push("/sign-in");
     } catch (error) {
-        console.error("Logout error", error);
+      console.error("Logout error", error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

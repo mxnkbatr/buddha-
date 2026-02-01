@@ -1,34 +1,37 @@
-// contexts/LanguageContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import React from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { Globe } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 
-type Language = "mn" | "en";
+export default function LanguageToggle() {
+  const { language } = useLanguage();
+  const pathname = usePathname();
+  const router = useRouter();
 
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: <T>(translations: { mn: T; en: T}) => T;
-}
-
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
-
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>("mn");
-
-  const t = <T,>(translations: { mn: T; en: T   }): T => {
-    return translations[language];
+  const toggleLanguage = () => {
+    const newLang = language === "mn" ? "en" : "mn";
+    const segments = pathname.split('/');
+    // Check if the path actually has the locale
+    if (segments.length > 1 && (segments[1] === 'mn' || segments[1] === 'en')) {
+      segments[1] = newLang;
+      const newPath = segments.join('/');
+      router.push(newPath);
+    } else {
+      // Fallback or if locale is missing from path (should be handled by middleware, but safe to check)
+      router.push(`/${newLang}${pathname}`);
+    }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
+    <button
+      onClick={toggleLanguage}
+      className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
+      aria-label="Toggle Language"
+    >
+      <Globe size={18} />
+      <span className="text-sm font-bold uppercase">{language}</span>
+    </button>
   );
-};
-
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (!context) throw new Error("useLanguage must be used within LanguageProvider");
-  return context;
-};
+}
