@@ -153,7 +153,7 @@ export default function RitualBookingPage() {
     const lockedMonkId = searchParams.get("monkId"); // Read monk ID from query params
     const { t, language: lang } = useLanguage();
     const { resolvedTheme } = useTheme();
-    
+
     // --- AUTH UPDATE ---
     const { user } = useAuth();
     const isSignedIn = !!user;
@@ -213,12 +213,12 @@ export default function RitualBookingPage() {
 
     useEffect(() => {
         setMounted(true);
-        if (user) { 
+        if (user) {
             // Handle both Clerk user (fullName) and DB user (firstName/lastName)
             const name = user.fullName || (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : "");
-            setUserName(name); 
+            setUserName(name);
             // AuthContext user object should have email and phone
-            setUserEmail(user.email || user.primaryEmailAddress?.emailAddress || ""); 
+            setUserEmail(user.email || user.primaryEmailAddress?.emailAddress || "");
             setUserPhone(user.phone || "");
         }
 
@@ -324,7 +324,7 @@ export default function RitualBookingPage() {
                 body: JSON.stringify({
                     monkId: selectedMonk?._id, serviceId: service._id,
                     date: d, time: selectedTime,
-                    userName, 
+                    userName,
                     userEmail, // Optional
                     userPhone, // Required
                     note: userNote
@@ -462,14 +462,14 @@ export default function RitualBookingPage() {
                                                 initial={{ scale: 0, rotate: -180 }}
                                                 animate={{ scale: 1, rotate: 0 }}
                                                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                                className="w-24 h-24 mx-auto bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg mb-6 relative"
+                                                className="w-24 h-24 mx-auto bg-amber-500 text-white rounded-full flex items-center justify-center shadow-lg mb-6 relative"
                                             >
-                                                <CheckCircle2 size={48} />
-                                                {/* Success Pulse */}
-                                                <motion.div animate={{ scale: [1, 1.5], opacity: [0.5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute inset-0 rounded-full bg-green-500 z-[-1]" />
+                                                <Hourglass size={48} />
+                                                {/* Pending Pulse */}
+                                                <motion.div animate={{ scale: [1, 1.5], opacity: [0.5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute inset-0 rounded-full bg-amber-500 z-[-1]" />
                                             </motion.div>
-                                            <h2 className={`text-3xl font-serif font-bold mb-4 ${theme.text}`}>{t({ mn: "Баталгаажлаа", en: "Confirmed" })}</h2>
-                                            <p className={`opacity-60 mb-8 ${theme.text}`}>{t({ mn: "Таны цаг амжилттай бүртгэгдлээ.", en: "Your ritual has been securely booked." })}</p>
+                                            <h2 className={`text-3xl font-serif font-bold mb-4 ${theme.text}`}>{t({ mn: "Захиалга Админд Илгээгдлээ", en: "Request Sent to Admin" })}</h2>
+                                            <p className={`opacity-60 mb-8 ${theme.text}`}>{t({ mn: "Төлбөр төлөгдсөний дараа таны захиалга баталгаажих болно.", en: "Your request has been sent. It will be accepted after payment verification." })}</p>
 
                                             {/* --- BANK DETAILS SECTION --- */}
                                             <motion.div

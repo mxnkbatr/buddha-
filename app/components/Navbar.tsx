@@ -283,7 +283,7 @@ export default function OverlayNavbar() {
       {/* ========================================================= */}
       {/* 3. MOBILE BOTTOM DOCK                                     */}
       {/* ========================================================= */}
-      <div className="md:hidden fixed bottom-6 left-0 right-0 z-50 px-5 flex justify-center pointer-events-none">
+      <div className="md:hidden fixed bottom-6 left-0 right-0 z-50 px-5 flex justify-center pointer-events-none max-h-[500px]:hidden landscape:hidden">
         <nav className={`
           pointer-events-auto flex items-center justify-between w-full max-w-[400px] px-2 py-2 rounded-[2rem] border shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-[background-color,border-color] duration-700
           ${isDark ? "bg-[#1a0f0a]/90 border-amber-900/30" : "bg-white/80 border-white/50"}

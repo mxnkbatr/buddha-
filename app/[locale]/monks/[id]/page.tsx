@@ -397,8 +397,8 @@ export default function MonkBookingPage() {
                                                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 mx-auto bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg mb-6">
                                                         <CheckCircle2 size={40} />
                                                     </motion.div>
-                                                    <h2 className="text-3xl font-serif font-bold mb-4">{t({ mn: "Баталгаажлаа", en: "Confirmed" })}</h2>
-                                                    <p className="opacity-60 mb-8">{t({ mn: "Таны захиалга амжилттай бүртгэгдлээ.", en: "Your destiny has been aligned." })}</p>
+                                                    <h2 className="text-3xl font-serif font-bold mb-4">{t({ mn: "Захиалга Илгээгдлээ", en: "Request Sent" })}</h2>
+                                                    <p className="opacity-60 mb-8">{t({ mn: "Таны хүсэлтийг таны төлбөрийн захиалгыг баталгаажуулсны дараа админд илгээх болно.", en: "Your request sent to the admin after your payment booking will be confirmed." })}</p>
 
                                                     {/* --- BANK DETAILS SECTION (Monk Page) --- */}
                                                     <motion.div
