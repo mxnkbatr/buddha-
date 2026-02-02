@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   skipProxyUrlNormalize: true,
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -26,6 +27,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // output: 'export',
   webpack: (config) => {
     config.experiments = {
       ...config.experiments,

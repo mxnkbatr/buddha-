@@ -11,6 +11,10 @@
     "db:seed": "npx tsx database/seed.ts"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2",
     "@clerk/nextjs": "^6.36.5",
     "@livekit/components-react": "^2.9.17",
     "@livekit/components-styles": "^1.2.0",
