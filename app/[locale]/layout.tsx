@@ -34,6 +34,13 @@ export const metadata = {
     shortcut: '/logo.png',
     apple: '/logo.png',
   },
+  alternates: {
+    canonical: './',
+    languages: {
+      'en': '/en',
+      'mn': '/mn',
+    },
+  },
 }
 
 export default async function RootLayout({

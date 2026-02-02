@@ -71,15 +71,18 @@ export default function Hero() {
             className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-black text-white leading-[1.1] tracking-tight safari-gpu"
             style={{ textRendering: 'optimizeLegibility' }}
           >
+            <span className="block text-xl md:text-2xl text-white/80 font-sans font-bold tracking-[0.2em] mb-4 uppercase">
+              Gevabal - Online Sanctuary
+            </span>
             <span className="text-[#FFB84D]">{content.highlight}</span> {content.main}
           </h1>
 
           {/* Subtitle */}
-          <p
+          <h2
             className="max-w-2xl text-lg md:text-2xl text-white/90 font-medium leading-relaxed drop-shadow-md safari-gpu"
           >
             {content.desc}
-          </p>
+          </h2>
 
           {/* CTA Button */}
           <div
