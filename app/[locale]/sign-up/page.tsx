@@ -195,7 +195,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FFFBEB] font-sans flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-[#FFFBEB] font-sans flex flex-col justify-center pt-32 pb-12 sm:px-6 lg:px-8">
       <OverlayNavbar />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
