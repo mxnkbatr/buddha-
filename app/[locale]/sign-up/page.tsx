@@ -9,7 +9,6 @@ import {
   Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, Phone, KeyRound, Mail
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
-import OverlayNavbar from "../../components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 
 // ========================================== 
@@ -196,8 +195,6 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#FFFBEB] font-sans flex flex-col justify-center pt-32 pb-12 sm:px-6 lg:px-8">
-      <OverlayNavbar />
-
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
         <h2 className="text-3xl font-extrabold text-stone-900 font-serif">
           {content.welcome}

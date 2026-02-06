@@ -197,6 +197,7 @@ export default function OverlayNavbar() {
       </div>
 
       {/* --- MOBILE BOTTOM DOCK --- */}
+      {!isAuthPage && (
       <div className="md:hidden fixed bottom-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
         <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[360px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl">
           {mobileNav.filter(item => user ? true : item.id !== 'dashboard').map((item) => {
@@ -221,6 +222,7 @@ export default function OverlayNavbar() {
           })}
         </nav>
       </div>
+      )}
     </>
   );
 }

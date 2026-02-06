@@ -46,7 +46,22 @@ export async function GET() {
   try {
     const { db } = await connectToDatabase();
     // Fetch from 'users' collection where role is 'monk'
-    const monks = await db.collection("users").find({ role: "monk" }).toArray() as unknown as Monk[];
+    // Projection: Select only necessary fields for the list view to reduce payload size
+    const monks = await db.collection("users").find(
+      { role: "monk" }, 
+      { 
+        projection: { 
+           _id: 1, 
+           name: 1, 
+           title: 1, 
+           image: 1, 
+           specialties: 1, 
+           isSpecial: 1, 
+           yearsOfExperience: 1,
+           bio: 1 // Maybe truncate bio in frontend or separate detail view? Keep for now.
+        } 
+      }
+    ).toArray() as unknown as Monk[];
 
     // Serialize _id to string to avoid serialization issues in Next.js response
     let serializedMonks = monks.map(monk => ({

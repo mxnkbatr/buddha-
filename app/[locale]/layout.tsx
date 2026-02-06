@@ -61,11 +61,6 @@ export default async function RootLayout({
             <head>
               <link rel="preconnect" href="https://res.cloudinary.com" />
               <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-              <link rel="preconnect" href="https://fonts.googleapis.com" />
-              <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-              <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
-              <link rel="dns-prefetch" href="https://grainy-gradients.vercel.app" />
-              <link rel="preconnect" href="https://www.transparenttextures.com" />
               <link rel="preconnect" href="https://clerk-telemetry.com" />
               <link rel="preconnect" href="https://img.clerk.com" />
               <link rel="canonical" href="https://gevabal.mn" />
@@ -73,6 +68,7 @@ export default async function RootLayout({
             <body className={`${playfair.variable} ${lato.variable} font-sans`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
                 <SmoothScroll />
+                <Navbar />
                 <SplashScreen />
                 {children}
                 <Footer />

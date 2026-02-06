@@ -10,7 +10,6 @@ import {
     LogOut,
     Calendar
 } from "lucide-react";
-import OverlayNavbar from "../../components/Navbar";
 import { useLanguage } from "../../contexts/LanguageContext";
 import LiveRitualRoom from "../../components/LiveRitualRoom";
 import ChatWindow from "../../components/ChatWindow";
@@ -579,7 +578,6 @@ export default function DashboardPage() {
 
     return (
         <>
-            <OverlayNavbar />
             <main className="min-h-screen bg-[#FFFBEB] pt-32 pb-20 font-sans px-6">
 
                 {/* HERO SECTION */}

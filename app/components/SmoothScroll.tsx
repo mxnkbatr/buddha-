@@ -5,19 +5,18 @@ import Lenis from '@studio-freight/lenis'
 
 export default function SmoothScroll() {
   useEffect(() => {
-    // 1. Detect if we are on a mobile/touch device
-    //    'ontouchstart' in window checks for touch capability
-    //    navigator.maxTouchPoints > 0 checks for touch points
-    //    window.innerWidth < 768 is a fallback for small screens
-    const isMobile =
-      typeof window !== 'undefined' &&
-      ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024);
-
-    if (isMobile) {
-      return; // Return early, do not initialize Lenis
-    }
-
-    const lenis = new Lenis()
+    // Initialize Lenis for ALL devices (Desktop & Mobile)
+    // Modern Lenis (v1+) handles touch devices very well now.
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential easing
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: true, // Enable smooth scroll on mobile touch
+      touchMultiplier: 2,
+    })
 
     function raf(time: number) {
       lenis.raf(time)

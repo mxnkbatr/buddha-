@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   skipProxyUrlNormalize: true,
   images: {
-    unoptimized: true,
+    // unoptimized: true, // Optimized images are faster
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: "https",
@@ -27,7 +28,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // output: 'export',
+  compress: true,
+  poweredByHeader: false,
   webpack: (config) => {
     config.experiments = {
       ...config.experiments,
