@@ -47,19 +47,6 @@ Ionic Appflow looks for an `ionic:build` script in `package.json` and runs it if
 
 This ensures that when Appflow builds your app, it uses the static export configuration.
 
-### 3. **Created `appflow.config.json`**
-
-To be extra safe, I added an Appflow configuration file:
-
-```json
-{
-  "build": {
-    "target": "web",
-    "build_command": "npm run ionic:build"
-  }
-}
-```
-
 ---
 
 ## 🚀 How to Build Now
