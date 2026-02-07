@@ -51,15 +51,10 @@
     "nodemailer": "^7.0.12",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
-    "react-countup": "^6.5.3",
     "react-dom": "19.2.3",
-    "react-icons": "^5.5.0",
-    "react-type-animation": "^3.2.0",
     "resend": "^6.6.0",
     "rust-modules": "file:rust-modules/pkg",
-    "svix": "^1.82.0",
-    "tailwind-merge": "^3.4.0",
-    "xlsx": "^0.18.5"
+    "svix": "^1.82.0"
   },
   "devDependencies": {
     "@capacitor/network": "^8.0.0",

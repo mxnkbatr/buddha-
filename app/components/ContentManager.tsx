@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaPlus, FaTrash, FaBlog, FaSpinner, FaImage, FaTimes, FaPen } from "react-icons/fa";
+import { Plus, Trash2, BookOpen, Loader2, Image as ImageIcon, X, Pen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -108,7 +108,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
             <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-amber-100 text-amber-600 rounded-xl">
-                        <FaBlog size={24} />
+                        <BookOpen size={24} />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-stone-800">My Blog Posts</h2>
@@ -116,7 +116,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                     </div>
                 </div>
                 <button type="button" onClick={() => { setEditId(null); setIsCreating(true); }} className="flex items-center gap-2 bg-[#D97706] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#B45309] transition-colors shadow-lg shadow-amber-500/20">
-                    <FaPlus /> New Post
+                    <Plus /> New Post
                 </button>
             </div>
 
@@ -130,7 +130,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                         >
                             <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
                                 <h3 className="text-xl font-bold text-stone-800 font-serif">{editId ? "Edit Blog Post" : "Compose New Blog"}</h3>
-                                <button type="button" onClick={closeForm} className="text-stone-400 hover:text-stone-600 p-2"><FaTimes size={20} /></button>
+                                <button type="button" onClick={closeForm} className="text-stone-400 hover:text-stone-600 p-2"><X size={20} /></button>
                             </div>
 
                             <div className="overflow-y-auto p-8">
@@ -140,7 +140,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                     <div>
                                         <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Cover Image</label>
                                         <div onClick={() => fileInputRef.current?.click()} className={`border-2 border-dashed border-stone-300 rounded-2xl h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-stone-50 transition-colors ${uploadingImage && 'opacity-50'}`}>
-                                            {uploadingImage ? <FaSpinner className="animate-spin text-2xl text-[#D97706]" /> :
+                                            {uploadingImage ? <Loader2 className="animate-spin text-2xl text-[#D97706]" /> :
                                                 formData.imageUrl ? (
                                                     <div className="relative w-full h-full">
                                                         <Image
@@ -153,7 +153,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                                     </div>
                                                 ) : (
                                                     <div className="text-center text-stone-400">
-                                                        <FaImage className="text-3xl mx-auto mb-2" />
+                                                        <ImageIcon className="text-3xl mx-auto mb-2" />
                                                         <span className="font-bold">Click to Upload Image</span>
                                                     </div>)}
                                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
@@ -209,7 +209,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                                 sizes="80px"
                                             />
                                         ) : (
-                                            <div className="flex items-center justify-center h-full text-stone-300"><FaImage /></div>
+                                            <div className="flex items-center justify-center h-full text-stone-300"><ImageIcon /></div>
                                         )}
                                     </div>
                                 </td>
@@ -222,8 +222,8 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                 </td>
                                 <td className="p-6 text-right">
                                     <div className="flex justify-end gap-2">
-                                        <button onClick={() => handleEdit(item)} className="p-3 text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Edit Post"><FaPen /></button>
-                                        <button onClick={() => handleDelete(item.id)} className="p-3 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Delete Post"><FaTrash /></button>
+                                        <button onClick={() => handleEdit(item)} className="p-3 text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Edit Post"><Pen /></button>
+                                        <button onClick={() => handleDelete(item.id)} className="p-3 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Delete Post"><Trash2 /></button>
                                     </div>
                                 </td>
                             </tr>
@@ -232,7 +232,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                 </table>
                 {blogs.length === 0 && (
                     <div className="p-12 text-center text-stone-400 flex flex-col items-center">
-                        <FaBlog size={48} className="mb-4 opacity-20" />
+                        <BookOpen size={48} className="mb-4 opacity-20" />
                         <p className="font-bold">No blog posts yet.</p>
                         <p className="text-sm mt-1">Start sharing your wisdom called 'Blogs'!</p>
                     </div>
