@@ -1,0 +1,241 @@
+/**
+ * Elder-Friendly Design System
+ * 
+ * Key Principles for Elderly Users:
+ * 1. Larger text (minimum 18px, prefer 20px+)
+ * 2. High contrast (WCAG AAA: 7:1 ratio)
+ * 3. Generous spacing (prevent misclicks)
+ * 4. Clear visual hierarchy
+ * 5. Minimal animations (reduce cognitive load)
+ * 6. Simple, obvious navigation
+ * 7. Large touch targets (minimum 60px, prefer 80px)
+ */
+
+:root {
+  /* Elder-Friendly Typography */
+  --text-xs-elder: 16px;
+  --text-sm-elder: 18px;
+  --text-base-elder: 20px;
+  --text-lg-elder: 24px;
+  --text-xl-elder: 28px;
+  --text-2xl-elder: 36px;
+  --text-3xl-elder: 48px;
+  
+  /* High Contrast Colors */
+  --elder-bg: #FFFFFF;
+  --elder-text: #000000;
+  --elder-primary: #0066CC;
+  --elder-primary-dark: #004080;
+  --elder-secondary: #4A5568;
+  --elder-border: #CBD5E0;
+  --elder-success: #22863A;
+  --elder-warning: #D97706;
+  --elder-error: #DC2626;
+  
+  /* Spacing (generous) */
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  
+  /* Touch Targets */
+  --touch-min: 60px;
+  --touch-comfortable: 80px;
+}
+
+/* Elder Mode Class */
+.elder-mode {
+  /* Base styles */
+  font-size: var(--text-base-elder);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.elder-mode * {
+  /* Reduce motion for those with vestibular disorders */
+  transition-duration: 0.1s !important;
+  animation-duration: 0.1s !important;
+}
+
+/* Large, clear buttons */
+.elder-button {
+  min-height: var(--touch-comfortable);
+  min-width: var(--touch-comfortable);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-lg-elder);
+  font-weight: 700;
+  border: 3px solid var(--elder-primary);
+  border-radius: 12px;
+  background: var(--elder-primary);
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  transition: all 0.2s ease;
+}
+
+.elder-button:hover {
+  background: var(--elder-primary-dark);
+  border-color: var(--elder-primary-dark);
+  transform: scale(1.05);
+}
+
+.elder-button:focus {
+  outline: 4px solid #FCD34D;
+  outline-offset: 4px;
+}
+
+/* High contrast text */
+.elder-text {
+  color: var(--elder-text);
+  font-weight: 500;
+}
+
+.elder-heading {
+  color: var(--elder-text);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--space-md);
+}
+
+/* Clear, simple cards */
+.elder-card {
+  background: var(--elder-bg);
+  border: 3px solid var(--elder-border);
+  border-radius: 16px;
+  padding: var(--space-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.elder-card:hover {
+  border-color: var(--elder-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Simple navigation */
+.elder-nav {
+  background: var(--elder-bg);
+  border-bottom: 3px solid var(--elder-border);
+  padding: var(--space-md);
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.elder-nav-item {
+  min-height: var(--touch-comfortable);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--text-lg-elder);
+  font-weight: 600;
+  color: var(--elder-text);
+  text-decoration: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.elder-nav-item:hover,
+.elder-nav-item.active {
+  background: var(--elder-primary);
+  color: white;
+}
+
+/* Input fields */
+.elder-input {
+  min-height: var(--touch-comfortable);
+  padding: var(--space-md);
+  font-size: var(--text-lg-elder);
+  border: 3px solid var(--elder-border);
+  border-radius: 8px;
+  background: var(--elder-bg);
+  color: var(--elder-text);
+}
+
+.elder-input:focus {
+  outline: 4px solid var(--elder-primary);
+  outline-offset: 2px;
+  border-color: var(--elder-primary);
+}
+
+/* Status indicators (clear and obvious) */
+.elder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-base-elder);
+  font-weight: 700;
+  border-radius: 8px;
+  border: 2px solid;
+}
+
+.elder-badge-success {
+  background: #D1FAE5;
+  color: var(--elder-success);
+  border-color: var(--elder-success);
+}
+
+.elder-badge-warning {
+  background: #FEF3C7;
+  color: var(--elder-warning);
+  border-color: var(--elder-warning);
+}
+
+.elder-badge-error {
+  background: #FEE2E2;
+  color: var(--elder-error);
+  border-color: var(--elder-error);
+}
+
+/* Remove complex animations */
+.elder-mode .animate-spin,
+.elder-mode .animate-pulse,
+.elder-mode .animate-bounce {
+  animation: none !important;
+}
+
+/* Simplified loading state */
+.elder-loading {
+  font-size: var(--text-xl-elder);
+  font-weight: 700;
+  color: var(--elder-primary);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+/* Clear focus indicators */
+.elder-mode *:focus {
+  outline: 4px solid #FCD34D;
+  outline-offset: 4px;
+}
+
+/* High contrast mode for images */
+.elder-mode img {
+  filter: contrast(1.1);
+}
+
+/* Simplified grid layouts */
+.elder-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .elder-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print-friendly */
+@media print {
+  .elder-mode {
+    font-size: 14pt;
+    color: black;
+    background: white;
+  }
+}

@@ -3,11 +3,13 @@ import { Playfair_Display, Lato } from 'next/font/google'
 import '../globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { LanguageProvider } from '../contexts/LanguageContext'
+import { AccessibilityProvider } from '../contexts/AccessibilityContext'
 import { ThemeProvider } from 'next-themes'
 import dynamic from 'next/dynamic'
 import { AuthProvider } from '@/contexts/AuthContext'
 import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
+import AccessibilityPanel from '../components/AccessibilityPanel'
 
 const Footer = dynamic(() => import('../components/Footer'))
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
@@ -57,24 +59,27 @@ export default async function RootLayout({
     <ClerkProvider>
       <LanguageProvider initialLocale={validLocale}>
         <AuthProvider>
-          <html lang={validLocale} suppressHydrationWarning>
-            <head>
-              <link rel="preconnect" href="https://res.cloudinary.com" />
-              <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-              <link rel="preconnect" href="https://clerk-telemetry.com" />
-              <link rel="preconnect" href="https://img.clerk.com" />
-              <link rel="canonical" href="https://gevabal.mn" />
-            </head>
-            <body className={`${playfair.variable} ${lato.variable} font-sans`}>
-              <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
-                <SmoothScroll />
-                <Navbar />
-                <SplashScreen />
-                {children}
-                <Footer />
-              </ThemeProvider>
-            </body>
-          </html>
+          <AccessibilityProvider>
+            <html lang={validLocale} suppressHydrationWarning>
+              <head>
+                <link rel="preconnect" href="https://res.cloudinary.com" />
+                <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+                <link rel="preconnect" href="https://clerk-telemetry.com" />
+                <link rel="preconnect" href="https://img.clerk.com" />
+                <link rel="canonical" href="https://gevabal.mn" />
+              </head>
+              <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+                <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                  <SmoothScroll />
+                  <Navbar />
+                  <SplashScreen />
+                  {children}
+                  <Footer />
+                  <AccessibilityPanel />
+                </ThemeProvider>
+              </body>
+            </html>
+          </AccessibilityProvider>
         </AuthProvider>
       </LanguageProvider>
     </ClerkProvider>

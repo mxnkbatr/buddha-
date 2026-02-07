@@ -20,6 +20,8 @@ import { useTheme } from "next-themes";
 import { UserButton } from "@clerk/nextjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform } from "@/app/capacitor/hooks/usePlatform";
+import { hapticsLight, hapticsMedium } from "@/app/capacitor/plugins/haptics";
 
 const CONTENT = {
   logo: { mn: "Гэвабaл", en: "Gevabal" },
@@ -36,6 +38,7 @@ export default function OverlayNavbar() {
   const { scrollY } = useScroll();
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { isNative, safeArea } = usePlatform();
 
   useEffect(() => setMounted(true), []);
 
@@ -52,7 +55,11 @@ export default function OverlayNavbar() {
     router.push(newPath);
   };
 
-  const toggleLanguage = () => {
+  const toggleLanguage = async () => {
+    // Haptic feedback on native platforms
+    if (isNative) {
+      await hapticsLight();
+    }
     const nextLang = lang === "mn" ? "en" : "mn";
     switchLocale(nextLang);
   };
@@ -116,7 +123,7 @@ export default function OverlayNavbar() {
             ? "w-[85%] py-2.5 px-6 bg-surface/90 border-border shadow-lg shadow-black/5"
             : "w-[90%] py-4 px-8 bg-surface/70 border-white/50 shadow-sm"}
         `}>
-          
+
           <LocalizedLink href="/" className="hover:opacity-80 transition-opacity">
             <Logo />
           </LocalizedLink>
@@ -178,50 +185,64 @@ export default function OverlayNavbar() {
         <LocalizedLink href="/" aria-label="Home">
           <Logo className="scale-90 origin-left" />
         </LocalizedLink>
-        
+
         <div className="flex items-center gap-2">
-           <button
-              onClick={toggleLanguage}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-alt text-text-muted"
-            >
-              <span className="text-[9px] font-black">{lang.toUpperCase()}</span>
-            </button>
-            {user ? <UserButton /> : (
-              <LocalizedLink href="/sign-in">
-                 <button className="bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">
-                    {CONTENT.login[lang]}
-                 </button>
-              </LocalizedLink>
-            )}
+          <button
+            onClick={toggleLanguage}
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-alt text-text-muted"
+          >
+            <span className="text-[9px] font-black">{lang.toUpperCase()}</span>
+          </button>
+          {user ? <UserButton /> : (
+            <LocalizedLink href="/sign-in">
+              <button className="bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">
+                {CONTENT.login[lang]}
+              </button>
+            </LocalizedLink>
+          )}
         </div>
       </div>
 
       {/* --- MOBILE BOTTOM DOCK --- */}
       {!isAuthPage && (
-      <div className="md:hidden fixed bottom-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[360px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl">
-          {mobileNav.filter(item => user ? true : item.id !== 'dashboard').map((item) => {
-            const itemPath = item.href === '/' ? `/${lang}` : `/${lang}${item.href}`;
-            const isActive = pathname === itemPath || (item.href !== '/' && pathname.startsWith(itemPath));
+        <div
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none"
+          style={{ paddingBottom: safeArea.bottom > 0 ? safeArea.bottom + 8 : 24 }}
+        >
+          <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[360px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl">
+            {mobileNav.filter(item => user ? true : item.id !== 'dashboard').map((item) => {
+              const itemPath = item.href === '/' ? `/${lang}` : `/${lang}${item.href}`;
+              const isActive = pathname === itemPath || (item.href !== '/' && pathname.startsWith(itemPath));
 
-            return (
-              <LocalizedLink key={item.id} href={item.href} className="flex-1 flex flex-col items-center justify-center py-3 relative group">
-                {isActive && (
-                  <motion.div
-                    layoutId="mobileActivePill"
-                    className="absolute inset-0 bg-primary/10 rounded-2xl -z-10"
-                  />
-                )}
-                <div className={`transition-all duration-300 ${isActive ? "text-primary scale-110" : "text-text-muted scale-100"}`}>
-                  {user && item.id === 'dashboard' ? <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} /> :
-                    !user && item.id === 'dashboard' ? <LogIn size={22} /> :
-                      <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />}
-                </div>
-              </LocalizedLink>
-            );
-          })}
-        </nav>
-      </div>
+              const handleTap = async () => {
+                if (isNative) {
+                  await hapticsLight();
+                }
+              };
+
+              return (
+                <LocalizedLink
+                  key={item.id}
+                  href={item.href}
+                  className="flex-1 flex flex-col items-center justify-center py-3 relative group"
+                  onClick={handleTap}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileActivePill"
+                      className="absolute inset-0 bg-primary/10 rounded-2xl -z-10"
+                    />
+                  )}
+                  <div className={`transition-all duration-300 ${isActive ? "text-primary scale-110" : "text-text-muted scale-100"}`}>
+                    {user && item.id === 'dashboard' ? <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} /> :
+                      !user && item.id === 'dashboard' ? <LogIn size={22} /> :
+                        <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />}
+                  </div>
+                </LocalizedLink>
+              );
+            })}
+          </nav>
+        </div>
       )}
     </>
   );

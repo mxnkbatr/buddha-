@@ -79,7 +79,8 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
     }, []);
 
     const filteredMonks = useMemo<Monk[]>(() => {
-        if (wasm && initialMonks.length > 0) {
+        // Only use WASM if it's fully initialized with the filter_monks function
+        if (wasm && typeof wasm.filter_monks === 'function' && initialMonks.length > 0) {
             let dayName = "";
             if (selectedDate) {
                 const [y, m, d] = selectedDate.split('-').map(Number);
@@ -89,8 +90,13 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
             try {
                 const result = wasm.filter_monks(JSON.stringify(initialMonks), dayName);
                 return JSON.parse(result) as Monk[];
-            } catch (e) { console.error("Rust filter error:", e); }
+            } catch (e) {
+                console.error("Rust filter error:", e);
+                // Fall through to JavaScript fallback
+            }
         }
+
+        // JavaScript fallback (always works)
         return initialMonks.filter(monk => {
             if (!monk.isAvailable) return false;
             if (selectedDate) {

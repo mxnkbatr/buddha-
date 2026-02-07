@@ -2,23 +2,33 @@
 
 :root {
   /* Core Palette - Zen/Simple */
-  --color-primary: #D97706; /* Amber 600 - Warm spiritual gold */
-  --color-primary-light: #FEF3C7; /* Amber 100 - Soft highlight */
-  --color-secondary: #78716C; /* Stone 500 - Earthy balance */
-  
+  --color-primary: #D97706;
+  /* Amber 600 - Warm spiritual gold */
+  --color-primary-light: #FEF3C7;
+  /* Amber 100 - Soft highlight */
+  --color-secondary: #78716C;
+  /* Stone 500 - Earthy balance */
+
   /* Backgrounds */
-  --color-background: #FAFAF9; /* Stone 50 - Warm white/paper */
-  --color-surface: #FFFFFF; /* Pure white for cards */
-  --color-surface-alt: #F5F5F4; /* Stone 100 - Alternate sections */
+  --color-background: #FAFAF9;
+  /* Stone 50 - Warm white/paper */
+  --color-surface: #FFFFFF;
+  /* Pure white for cards */
+  --color-surface-alt: #F5F5F4;
+  /* Stone 100 - Alternate sections */
 
   /* Text */
-  --color-text-main: #292524; /* Stone 800 - Soft Black */
-  --color-text-muted: #57534E; /* Stone 600 - Readable grey */
+  --color-text-main: #292524;
+  /* Stone 800 - Soft Black */
+  --color-text-muted: #57534E;
+  /* Stone 600 - Readable grey */
   --color-text-inverse: #FFFFFF;
 
   /* UI Accents */
-  --color-border: #E7E5E4; /* Stone 200 */
-  --radius-lg: 1.5rem; /* Rounder corners for friendliness */
+  --color-border: #E7E5E4;
+  /* Stone 200 */
+  --radius-lg: 1.5rem;
+  /* Rounder corners for friendliness */
   --radius-md: 1rem;
 }
 
@@ -33,12 +43,13 @@
   --color-text-muted: var(--color-text-muted);
   --color-text-inverse: var(--color-text-inverse);
   --color-border: var(--color-border);
-  
+
   --font-sans: var(--font-lato), ui-sans-serif, system-ui;
   --font-serif: var(--font-playfair), ui-serif, Georgia;
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -136,13 +147,25 @@ img {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -151,4 +174,150 @@ img {
 
 .animate-slide-up {
   animation: slideUp 0.8s ease-out forwards;
+}
+
+/* ==========================================
+   ELDER MODE & ACCESSIBILITY
+   ========================================== */
+
+/* Font Size Modifiers */
+body.font-large {
+  font-size: 18px;
+}
+
+body.font-xlarge {
+  font-size: 20px;
+}
+
+/* Elder Mode - Optimized for Seniors */
+body.elder-mode {
+  font-size: 20px;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+body.elder-mode * {
+  /* Reduce motion for better accessibility */
+  transition-duration: 0.15s !important;
+}
+
+body.elder-mode h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+body.elder-mode h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+body.elder-mode h3 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+body.elder-mode p {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+body.elder-mode button,
+body.elder-mode a.button {
+  min-height: 80px;
+  min-width: 80px;
+  padding: 1.5rem 2rem;
+  font-size: 1.375rem;
+  font-weight: 700;
+  border-width: 3px;
+  border-radius: 12px;
+}
+
+body.elder-mode input,
+body.elder-mode select,
+body.elder-mode textarea {
+  min-height: 80px;
+  padding: 1.5rem;
+  font-size: 1.375rem;
+  border-width: 3px;
+}
+
+/* High Contrast Mode */
+body.high-contrast {
+  --color-primary: #0066CC;
+  --color-background: #FFFFFF;
+  --color-text-main: #000000;
+  --color-border: #333333;
+  filter: contrast(1.2);
+}
+
+body.high-contrast button {
+  border: 3px solid currentColor;
+}
+
+body.high-contrast a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+/* Reduce Motion */
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Large Focus Indicators for Elder Mode */
+body.elder-mode *:focus,
+body.elder-mode *:focus-visible {
+  outline: 4px solid #FCD34D;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Simplified Navigation for Elder Mode */
+body.elder-mode nav {
+  padding: 1.5rem;
+  gap: 2rem;
+}
+
+body.elder-mode nav a {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 1.5rem 2rem;
+}
+
+/* Card Simplification */
+body.elder-mode .zen-card {
+  border-width: 3px;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+/* Remove complex effects in elder mode */
+body.elder-mode .animate-spin,
+body.elder-mode .animate-pulse,
+body.elder-mode .animate-bounce {
+  animation: none !important;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    font-size: 14pt;
+    color: black;
+    background: white;
+  }
+
+  nav,
+  footer,
+  .no-print {
+    display: none;
+  }
 }
