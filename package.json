@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "build:rust": "./build-rust.sh",
     "build": "next build --webpack",
+    "ionic:build": "CAPACITOR_BUILD=true next build --webpack",
     "build:mobile": "CAPACITOR_BUILD=true next build && npx cap sync",
     "build:android": "npm run build:mobile && npx cap build android",
     "build:ios": "npm run build:mobile && npx cap build ios",

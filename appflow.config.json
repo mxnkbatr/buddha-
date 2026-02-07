@@ -1,0 +1,6 @@
+{
+    "build": {
+        "target": "web",
+        "build_command": "npm run ionic:build"
+    }
+}

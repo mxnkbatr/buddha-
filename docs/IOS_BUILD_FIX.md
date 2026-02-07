@@ -37,16 +37,26 @@ const nextConfig: NextConfig = {
 - For web builds, it uses normal `.next/` with SSR
 - Images must be unoptimized for static export
 
-### 2. **Updated `package.json` Scripts**
+### 2. **Added `ionic:build` Script**
 
-Modified mobile build scripts to set the flag:
+Ionic Appflow looks for an `ionic:build` script in `package.json` and runs it if found. I added:
+
+```json
+"ionic:build": "CAPACITOR_BUILD=true next build --webpack"
+```
+
+This ensures that when Appflow builds your app, it uses the static export configuration.
+
+### 3. **Created `appflow.config.json`**
+
+To be extra safe, I added an Appflow configuration file:
 
 ```json
 {
-  "build:mobile": "CAPACITOR_BUILD=true next build && npx cap sync",
-  "build:android": "npm run build:mobile && npx cap build android",
-  "build:ios": "npm run build:mobile && npx cap build ios",
-  "mobile:update": "npm run build:mobile && npx cap copy && npx cap update"
+  "build": {
+    "target": "web",
+    "build_command": "npm run ionic:build"
+  }
 }
 ```
 
@@ -54,9 +64,16 @@ Modified mobile build scripts to set the flag:
 
 ## 🚀 How to Build Now
 
-### For iOS (Appflow/Local)
+### For iOS (Appflow)
+**Trigger a new build in Appflow.**
+- It will detect `ionic:build`
+- It will run `CAPACITOR_BUILD=true next build`
+- Next.js will generate `out/` folder
+- Capacitor will sync and build successfully
+
+### For Local Mobile Build
 ```bash
-npm run build:mobile    # Generates 'out' folder
+npm run build:mobile    # Generates 'out' folder & syncs
 npm run build:ios      # Full iOS build
 ```
 
