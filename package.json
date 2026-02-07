@@ -6,7 +6,7 @@
     "dev": "next dev --webpack",
     "build:rust": "./build-rust.sh",
     "build": "next build --webpack",
-    "build:mobile": "next build && npx cap sync",
+    "build:mobile": "CAPACITOR_BUILD=true next build && npx cap sync",
     "build:android": "npm run build:mobile && npx cap build android",
     "build:ios": "npm run build:mobile && npx cap build ios",
     "start": "next start",
@@ -18,7 +18,7 @@
     "mobile:sync": "npx cap sync",
     "mobile:android": "npx cap open android",
     "mobile:ios": "npx cap open ios",
-    "mobile:update": "npm run build && npx cap copy && npx cap update",
+    "mobile:update": "npm run build:mobile && npx cap copy && npx cap update",
     "mobile:clean": "rm -rf android/app/build ios/App/build",
     "analyze": "ANALYZE=true npm run build"
   },

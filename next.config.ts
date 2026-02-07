@@ -2,12 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Static export for Capacitor (mobile builds)
+  output: process.env.CAPACITOR_BUILD === 'true' ? 'export' : undefined,
+  distDir: process.env.CAPACITOR_BUILD === 'true' ? 'out' : '.next',
+
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
   trailingSlash: false,
   skipProxyUrlNormalize: true,
   images: {
-    // unoptimized: true, // Optimized images are faster
+    // Unoptimized for static export (Capacitor requirement)
+    unoptimized: process.env.CAPACITOR_BUILD === 'true',
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
