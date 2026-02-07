@@ -6,12 +6,21 @@
     "dev": "next dev --webpack",
     "build:rust": "./build-rust.sh",
     "build": "next build --webpack",
+    "build:mobile": "next build && npx cap sync",
+    "build:android": "npm run build:mobile && npx cap build android",
+    "build:ios": "npm run build:mobile && npx cap build ios",
     "start": "next start",
     "lint": "eslint",
     "db:seed": "npx tsx database/seed.ts",
     "db:indexes": "node scripts/create-indexes.js",
     "perf:stats": "curl http://localhost:3000/api/performance/stats | json_pp",
-    "cache:clear": "curl -X POST http://localhost:3000/api/performance/stats?action=clearCache"
+    "cache:clear": "curl -X POST http://localhost:3000/api/performance/stats?action=clearCache",
+    "mobile:sync": "npx cap sync",
+    "mobile:android": "npx cap open android",
+    "mobile:ios": "npx cap open ios",
+    "mobile:update": "npm run build && npx cap copy && npx cap update",
+    "mobile:clean": "rm -rf android/app/build ios/App/build",
+    "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.2",
@@ -53,6 +62,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@capacitor/network": "^8.0.0",
+    "@next/bundle-analyzer": "^16.1.6",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
