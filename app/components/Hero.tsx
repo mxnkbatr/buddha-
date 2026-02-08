@@ -41,7 +41,7 @@ export default function Hero() {
         <OptimizedVideo
           id="hero-video"
           src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133484/video_kakyvu.mp4"
-          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto,f_auto,c_fill,w_1536,h_864,so_0/video_kakyvu.jpg"
+          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_60,f_webp,c_fill,w_1280,h_720,so_0/video_kakyvu.webp"
           width={1920}
           height={1080}
           className="w-full h-full object-cover brightness-[0.85]"

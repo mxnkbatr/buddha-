@@ -3,7 +3,6 @@ import { Playfair_Display, Lato } from 'next/font/google'
 import '../globals.css'
 import { ClerkProvider } from '@clerk/nextjs'
 import { LanguageProvider } from '../contexts/LanguageContext'
-import { AccessibilityProvider } from '../contexts/AccessibilityContext'
 import { ThemeProvider } from 'next-themes'
 import dynamic from 'next/dynamic'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -58,26 +57,23 @@ export default async function RootLayout({
     <ClerkProvider>
       <LanguageProvider initialLocale={validLocale}>
         <AuthProvider>
-          <AccessibilityProvider>
-            <html lang={validLocale} suppressHydrationWarning>
-              <head>
-                <link rel="preconnect" href="https://res.cloudinary.com" />
-                <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-                <link rel="preconnect" href="https://grainy-gradients.vercel.app" crossOrigin="anonymous" />
-                <link rel="preconnect" href="https://clerk-telemetry.com" />
-                <link rel="preconnect" href="https://img.clerk.com" />
-              </head>
-              <body className={`${playfair.variable} ${lato.variable} font-sans`}>
-                <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
-                  <SmoothScroll />
-                  <Navbar />
-                  <SplashScreen />
-                  {children}
-                  <Footer />
-                </ThemeProvider>
-              </body>
-            </html>
-          </AccessibilityProvider>
+          <html lang={validLocale} suppressHydrationWarning>
+            <head>
+              <link rel="preconnect" href="https://res.cloudinary.com" />
+              <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+              <link rel="preconnect" href="https://clerk-telemetry.com" />
+              <link rel="preconnect" href="https://img.clerk.com" />
+            </head>
+            <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+              <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                <SmoothScroll />
+                <Navbar />
+                <SplashScreen />
+                {children}
+                <Footer />
+              </ThemeProvider>
+            </body>
+          </html>
         </AuthProvider>
       </LanguageProvider>
     </ClerkProvider>

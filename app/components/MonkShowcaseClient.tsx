@@ -65,7 +65,7 @@ const DivineParticle = ({ isDark, index }: { isDark: boolean, index: number }) =
 };
 
 const NoiseOverlay = () => (
-    <div className="absolute inset-0 z-20 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay pointer-events-none" />
+    <div className="absolute inset-0 z-20 opacity-[0.03] bg-[url('/noise.svg')] mix-blend-overlay pointer-events-none" />
 );
 
 // --- MAIN CLIENT COMPONENT ---

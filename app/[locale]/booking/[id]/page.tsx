@@ -45,7 +45,7 @@ const CosmicBackground = ({ isNight }: { isNight: boolean }) => (
             transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
             className={`absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[150px] opacity-20 safari-gpu ${isNight ? "bg-fuchsia-900" : "bg-orange-100"}`}
         />
-        <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+        <div className="absolute inset-0 opacity-[0.04] bg-[url('/noise.svg')] mix-blend-overlay" />
     </div>
 );
 
