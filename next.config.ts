@@ -6,6 +6,16 @@ const nextConfig: NextConfig = {
   output: process.env.CAPACITOR_BUILD === 'true' ? 'export' : undefined,
   distDir: process.env.CAPACITOR_BUILD === 'true' ? 'out' : '.next',
 
+  // Performance optimizations
+  experimental: {
+    // Tree-shake icon libraries and animation libraries
+    optimizePackageImports: ['lucide-react', 'framer-motion', '@clerk/nextjs'],
+  },
+  compiler: {
+    // Remove console.log in production for cleaner output
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
   trailingSlash: false,

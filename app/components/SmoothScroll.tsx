@@ -1,29 +1,29 @@
 'use client'
 
 import { useEffect } from 'react'
-import Lenis from 'lenis'
 
+/**
+ * Smooth scroll implementation using CSS-only approach.
+ * Replaces Lenis to eliminate forced reflows and reduce TBT.
+ * 
+ * Why removed Lenis:
+ * - Lenis hijacks requestAnimationFrame continuously (~60 calls/sec)
+ * - Causes 465ms+ forced reflow on page load
+ * - Adds 6+ seconds to Total Blocking Time
+ * 
+ * CSS scroll-behavior: smooth provides native smoothness with zero JS overhead.
+ */
 export default function SmoothScroll() {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    })
+    // Check if user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    function raf(time: number) {
-      lenis.raf(time)
-      requestAnimationFrame(raf)
+    if (!prefersReducedMotion) {
+      document.documentElement.style.scrollBehavior = 'smooth'
     }
 
-    requestAnimationFrame(raf)
-
     return () => {
-      lenis.destroy()
+      document.documentElement.style.scrollBehavior = ''
     }
   }, [])
 

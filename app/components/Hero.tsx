@@ -41,7 +41,7 @@ export default function Hero() {
         <OptimizedVideo
           id="hero-video"
           src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133484/video_kakyvu.mp4"
-          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto,f_auto,c_limit,w_1920,h_1080,so_0/video_kakyvu.jpg"
+          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto,f_auto,c_fill,w_1536,h_864,so_0/video_kakyvu.jpg"
           width={1920}
           height={1080}
           className="w-full h-full object-cover brightness-[0.85]"
@@ -76,7 +76,7 @@ export default function Hero() {
           <h1
             className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-medium text-white leading-tight tracking-tight drop-shadow-sm"
           >
-            <span className="text-primary-light">{content.highlight}</span> <br className="hidden md:block"/>
+            <span className="text-primary-light">{content.highlight}</span> <br className="hidden md:block" />
             {content.main}
           </h1>
 

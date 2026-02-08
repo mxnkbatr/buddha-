@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -42,7 +42,12 @@ export default function OverlayNavbar() {
 
   useEffect(() => setMounted(true), []);
 
+  // Throttle scroll updates to 60fps (16ms) to reduce layout thrashing
+  const scrollThrottleRef = useRef<number>(0);
   useMotionValueEvent(scrollY, "change", (latest) => {
+    const now = Date.now();
+    if (now - scrollThrottleRef.current < 16) return;
+    scrollThrottleRef.current = now;
     setIsScrolled(latest > 20);
   });
 

@@ -18,7 +18,7 @@ export default function SplashScreen() {
         const timer = setTimeout(() => {
             setIsVisible(false)
             sessionStorage.setItem('splashShown', 'true')
-        }, 1200)
+        }, 800)  // Reduced from 1200ms for faster perceived load
 
         return () => clearTimeout(timer)
     }, [])

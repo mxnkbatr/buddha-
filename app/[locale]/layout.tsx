@@ -9,7 +9,6 @@ import dynamic from 'next/dynamic'
 import { AuthProvider } from '@/contexts/AuthContext'
 import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
-import AccessibilityPanel from '../components/AccessibilityPanel'
 
 const Footer = dynamic(() => import('../components/Footer'))
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
@@ -64,9 +63,9 @@ export default async function RootLayout({
               <head>
                 <link rel="preconnect" href="https://res.cloudinary.com" />
                 <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+                <link rel="preconnect" href="https://grainy-gradients.vercel.app" crossOrigin="anonymous" />
                 <link rel="preconnect" href="https://clerk-telemetry.com" />
                 <link rel="preconnect" href="https://img.clerk.com" />
-                <link rel="canonical" href="https://gevabal.mn" />
               </head>
               <body className={`${playfair.variable} ${lato.variable} font-sans`}>
                 <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
@@ -75,7 +74,6 @@ export default async function RootLayout({
                   <SplashScreen />
                   {children}
                   <Footer />
-                  <AccessibilityPanel />
                 </ThemeProvider>
               </body>
             </html>

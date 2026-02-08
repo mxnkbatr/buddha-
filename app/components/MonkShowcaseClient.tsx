@@ -8,7 +8,8 @@ import {
     useTransform,
     useMotionValue,
     useMotionTemplate,
-    AnimatePresence
+    AnimatePresence,
+    useReducedMotion
 } from "framer-motion";
 import { ArrowUpRight, Sparkles, Calendar } from "lucide-react";
 import Image from "next/image";
@@ -73,6 +74,7 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
     const [selectedDate, setSelectedDate] = useState("");
     const [wasm, setWasm] = useState<any>(null);
     const isDark = false;
+    const shouldReduceMotion = useReducedMotion();
 
     useEffect(() => {
         import("rust-modules").then(mod => setWasm(mod)).catch(err => console.error("WASM load failed", err));
@@ -116,7 +118,7 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
             <div className="absolute inset-0 transition-opacity duration-1000">
                 {isDark ? <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#1e1b4b_0%,_#05051a_60%)]" />
                     : <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_#fff7ed_0%,_#fdfbf7_60%)]" />}
-                <CosmicDust isDark={isDark} />
+                {!shouldReduceMotion && <CosmicDust isDark={isDark} />}
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
