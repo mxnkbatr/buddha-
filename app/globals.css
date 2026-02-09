@@ -30,6 +30,12 @@
   --radius-lg: 1.5rem;
   /* Rounder corners for friendliness */
   --radius-md: 1rem;
+
+  /* Safe Area Insets - For native mobile edge-to-edge design */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 @theme inline {

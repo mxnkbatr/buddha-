@@ -5,16 +5,15 @@ const config: CapacitorConfig = {
   appName: 'Gevabal',
   webDir: 'out',
 
-  server: {
-    // Production: Use your actual domain
-    // Development: Use local IP for testing on devices
-    url: process.env.NODE_ENV === 'production'
-      ? 'https://gevabal.mn'
-      : undefined,
-    cleartext: process.env.NODE_ENV !== 'production',
-    androidScheme: 'https',
-    iosScheme: 'https',
-  },
+  // For production builds: Use bundled assets (no server.url)
+  // For development: Uncomment server.url to point to localhost:3000
+  // Server block removed to ensure local amen assets are loaded
+  // server: {
+  //   url: 'https://gevabal.mn',
+  //   cleartext: false,
+  //   androidScheme: 'https',
+  //   iosScheme: 'https',
+  // },
 
   // iOS-specific optimizations
   ios: {
@@ -52,9 +51,9 @@ const config: CapacitorConfig = {
     },
 
     StatusBar: {
-      style: 'LIGHT',
-      backgroundColor: '#FAFAF9',
-      overlaysWebView: false,
+      style: 'DEFAULT', // Adapts to content
+      backgroundColor: '#FAFAF900', // Transparent (with alpha)
+      overlaysWebView: true, // Edge-to-edge: content goes under status bar
     },
 
     Keyboard: {

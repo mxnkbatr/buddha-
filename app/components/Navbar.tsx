@@ -186,7 +186,15 @@ export default function OverlayNavbar() {
       </motion.header>
 
       {/* --- MOBILE TOP BAR --- */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 px-4 py-3 flex justify-between items-center bg-surface/80 backdrop-blur-md border-b border-border">
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-50 px-4 flex justify-between items-center bg-surface/80 backdrop-blur-md border-b border-border"
+        style={{
+          paddingTop: safeArea.top > 0 ? safeArea.top + 8 : 12,
+          paddingBottom: 12,
+          paddingLeft: safeArea.left > 0 ? safeArea.left + 16 : 16,
+          paddingRight: safeArea.right > 0 ? safeArea.right + 16 : 16,
+        }}
+      >
         <LocalizedLink href="/" aria-label="Home">
           <Logo className="scale-90 origin-left" />
         </LocalizedLink>

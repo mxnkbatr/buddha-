@@ -21,7 +21,7 @@ class NetworkOptimizer {
     private maxRetries = 3;
     private batchDelay = 100; // ms to wait before batching
     private pendingBatch: any[] = [];
-    private batchTimeout?: NodeJS.Timeout;
+    private batchTimeout?: any;
 
     constructor() {
         this.initNetworkListener();

@@ -87,7 +87,8 @@ export interface Monk {
     day: string;
     start: string;
     end: string;
-    active: boolean
+    active: boolean;
+    slots?: string[]; // New: Specific flexible slots
   }[];
   blockedSlots?: {
     id: string;

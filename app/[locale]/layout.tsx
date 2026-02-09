@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import { AuthProvider } from '@/contexts/AuthContext'
 import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
+import CapacitorInitWrapper from '../capacitor/CapacitorInitWrapper'
 
 const Footer = dynamic(() => import('../components/Footer'))
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
@@ -59,6 +60,15 @@ export default async function RootLayout({
         <AuthProvider>
           <html lang={validLocale} suppressHydrationWarning>
             <head>
+              {/* Mobile viewport for edge-to-edge design */}
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+              {/* iOS PWA meta tags */}
+              <meta name="apple-mobile-web-app-capable" content="yes" />
+              <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+              <meta name="mobile-web-app-capable" content="yes" />
+              {/* Theme color for Android status bar */}
+              <meta name="theme-color" content="#FAFAF9" />
+              {/* Preconnects */}
               <link rel="preconnect" href="https://res.cloudinary.com" />
               <link rel="dns-prefetch" href="https://res.cloudinary.com" />
               <link rel="preconnect" href="https://clerk-telemetry.com" />
@@ -66,6 +76,7 @@ export default async function RootLayout({
             </head>
             <body className={`${playfair.variable} ${lato.variable} font-sans`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                <CapacitorInitWrapper />
                 <SmoothScroll />
                 <Navbar />
                 <SplashScreen />

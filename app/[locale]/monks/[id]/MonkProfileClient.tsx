@@ -248,10 +248,35 @@ export default function MonkProfileClient() {
         const dateObj = calendarDates[selectedDateIndex].full;
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
         // Default to full 24h if no specific schedule found, or use schedule
-        const dayConfig = monk?.schedule?.find(s => s.day === dayName) || { start: "00:00", end: "23:59", active: true };
+        const dayConfig = monk?.schedule?.find(s => s.day === dayName) || { start: "00:00", end: "23:59", active: true, slots: [] };
 
         if (!dayConfig.active) return [];
 
+        // 0. Filter BLOCKED SLOTS (Exceptions)
+        const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        const blockedForDate = monk?.blockedSlots?.filter((b: any) => b.date === dateStr).map((b: any) => b.time) || [];
+
+        // NEW: specific slots priority
+        if (dayConfig.slots && dayConfig.slots.length > 0) {
+            let available = dayConfig.slots.filter((t: string) => !blockedForDate.includes(t));
+
+            // Filter past times if today
+            const isToday = dateObj.toDateString() === new Date().toDateString();
+            if (isToday) {
+                const now = new Date();
+                const minValidTime = new Date(now.getTime() + 60 * 60 * 1000); // Now + 1 Hour
+
+                return available.filter((time: string) => {
+                    const [h, m] = time.split(':').map(Number);
+                    const slotDate = new Date(dateObj);
+                    slotDate.setHours(h, m, 0, 0);
+                    return slotDate >= minValidTime;
+                });
+            }
+            return available;
+        }
+
+        // FALLBACK: Old Range Logic
         // 1-Hour Lead Time Enforcer
         const filteredBySchedule = times.filter(time => {
             return time >= dayConfig.start && time < dayConfig.end;
@@ -527,7 +552,7 @@ export default function MonkProfileClient() {
                                                                 </h4>
                                                                 {currentDaySlots.length > 0 ? (
                                                                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                                                                        {currentDaySlots.map((time, idx) => {
+                                                                        {currentDaySlots.map((time: string, idx: number) => {
                                                                             const isTaken = takenSlots.includes(time);
                                                                             return (
                                                                                 <button
