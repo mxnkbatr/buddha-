@@ -5,11 +5,12 @@ interface BookingDetailModalProps {
     isOpen: boolean;
     booking: any;
     user: any; // The user object associated with the booking
+    monk?: any; // The monk object associated with the booking
     onClose: () => void;
     onAction: (id: string, action: 'confirmed' | 'rejected') => void;
 }
 
-export default function BookingDetailModal({ isOpen, booking, user, onClose, onAction }: BookingDetailModalProps) {
+export default function BookingDetailModal({ isOpen, booking, user, monk, onClose, onAction }: BookingDetailModalProps) {
     if (!isOpen || !booking) return null;
 
     return (
@@ -65,7 +66,14 @@ export default function BookingDetailModal({ isOpen, booking, user, onClose, onA
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h5 className="font-bold text-lg">{typeof booking.serviceName === 'object' ? (booking.serviceName.mn || booking.serviceName.en) : booking.serviceName}</h5>
-                                    <p className="text-sm opacity-60">{booking.price?.toLocaleString()}₮</p>
+                                    {monk && (
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                                                {monk.name?.mn || monk.name?.en || "Лам"}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <p className="text-sm mt-1 opacity-60">{booking.price?.toLocaleString()}₮</p>
                                 </div>
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
                                         booking.status === 'pending' ? 'bg-amber-100 text-amber-700' :

@@ -62,6 +62,7 @@ interface Service {
 interface Booking {
   _id: string;
   userId?: string; // Clerk ID or Custom ID
+  monkId?: string; // Add this field
   serviceName?: LocalizedString | string;
   price?: number;
   clientName?: string;
@@ -731,6 +732,9 @@ export default function AdminDashboard() {
                               ? (b.serviceName?.mn || b.serviceName?.en || "Тодорхойгүй")
                               : b.serviceName}
                           </div>
+                          <div className="text-[10px] mt-1 text-amber-600 font-bold uppercase tracking-wider">
+                            {data?.users?.find((u: any) => u._id === b.monkId)?.name?.mn || "Стандарт үйлчилгээ"}
+                          </div>
                           <div className="text-xs opacity-50">{b.price}₮</div>
                         </td>
                         <td className="p-6">
@@ -815,11 +819,13 @@ export default function AdminDashboard() {
               (u as any).clerkId === selectedBooking.userId ||
               u.phone === selectedBooking.userPhone
             );
+            const foundMonk = data?.users.find(u => u._id === selectedBooking.monkId);
             return (
               <BookingDetailModal
                 isOpen={!!selectedBooking}
                 booking={selectedBooking}
                 user={foundUser}
+                monk={foundMonk}
                 onClose={() => setSelectedBooking(null)}
                 onAction={handleBookingAction}
               />
