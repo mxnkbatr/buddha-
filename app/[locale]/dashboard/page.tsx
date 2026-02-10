@@ -8,7 +8,8 @@ import {
     Sun, Clock, ScrollText, Plus, Trash2, X, History, Video,
     Loader2, Save, Ban, CheckCircle, Edit, ImageIcon, Upload, MessageCircle, ShieldCheck, UserCircle,
     LogOut,
-    Calendar
+    Calendar,
+    TrendingUp
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import LiveRitualRoom from "../../components/LiveRitualRoom";
@@ -55,6 +56,7 @@ interface UserProfile {
     lastName?: string;
     dateOfBirth?: string;
     zodiacYear?: string;
+    isSpecial?: boolean;
 }
 
 interface Booking {
@@ -147,7 +149,8 @@ export default function DashboardPage() {
             startVideo: "Start Video Call",
             signOut: "Sign Out",
             signingOut: "Signing Out...",
-            chat: "Chat"
+            chat: "Chat",
+            acceptedBookings: "Accepted Bookings"
         },
         mn: {
             clientRole: "Эрхэм сүсэгтэн",
@@ -393,10 +396,11 @@ export default function DashboardPage() {
     }, [authLoading, user]);
 
     // --- SEPARATE BOOKINGS ---
-    const { upcomingBookings, historyBookings } = useMemo(() => {
+    const { upcomingBookings, historyBookings, acceptedCount, totalEarnings } = useMemo(() => {
         const now = new Date();
         const upcoming: Booking[] = [];
         const history: Booking[] = [];
+        let accCount = 0;
 
         bookings.forEach(b => {
             let timeStr = b.time || "00:00";
@@ -408,6 +412,11 @@ export default function DashboardPage() {
             const bookingDate = new Date(`${dateOnly}T${timeStr}`);
             const isCompleted = ['completed', 'cancelled', 'rejected'].includes(b.status);
             const isPast = bookingDate < new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+            // Calculate stats
+            if (['confirmed', 'completed'].includes(b.status)) {
+                accCount++;
+            }
 
             if (!isCompleted && !isPast) {
                 upcoming.push(b);
@@ -427,8 +436,12 @@ export default function DashboardPage() {
             return new Date(`${dateA}T${a.time}`).getTime() - new Date(`${dateB}T${b.time}`).getTime();
         });
 
-        return { upcomingBookings: upcoming, historyBookings: history };
-    }, [bookings]);
+        const isSpecial = profile?.isSpecial === true;
+        const rate = isSpecial ? 88800 : 40000;
+        const earnings = accCount * rate;
+
+        return { upcomingBookings: upcoming, historyBookings: history, acceptedCount: accCount, totalEarnings: earnings };
+    }, [bookings, profile]);
 
     const dailySlotsForBlocking = useMemo(() => {
         return ALL_24_SLOTS;
@@ -666,6 +679,40 @@ export default function DashboardPage() {
 
                 <section className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
+                        {isMonk && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
+                                    <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+                                        <TrendingUp size={32} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{TEXT.earnings}</p>
+                                        <h3 className="text-3xl font-serif font-bold text-[#451a03]">{totalEarnings.toLocaleString()}₮</h3>
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
+                                    <div className="w-16 h-16 rounded-3xl bg-green-500/10 flex items-center justify-center text-green-600">
+                                        <CheckCircle size={32} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{TEXT.acceptedBookings}</p>
+                                        <h3 className="text-3xl font-serif font-bold text-[#451a03]">{acceptedCount}</h3>
+                                    </div>
+                                </div>
+                                {profile?.isSpecial !== true && (
+                                    <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
+                                        <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                                            <ShieldCheck size={32} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{language === 'mn' ? "Тусгай сан" : "Special Fund"}</p>
+                                            <h3 className="text-3xl font-serif font-bold text-[#451a03]">{(acceptedCount * 10000).toLocaleString()}₮</h3>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {isMonk && (
                             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
                                 <div className="flex justify-between items-center mb-8">
