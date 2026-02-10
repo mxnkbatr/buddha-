@@ -250,6 +250,59 @@ export default function DashboardPage() {
     // --- ROLE CHECK (Moved up for scope access) ---
     const isMonk = profile?.role === 'monk';
 
+    // --- VIDEO CALL HANDLER (FIXED) ---
+    const joinVideoCall = React.useCallback(async (booking: Booking) => {
+        setJoiningRoomId(booking._id);
+        try {
+            // 1. Optimistic Update (If Monk, mark as active immediately)
+            if (profile?.role === 'monk') {
+                // Update local state so UI reflects 'active' instantly
+                setBookings(prev => prev.map(b =>
+                    b._id === booking._id ? { ...b, callStatus: 'active' } : b
+                ));
+
+                // Send update to server in background
+                await fetch(`/api/bookings/${booking._id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callStatus: 'active' })
+                });
+            }
+
+            // 2. Prepare Username & Fetch Token
+            const username = user?.fullName || user?.firstName || user?.phone || "Anonymous";
+            const encodedName = encodeURIComponent(username);
+
+            const res = await fetch(`/api/livekit?room=${booking._id}&username=${encodedName}`);
+
+            if (!res.ok) throw new Error("Failed to get room token");
+
+            const data = await res.json();
+
+            // 3. Enter Room
+            setActiveRoomToken(data.token);
+            setActiveRoomName(booking._id);
+            setActiveBookingForRoom(booking);
+        } catch (e) {
+            console.error("Join Video Error:", e);
+            alert("Could not join the video room. Please check your connection.");
+        } finally {
+            setJoiningRoomId(null);
+        }
+    }, [profile, user]);
+
+    // --- FORCE START LOGIC ---
+    useEffect(() => {
+        // Automatically join room if an active call is detected and we aren't in one
+        if (!activeRoomToken && bookings.length > 0) {
+            const activeBooking = bookings.find(b => b.callStatus === 'active' && b.status === 'confirmed');
+            if (activeBooking) {
+                console.log("Force joining active call:", activeBooking._id);
+                joinVideoCall(activeBooking);
+            }
+        }
+    }, [bookings, activeRoomToken, joinVideoCall]);
+
     // --- SIGN OUT HANDLER ---
     const handleSignOut = async () => {
         if (isSigningOut) return;
@@ -313,16 +366,6 @@ export default function DashboardPage() {
                         if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
                     }
                     setBookings(currentBookings);
-
-                    // --- FORCE START LOGIC ---
-                    // Automatically join room if an active call is detected and we aren't in one
-                    if (!activeRoomToken) {
-                        const activeBooking = currentBookings.find(b => b.callStatus === 'active' && b.status === 'confirmed');
-                        if (activeBooking) {
-                            console.log("Force joining active call:", activeBooking._id);
-                            joinVideoCall(activeBooking);
-                        }
-                    }
                 } else {
                     const tempClientProfile: UserProfile = {
                         _id: userId,
@@ -492,45 +535,7 @@ export default function DashboardPage() {
     };
 
     // --- VIDEO CALL HANDLER (FIXED) ---
-    const joinVideoCall = async (booking: Booking) => {
-        setJoiningRoomId(booking._id);
-        try {
-            // 1. Optimistic Update (If Monk, mark as active immediately)
-            if (isMonk) {
-                // Update local state so UI reflects 'active' instantly
-                setBookings(prev => prev.map(b =>
-                    b._id === booking._id ? { ...b, callStatus: 'active' } : b
-                ));
-
-                // Send update to server in background
-                await fetch(`/api/bookings/${booking._id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ callStatus: 'active' })
-                });
-            }
-
-            // 2. Prepare Username & Fetch Token
-            const username = user?.fullName || user?.firstName || user?.phone || "Anonymous";
-            const encodedName = encodeURIComponent(username);
-
-            const res = await fetch(`/api/livekit?room=${booking._id}&username=${encodedName}`);
-
-            if (!res.ok) throw new Error("Failed to get room token");
-
-            const data = await res.json();
-
-            // 3. Enter Room
-            setActiveRoomToken(data.token);
-            setActiveRoomName(booking._id);
-            setActiveBookingForRoom(booking);
-        } catch (e) {
-            console.error("Join Video Error:", e);
-            alert("Could not join the video room. Please check your connection.");
-        } finally {
-            setJoiningRoomId(null);
-        }
-    };
+ 
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
