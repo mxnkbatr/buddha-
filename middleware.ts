@@ -11,14 +11,33 @@ const isPublicRoute = createRouteMatcher([
   // Add other public routes if needed
 ]);
 
+// CORS headers for mobile app access
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
+
+  // Handle CORS preflight for API routes
+  if (pathname.startsWith('/api')) {
+    if (req.method === 'OPTIONS') {
+      return new NextResponse(null, { status: 200, headers: corsHeaders });
+    }
+    // For other API requests, add CORS headers to response
+    const response = NextResponse.next();
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+    return response;
+  }
 
   // 1. Check if the path excludes specific files/api
   if (
     pathname.startsWith('/_next') ||
-    pathname.includes('.') ||
-    pathname.startsWith('/api')
+    pathname.includes('.')
   ) {
     return; // Let Clerk/Next handle it
   }

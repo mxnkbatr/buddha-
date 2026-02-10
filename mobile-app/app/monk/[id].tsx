@@ -1,177 +1,111 @@
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/clerk-expo';
-import { Calendar, Clock, Star } from 'lucide-react-native';
-import api from '../../lib/api';
 
-// Helper function to extract string from translation object
-const getLang = (data: any) => {
-    if (!data) return '';
-    // If it's already a string, return it
-    if (typeof data === 'string') return data;
-    // Return English if available, otherwise Mongolian, otherwise empty
-    return data.en || data.mn || '';
-};
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { ScreenWrapper, Button, Card } from '../../src/components/ui';
+import { useQuery } from '@tanstack/react-query';
+import { getMonks } from '../../lib/api';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Star, Calendar, Sparkles } from 'lucide-react-native';
 
 export default function MonkDetailScreen() {
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const { id } = useLocalSearchParams();
     const router = useRouter();
-    const { isSignedIn } = useAuth();
+    const { t, i18n } = useTranslation();
+    const { width } = useWindowDimensions();
+    const lang = (i18n.language === 'mn' ? 'mn' : 'en') as 'mn' | 'en';
 
-    const { data: monk, isLoading } = useQuery({
-        queryKey: ['monk', id],
-        queryFn: async () => {
-            const res = await api.get(`/monks/${id}`);
-            return res.data;
-        },
+    const { data: monks, isLoading } = useQuery({
+        queryKey: ['monks'],
+        queryFn: getMonks,
     });
 
-    if (isLoading) {
+    const monk = monks?.find(m => m._id === id || m._id?.toString() === id);
+
+    if (isLoading || !monk) {
         return (
-            <SafeAreaView className="flex-1 bg-stone-50 items-center justify-center">
-                <ActivityIndicator size="large" color="#D97706" />
-            </SafeAreaView>
+            <ScreenWrapper>
+                <SafeAreaView className="flex-1 justify-center items-center">
+                    <ActivityIndicator color="#795548" size="large" />
+                </SafeAreaView>
+            </ScreenWrapper>
         );
     }
-
-    if (!monk) {
-        return (
-            <SafeAreaView className="flex-1 bg-stone-50 items-center justify-center">
-                <Text className="text-stone-600">Monk not found</Text>
-            </SafeAreaView>
-        );
-    }
-
-    const handleBook = () => {
-        if (!isSignedIn) {
-            router.push('/(auth)/sign-in');
-            return;
-        }
-        router.push(`/booking/${id}`);
-    };
 
     return (
-        <View className="flex-1 bg-stone-50">
-            <Stack.Screen
-                options={{
-                    // FIX 1: Use helper for header title
-                    headerTitle: getLang(monk.name),
-                    headerBackTitle: 'Back',
-                }}
-            />
+        <ScreenWrapper>
+            <SafeAreaView className="flex-1 relative">
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="absolute top-4 left-6 z-10 bg-white/50 p-2 rounded-full"
+                >
+                    <ArrowLeft size={24} color="#795548" />
+                </TouchableOpacity>
 
-            <ScrollView className="flex-1">
-                {/* Hero Image */}
-                <Image
-                    source={{ uri: monk.imageUrl || 'https://via.placeholder.com/400' }}
-                    style={{ width: '100%', height: 300 }}
-                    contentFit="cover"
-                />
-
-                {/* Content */}
-                <View className="px-6 pt-6 pb-24">
-                    <Text className="text-3xl font-bold text-stone-800">
-                        {/* FIX 2: Use helper for Name */}
-                        {getLang(monk.name)}
-                    </Text>
-
-                    <Text className="text-amber-600 font-medium mt-1">
-                        {/* FIX 3: Use helper for Specialization */}
-                        {getLang(monk.specialization) || 'Spiritual Guidance'}
-                    </Text>
-
-                    {/* Stats */}
-                    <View className="flex-row mt-4 gap-6">
-                        <View className="flex-row items-center">
-                            <Star size={18} color="#D97706" fill="#D97706" />
-                            <Text className="ml-1 text-stone-700 font-medium">
-                                {monk.rating || '5.0'}
+                <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                    <View className="items-center pt-8 pb-6 px-6 bg-monk-bg">
+                        <Image
+                            source={{ uri: monk.image }}
+                            style={{ width: 160, height: 200, borderRadius: 12, marginBottom: 16 }}
+                            contentFit="cover"
+                        />
+                        <View className="items-center">
+                            <Text className="text-sm font-bold text-monk-accent uppercase tracking-wider mb-1">
+                                {monk.title[lang] || monk.title.en}
                             </Text>
+                            <Text className="text-3xl font-serif font-bold text-monk-primary text-center mb-2">
+                                {monk.name[lang] || monk.name.en}
+                            </Text>
+                            {monk.isSpecial && (
+                                <View className="flex-row items-center bg-monk-accent/10 px-3 py-1 rounded-full mb-3">
+                                    <Star size={14} color="#D4AF37" fill="#D4AF37" className="mr-1" />
+                                    <Text className="text-xs font-bold text-monk-accent">Head Monk</Text>
+                                </View>
+                            )}
                         </View>
-                        <View className="flex-row items-center">
-                            <Calendar size={18} color="#78716C" />
-                            <Text className="ml-1 text-stone-600">
-                                {monk.experience || '10+'} years
-                            </Text>
-                        </View>
-                    </View>
 
-                    {/* Description */}
-                    <View className="mt-6">
-                        <Text className="text-lg font-semibold text-stone-800 mb-2">
-                            About
-                        </Text>
-                        <Text className="text-stone-600 leading-6">
-                            {/* FIX 4: Use helper for Bio/Description */}
-                            {getLang(monk.bio) || getLang(monk.description) || 'A dedicated spiritual guide with years of experience in Buddhist teachings and meditation practices.'}
-                        </Text>
-                    </View>
-
-                    {/* Services */}
-                    {monk.services && monk.services.length > 0 && (
-                        <View className="mt-6">
-                            <Text className="text-lg font-semibold text-stone-800 mb-3">
-                                Services
-                            </Text>
-                            {monk.services.map((service: any, index: number) => (
-                                <View
-                                    key={index}
-                                    className="flex-row items-center justify-between bg-white rounded-xl p-4 mb-2"
-                                >
-                                    <View className="flex-1">
-                                        <Text className="text-stone-800 font-medium">
-                                            {/* FIX 5: Use helper for Service Name */}
-                                            {getLang(service.name)}
-                                        </Text>
-                                        <View className="flex-row items-center mt-1">
-                                            <Clock size={14} color="#9CA3AF" />
-                                            <Text className="ml-1 text-stone-500 text-sm">
-                                                {service.duration || '60'} min
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <Text className="text-amber-600 font-bold">
-                                        ${service.price || '50'}
-                                    </Text>
+                        <View className="flex-row gap-2 mt-2 flex-wrap justify-center">
+                            {monk.specialties?.map((s, i) => (
+                                <View key={`${i}-${s}`} className="bg-white border border-stone-100 px-3 py-1 rounded-full">
+                                    <Text className="text-xs text-monk-secondary">{s}</Text>
                                 </View>
                             ))}
                         </View>
-                    )}
-
-                    {/* Availability Status */}
-                    <View className="mt-6 bg-white rounded-xl p-4">
-                        <View className="flex-row items-center">
-                            <View
-                                className={`w-3 h-3 rounded-full mr-2 ${monk.isAvailable ? 'bg-green-500' : 'bg-stone-400'
-                                    }`}
-                            />
-                            <Text className="text-stone-700 font-medium">
-                                {monk.isAvailable ? 'Available for booking' : 'Currently unavailable'}
-                            </Text>
-                        </View>
                     </View>
-                </View>
-            </ScrollView>
 
-            {/* Fixed Book Button */}
-            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-6 py-4 pb-8">
-                <Pressable
-                    onPress={handleBook}
-                    disabled={!monk.isAvailable}
-                    className={`rounded-xl py-4 ${monk.isAvailable
-                        ? 'bg-amber-600 active:bg-amber-700'
-                        : 'bg-stone-300'
-                        }`}
-                    style={{ minHeight: 52 }}
-                >
-                    <Text className="text-white text-center font-semibold text-lg">
-                        {monk.isAvailable ? 'Book Session' : 'Unavailable'}
-                    </Text>
-                </Pressable>
-            </View>
-        </View>
+                    <View className="px-6 py-6 bg-white rounded-t-3xl min-h-[500px] -mt-4 shadow-sm">
+
+                        <View className="flex-row justify-around mb-8 border-b border-stone-100 pb-6">
+                            <View className="items-center">
+                                <Text className="text-2xl font-bold text-monk-primary">{monk.yearsOfExperience}+</Text>
+                                <Text className="text-xs text-monk-secondary uppercase">Years</Text>
+                            </View>
+                            <View className="w-[1px] bg-stone-100" />
+                            <View className="items-center">
+                                <Text className="text-2xl font-bold text-monk-primary">1k+</Text>
+                                <Text className="text-xs text-monk-secondary uppercase">Students</Text>
+                            </View>
+                            <View className="w-[1px] bg-stone-100" />
+                            <View className="items-center">
+                                <Text className="text-2xl font-bold text-monk-primary">4.9</Text>
+                                <Text className="text-xs text-monk-secondary uppercase">Rating</Text>
+                            </View>
+                        </View>
+
+                        <Text className="text-lg font-serif font-bold text-monk-primary mb-3">About</Text>
+                        <Text className="text-monk-text leading-7 mb-8">
+                            {monk.bio[lang] || monk.bio.en}
+                        </Text>
+
+                        <Button
+                            label="Book a Session"
+                            icon={<Calendar size={20} color="white" />}
+                            onPress={() => router.push({ pathname: '/booking', params: { monkId: monk?._id?.toString() ?? '' } })}
+                        />
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </ScreenWrapper>
     );
 }

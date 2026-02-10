@@ -4,9 +4,15 @@ import Hero from "../components/Hero";
 import MonkShowcaseClient from "../components/MonkShowcaseClient";
 import { connectToDatabase } from "@/database/db";
 import { Monk } from "@/database/types";
-
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import Footer from "../components/Footer";
 const PhilosophySection = dynamic(() => import("../components/Philosophy"));
 const NirvanaComments = dynamic(() => import("../components/NirvanaComments"));
+const DivineBackground = dynamic(() => import("../components/DivineBackground"));
+const DivineButton = dynamic(() => import("../components/DivineButton")); // Using dynamic import to avoid SSR mismatches with motion
 
 // Fetch monks data server-side
 const getMonks = cache(async () => {
@@ -37,26 +43,36 @@ export default async function Home() {
 
   // Show only first 5 monks on home page
   const featuredMonks = allMonks.slice(0, 5);
-
+  const isDark = false
   return (
     <>
-      <Hero />
+      <DivineBackground />
+      <div className="relative z-10">
+        <Hero />
 
-      {/* Monk Cards Section - First 5 Only */}
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50/50 animate-pulse">
-          <div className="text-2xl font-serif text-gray-400">Loading monks...</div>
-        </div>
-      }>
-        <MonkShowcaseClient initialMonks={featuredMonks} />
-      </Suspense>
+        {/* Monk Cards Section - First 5 Only */}
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50/50 animate-pulse">
+            <div className="text-2xl font-serif text-gray-400">Loading monks...</div>
+          </div>
+        }>
+          <MonkShowcaseClient initialMonks={featuredMonks} />
+          <div className="mt-16 md:mt-24 flex justify-center">
+            <Link href="/mn/monks">
+              <DivineButton variant="primary" icon={<ArrowUpRight size={20} />} className="shadow-2xl">
+                Илүү үзэх
+              </DivineButton>
+            </Link>
+          </div>
+        </Suspense>
 
-      <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
-        <PhilosophySection />
-      </Suspense>
-      <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
-        <NirvanaComments />
-      </Suspense>
+        <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
+          <PhilosophySection />
+        </Suspense>
+        <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
+          <NirvanaComments />
+        </Suspense>
+      </div>
     </>
   );
 }

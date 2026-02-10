@@ -85,12 +85,21 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      token, // Return token in response body for mobile app
       user: {
         _id: user._id,
+        clerkId: user.clerkId,
         firstName: user.firstName,
         lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
         role: user.role,
-        avatar: user.avatar
+        avatar: user.avatar,
+        karma: user.karma,
+        meditationDays: user.meditationDays,
+        totalMerits: user.totalMerits,
+        dateOfBirth: user.dateOfBirth,
+        zodiacYear: user.zodiacYear,
       }
     });
 

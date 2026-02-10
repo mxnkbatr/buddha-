@@ -33,12 +33,12 @@ const CosmicBackground = ({ isNight }: { isNight: boolean }) => (
         <motion.div
             animate={{ rotate: 360, scale: [1, 1.1, 1] }}
             transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
-            className={`absolute top-[-40%] right-[-20%] w-[80vw] h-[80vw] rounded-full blur-[40px] opacity-20 ${isNight ? "bg-indigo-900" : "bg-amber-200"}`}
+            className={`absolute top-[-40%] right-[-20%] w-[80vw] h-[80vw] rounded-full blur-[40px] opacity-20 ${isNight ? "bg-indigo-900" : "bg-secondary/20"}`}
         />
         <motion.div
             animate={{ rotate: -360, scale: [1, 1.2, 1] }}
             transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-            className={`absolute bottom-[-20%] left-[-20%] w-[60vw] h-[60vw] rounded-full blur-[50px] opacity-20 ${isNight ? "bg-fuchsia-900" : "bg-orange-100"}`}
+            className={`absolute bottom-[-20%] left-[-20%] w-[60vw] h-[60vw] rounded-full blur-[50px] opacity-20 ${isNight ? "bg-fuchsia-900" : "bg-primary/20"}`}
         />
         <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.svg')] mix-blend-overlay" />
     </div>
@@ -340,18 +340,18 @@ export default function MonkProfileClient() {
     };
 
     if (!mounted) return null;
-    if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#FDFBF7]"><Loader2 className="w-10 h-10 animate-spin text-amber-500" /></div>;
+    if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#FDFBF7]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
     // -- Theme Config --
     const theme = {
-        glassPanel: isNight ? "bg-[#0f172a]/60 border-indigo-500/20 text-indigo-50" : "bg-white/60 border-amber-900/10 text-amber-950",
+        glassPanel: isNight ? "bg-[#0f172a]/60 border-indigo-500/20 text-indigo-50" : "bg-white/60 border-primary/10 text-text-main",
         ticketBg: isNight ? "bg-[#0f172a]/80" : "bg-[#fffefc]/90",
-        border: isNight ? "border-indigo-500/20" : "border-amber-900/10",
-        accentText: isNight ? "text-cyan-400" : "text-amber-600",
-        accentGradient: isNight ? "from-cyan-900 to-blue-900" : "from-amber-200 to-orange-100",
-        badge: isNight ? "border-cyan-500/50 text-cyan-300" : "border-amber-600/30 text-amber-700",
-        slotActive: isNight ? "bg-cyan-600 border-cyan-500 text-white" : "bg-amber-500 border-amber-500 text-white",
-        input: isNight ? "bg-black/20 border-white/10 focus:border-cyan-500/50" : "bg-white/50 border-amber-900/10 focus:border-amber-500/50",
+        border: isNight ? "border-indigo-500/20" : "border-primary/10",
+        accentText: isNight ? "text-cyan-400" : "text-primary",
+        accentGradient: isNight ? "from-cyan-900 to-blue-900" : "from-secondary to-primary-light",
+        badge: isNight ? "border-cyan-500/50 text-cyan-300" : "border-primary/30 text-primary",
+        slotActive: isNight ? "bg-cyan-600 border-cyan-500 text-white" : "bg-primary border-primary text-white",
+        input: isNight ? "bg-black/20 border-white/10 focus:border-cyan-500/50" : "bg-white/50 border-primary/10 focus:border-primary/50",
     };
 
     return (
@@ -433,7 +433,7 @@ export default function MonkProfileClient() {
                                                         className={`max-w-md mx-auto mb-8 p-6 rounded-2xl text-left space-y-4 relative overflow-hidden bg-white text-black shadow-xl border border-black/10`}
                                                     >
                                                         <div className="flex items-center gap-3 mb-2">
-                                                            <div className={`p-2 rounded-full bg-amber-500/20 text-amber-700`}>
+                                                            <div className={`p-2 rounded-full bg-primary/10 text-primary`}>
                                                                 <Shield size={18} />
                                                             </div>
                                                             <h3 className={`font-bold uppercase tracking-wider text-xs text-black`}>
@@ -452,7 +452,7 @@ export default function MonkProfileClient() {
                                                                     <span className="font-mono font-bold">888889896666</span>
                                                                     <button
                                                                         onClick={() => navigator.clipboard.writeText("888889896666")}
-                                                                        className={`p-1.5 rounded-md hover:bg-black/10 transition-colors text-amber-600`}
+                                                                        className={`p-1.5 rounded-md hover:bg-black/10 transition-colors text-primary`}
                                                                         title={t({ mn: "Хуулах", en: "Copy" })}
                                                                     >
                                                                         <CheckCircle2 size={12} />
@@ -465,7 +465,7 @@ export default function MonkProfileClient() {
                                                             </div>
                                                             <div className="flex justify-between items-center">
                                                                 <span className="opacity-60">{t({ mn: "Дүн:", en: "Amount:" })}</span>
-                                                                <span className={`font-bold text-amber-600`}>{Number(selectedService.price).toLocaleString()}₮</span>
+                                                                <span className={`font-bold text-primary`}>{Number(selectedService.price).toLocaleString()}₮</span>
                                                             </div>
                                                         </div>
 
@@ -640,7 +640,7 @@ export default function MonkProfileClient() {
                                                                         onClick={handleBooking} disabled={!userName || !userPhone || !selectedService || isSubmitting}
                                                                         className="w-full relative group h-16 rounded-2xl overflow-hidden shadow-2xl mt-2 disabled:grayscale disabled:opacity-50"
                                                                     >
-                                                                        <div className={`absolute inset-0 bg-gradient-to-r ${isNight ? 'from-cyan-600 to-blue-600' : 'from-amber-500 to-orange-600'} transition-all duration-300`} />
+                                                                        <div className={`absolute inset-0 bg-gradient-to-r ${isNight ? 'from-cyan-600 to-blue-600' : 'from-[var(--color-primary)] to-[var(--color-primary-light)]'} transition-all duration-300`} />
                                                                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_2s_linear_infinite]" />
 
                                                                         <div className="relative z-10 flex items-center justify-center gap-3 text-white h-full font-bold uppercase tracking-[0.2em] text-sm">

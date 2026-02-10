@@ -71,13 +71,13 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
 
     const containerClasses = isSidebar
         ? "relative w-full h-full bg-stone-950 border-l border-stone-800 flex flex-col pointer-events-auto"
-        : "bg-stone-950 border-2 md:border-4 border-amber-600 w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative";
+        : "bg-stone-950 border-2 md:border-4 border-secondary w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative";
 
     const sidebarContent = (
         <div className={containerClasses}>
             {/* Header */}
             <div className="p-4 border-b-2 border-stone-800 bg-stone-900 flex justify-between items-center shrink-0">
-                <div className="flex items-center gap-2 md:gap-3 text-amber-500">
+                <div className="flex items-center gap-2 md:gap-3 text-secondary">
                     {showMobileDetails && (
                         <button
                             onClick={() => setShowMobileDetails(false)}
@@ -93,7 +93,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                 </div>
                 <button onClick={onClose} className="text-stone-500 hover:text-white transition-colors p-1 flex items-center gap-1 group">
                     <X size={20} className={isSidebar ? '' : "md:w-6 md:h-6"} />
-                    {isSidebar && <span className="text-xs font-bold uppercase tracking-wider group-hover:text-amber-500">Back</span>}
+                    {isSidebar && <span className="text-xs font-bold uppercase tracking-wider group-hover:text-secondary">Back</span>}
                 </button>
             </div>
 
@@ -112,7 +112,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-stone-800 text-stone-200 pl-10 pr-4 py-2 rounded-xl text-xs md:text-sm border border-stone-700 focus:border-amber-500 focus:outline-none placeholder:text-stone-600"
+                                className="w-full bg-stone-800 text-stone-200 pl-10 pr-4 py-2 rounded-xl text-xs md:text-sm border border-stone-700 focus:border-secondary focus:outline-none placeholder:text-stone-600"
                             />
                         </div>
                     </div>
@@ -145,7 +145,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                                         key={i}
                                                         onClick={() => handleSelectItem(item)}
                                                         className={`w-full text-left pl-9 pr-4 py-2 text-xs md:text-sm border-l-2 transition-all flex items-start gap-2 ${selectedItem?.name === item.name
-                                                            ? "border-amber-500 bg-amber-500/10 text-amber-100 font-bold"
+                                                            ? "border-secondary bg-secondary/10 text-secondary-light font-bold"
                                                             : "border-transparent text-stone-400 hover:text-stone-300 hover:bg-stone-800"
                                                             }`}
                                                     >
@@ -179,7 +179,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                 <h1 className="text-2xl md:text-4xl font-serif font-black text-black mb-2 leading-tight">
                                     {selectedItem.name}
                                 </h1>
-                                <span className="inline-block px-2 py-1 md:px-3 md:py-1 rounded-full bg-amber-500 text-white text-[10px] md:text-xs font-black uppercase tracking-widest shadow-sm">
+                                <span className="inline-block px-2 py-1 md:px-3 md:py-1 rounded-full bg-secondary text-stone-900 text-[10px] md:text-xs font-black uppercase tracking-widest shadow-sm">
                                     Ritual Details
                                 </span>
                             </div>
@@ -193,10 +193,10 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                             </div>
 
                             {/* Instructions Box */}
-                            <div className="p-4 bg-amber-100 rounded-xl border-2 border-amber-400">
+                            <div className="p-4 bg-secondary/10 rounded-xl border-2 border-secondary">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-1.5 rounded-full bg-amber-500 shrink-0">
-                                        <FileText size={14} className="text-white" />
+                                    <div className="p-1.5 rounded-full bg-secondary shrink-0">
+                                        <FileText size={14} className="text-stone-900" />
                                     </div>
                                     <h3 className="text-sm md:text-base font-black uppercase tracking-wider text-black">Instructions</h3>
                                 </div>
@@ -265,12 +265,12 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                 initial={{ opacity: 0, scale: 0.9, y: 40 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 40 }}
-                className="bg-stone-950 border-2 md:border-4 border-amber-600 w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative"
+                className="bg-stone-950 border-2 md:border-4 border-secondary w-full max-w-6xl h-full md:h-[90vh] rounded-3xl md:rounded-[3rem] shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col pointer-events-auto relative"
             >
                 <div className="w-full h-full flex flex-col overflow-hidden">
                     {/* Header */}
                     <div className="p-4 md:p-6 border-b-2 border-stone-800 bg-stone-900 flex justify-between items-center shrink-0">
-                        <div className="flex items-center gap-2 md:gap-3 text-amber-500">
+                        <div className="flex items-center gap-2 md:gap-3 text-secondary">
                             {showMobileDetails && (
                                 <button
                                     onClick={() => setShowMobileDetails(false)}
@@ -299,7 +299,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                         placeholder="Search rituals..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full bg-stone-800 text-stone-200 pl-10 pr-4 py-2 rounded-xl text-xs md:text-sm border-2 border-stone-700 focus:border-amber-500 focus:outline-none placeholder:text-stone-600"
+                                        className="w-full bg-stone-800 text-stone-200 pl-10 pr-4 py-2 rounded-xl text-xs md:text-sm border-2 border-stone-700 focus:border-secondary focus:outline-none placeholder:text-stone-600"
                                     />
                                 </div>
                             </div>
@@ -333,7 +333,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                                                 key={i}
                                                                 onClick={() => handleSelectItem(item)}
                                                                 className={`w-full text-left pl-9 pr-4 py-2 text-xs md:text-sm border-l-2 transition-all flex items-start gap-2 ${selectedItem?.name === item.name
-                                                                    ? "border-amber-500 bg-amber-500/10 text-amber-100 font-bold"
+                                                                    ? "border-secondary bg-secondary/10 text-secondary-light font-bold"
                                                                     : "border-transparent text-stone-400 hover:text-stone-300 hover:bg-stone-800"
                                                                     }`}
                                                             >
@@ -358,7 +358,7 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                         <h1 className="text-3xl md:text-6xl font-serif font-black text-black mb-3 md:mb-4 leading-tight">
                                             {selectedItem.name}
                                         </h1>
-                                        <span className="inline-block px-3 py-1 md:px-5 md:py-2 rounded-full bg-amber-500 text-white text-[10px] md:text-sm font-black uppercase tracking-widest shadow-md md:shadow-lg">
+                                        <span className="inline-block px-3 py-1 md:px-5 md:py-2 rounded-full bg-secondary text-stone-900 text-[10px] md:text-sm font-black uppercase tracking-widest shadow-md md:shadow-lg">
                                             Ritual Details
                                         </span>
                                     </div>
@@ -368,10 +368,10 @@ export default function BookViewer({ isOpen, onClose, variant = 'modal' }: BookV
                                             {selectedItem.desc || "No description available."}
                                         </p>
                                     </div>
-                                    <div className="p-5 md:p-8 bg-amber-100 rounded-2xl md:rounded-3xl border-2 md:border-4 border-amber-400">
+                                    <div className="p-5 md:p-8 bg-secondary/10 rounded-2xl md:rounded-3xl border-2 md:border-4 border-secondary">
                                         <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
-                                            <div className="p-2 md:p-3 rounded-full bg-amber-500 shrink-0">
-                                                <FileText size={18} className="text-white md:w-6 md:h-6" />
+                                            <div className="p-2 md:p-3 rounded-full bg-secondary shrink-0">
+                                                <FileText size={18} className="text-stone-900 md:w-6 md:h-6" />
                                             </div>
                                             <h3 className="text-base md:text-xl font-black uppercase tracking-wider text-black">Instructions</h3>
                                         </div>

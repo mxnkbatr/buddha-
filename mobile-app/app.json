@@ -37,7 +37,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Allow Given Mobile to access your camera for video calls.",
+          "microphonePermission": "Allow Given Mobile to access your microphone for video calls."
+        }
+      ]
     ]
   }
 }

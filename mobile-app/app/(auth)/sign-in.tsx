@@ -117,6 +117,18 @@ export default function SignInScreen() {
                             <Text className="text-amber-600 font-semibold">Sign Up</Text>
                         </Text>
                     </Pressable>
+
+                    <View className="mt-6 pt-6 border-t border-stone-200">
+                        <Pressable
+                            onPress={() => router.push('/(auth)/phone-login')}
+                            className="border border-stone-300 rounded-xl py-4 px-6 active:bg-stone-100"
+                            style={{ minHeight: 52 }}
+                        >
+                            <Text className="text-stone-700 text-center font-semibold text-lg">
+                                Sign in with Phone
+                            </Text>
+                        </Pressable>
+                    </View>
                 </View>
             </KeyboardAvoidingView>
         </SafeAreaView>

@@ -38,12 +38,12 @@ const CosmicBackground = ({ isNight }: { isNight: boolean }) => (
         <motion.div
             animate={{ rotate: 360, scale: [1, 1.2, 1], x: [0, 50, 0] }}
             transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-            className={`absolute top-[-30%] left-[-20%] w-[80vw] h-[80vw] rounded-full blur-[120px] opacity-20 safari-gpu ${isNight ? "bg-cyan-900" : "bg-amber-200"}`}
+            className={`absolute top-[-30%] left-[-20%] w-[80vw] h-[80vw] rounded-full blur-[120px] opacity-20 safari-gpu ${isNight ? "bg-cyan-900" : "bg-primary/20"}`}
         />
         <motion.div
             animate={{ rotate: -360, scale: [1, 1.3, 1], x: [0, -50, 0] }}
             transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-            className={`absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[150px] opacity-20 safari-gpu ${isNight ? "bg-fuchsia-900" : "bg-orange-100"}`}
+            className={`absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[150px] opacity-20 safari-gpu ${isNight ? "bg-fuchsia-900" : "bg-secondary/20"}`}
         />
         <div className="absolute inset-0 opacity-[0.04] bg-[url('/noise.svg')] mix-blend-overlay" />
     </div>
@@ -93,7 +93,7 @@ const ServiceTicket = ({ service, monkName, theme, lang }: any) => (
                             className="absolute -bottom-1 left-0 w-full h-[1px] bg-gradient-to-r from-current to-transparent opacity-50 origin-left safari-gpu"
                         />
                     </div>
-                    <div className={`p-1 rounded-full bg-yellow-500/10 text-yellow-600`}>
+                    <div className={`p-1 rounded-full bg-secondary/10 text-secondary`}>
                         <Star size={12} fill="currentColor" />
                     </div>
                 </div>
@@ -196,19 +196,19 @@ export default function RitualBookingPage() {
         btnGradient: "from-cyan-600 to-blue-600"
     } : {
         bg: "bg-[#FDFBF7]",
-        text: "text-amber-950",
-        accentText: "text-amber-600",
-        accentBg: "bg-amber-500",
-        glassPanel: "bg-white/60 border-amber-900/10 shadow-xl",
-        badgeBorder: "border-amber-600/20",
-        badgeText: "text-amber-700",
-        borderColor: "border-amber-900/10",
-        monkGradient: "from-amber-600 to-orange-700",
-        slotActive: "bg-amber-500 border-amber-500 text-white shadow-[0_5px_15px_rgba(245,158,11,0.3)]",
+        text: "text-text-main",
+        accentText: "text-primary",
+        accentBg: "bg-secondary",
+        glassPanel: "bg-white/60 border-primary/10 shadow-xl",
+        badgeBorder: "border-primary/20",
+        badgeText: "text-primary",
+        borderColor: "border-primary/10",
+        monkGradient: "from-primary to-primary-light",
+        slotActive: "bg-primary border-primary text-white shadow-[0_5px_15px_rgba(185,28,28,0.3)]",
         slotDisabled: "opacity-30 bg-black/5 cursor-not-allowed",
-        slotDefault: "border-amber-900/10 hover:bg-amber-50 text-amber-900",
-        input: "bg-white border-amber-900/10 focus:border-amber-500/50 text-amber-900 placeholder-amber-900/30",
-        btnGradient: "from-amber-500 to-orange-600"
+        slotDefault: "border-primary/10 hover:bg-surface-alt text-text-main",
+        input: "bg-white border-primary/10 focus:border-primary/50 text-text-main placeholder-text-muted/50",
+        btnGradient: "from-[var(--color-primary)] to-[var(--color-primary-light)]"
     };
 
     useEffect(() => {
@@ -358,7 +358,7 @@ export default function RitualBookingPage() {
     };
 
     if (!mounted) return null;
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]"><Loader2 className="animate-spin text-amber-600" /></div>;
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]"><Loader2 className="animate-spin text-primary" /></div>;
     if (!service) return <div>Not Found</div>;
 
     return (
@@ -462,11 +462,11 @@ export default function RitualBookingPage() {
                                                 initial={{ scale: 0, rotate: -180 }}
                                                 animate={{ scale: 1, rotate: 0 }}
                                                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                                className="w-24 h-24 mx-auto bg-amber-500 text-white rounded-full flex items-center justify-center shadow-lg mb-6 relative"
+                                                className="w-24 h-24 mx-auto bg-primary text-white rounded-full flex items-center justify-center shadow-lg mb-6 relative"
                                             >
                                                 <Hourglass size={48} />
                                                 {/* Pending Pulse */}
-                                                <motion.div animate={{ scale: [1, 1.5], opacity: [0.5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute inset-0 rounded-full bg-amber-500 z-[-1]" />
+                                                <motion.div animate={{ scale: [1, 1.5], opacity: [0.5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute inset-0 rounded-full bg-primary z-[-1]" />
                                             </motion.div>
                                             <h2 className={`text-3xl font-serif font-bold mb-4 ${theme.text}`}>{t({ mn: "Захиалга Админд Илгээгдлээ", en: "Request Sent to Admin" })}</h2>
                                             <p className={`opacity-60 mb-8 ${theme.text}`}>{t({ mn: "Төлбөр төлөгдсөний дараа таны захиалга баталгаажих болно.", en: "Your request has been sent. It will be accepted after payment verification." })}</p>
@@ -479,7 +479,7 @@ export default function RitualBookingPage() {
                                                 className={`max-w-md mx-auto mb-8 p-6 rounded-2xl border text-left space-y-4 relative overflow-hidden ${isNight ? "bg-black/5 border-black/5" : "bg-black/5 border-black/5"}`}
                                             >
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <div className={`p-2 rounded-full ${isNight ? "bg-cyan-500/20 text-cyan-400" : "bg-amber-500/20 text-amber-600"}`}>
+                                                    <div className={`p-2 rounded-full ${isNight ? "bg-cyan-500/20 text-cyan-400" : "bg-secondary/20 text-primary"}`}>
                                                         <Shield size={18} />
                                                     </div>
                                                     <h3 className={`font-bold uppercase tracking-wider text-xs ${theme.text}`}>
@@ -557,7 +557,7 @@ export default function RitualBookingPage() {
                                                                         <div className="flex items-center gap-1">
                                                                             <p className="text-[10px] font-bold uppercase opacity-70">{m.title?.[lang]}</p>
                                                                             {m.isSpecial && (
-                                                                                <span className="text-[8px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 font-black uppercase">Special</span>
+                                                                                <span className="text-[8px] px-1.5 py-0.5 rounded bg-secondary/20 text-primary font-black uppercase">Special</span>
                                                                             )}
                                                                         </div>
                                                                         <p className="font-serif font-bold leading-tight line-clamp-1">{m.name?.[lang]}</p>
@@ -699,15 +699,15 @@ export default function RitualBookingPage() {
                                                             <motion.button
                                                                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                                                                 onClick={handleBooking} disabled={!userName || !userPhone || isSubmitting}
-                                                                className={`w-full h-16 rounded-2xl overflow-hidden relative group mt-4 shadow-xl ${!userName || !userPhone ? 'opacity-50 grayscale' : ''}`}
+                                                                className={`w-full h-16 rounded-full overflow-hidden relative group mt-4 shadow-xl ${!userName || !userPhone ? 'opacity-50 grayscale' : ''}`}
                                                             >
-                                                                <div className={`absolute inset-0 bg-gradient-to-r ${theme.btnGradient}`} />
+                                                                <div className={`absolute inset-0 bg-gradient-to-r from-[var(--color-divine-gold-light)] via-[var(--color-divine-gold)] to-[var(--color-divine-red)]`} />
 
                                                                 {/* Button Cinematic Shine Effect */}
                                                                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_3s_linear_infinite]" />
 
-                                                                <div className="relative z-10 flex items-center justify-center gap-3 text-white h-full font-black uppercase tracking-[0.2em] text-sm">
-                                                                    {isSubmitting ? <Loader2 className="animate-spin" /> : <> <Sparkles size={18} /> {t({ mn: "Баталгаажуулах", en: "Confirm Booking" })} <ArrowRight size={18} /></>}
+                                                                <div className="relative z-10 flex items-center justify-center gap-3 text-white h-full font-black uppercase tracking-[0.2em] text-sm text-shadow-sm">
+                                                                    {isSubmitting ? <Loader2 className="animate-spin" /> : <> <Sparkles size={18} className="text-yellow-100" /> {t({ mn: "Баталгаажуулах", en: "Confirm Booking" })} <ArrowRight size={18} /></>}
                                                                 </div>
                                                             </motion.button>
                                                         ) : (

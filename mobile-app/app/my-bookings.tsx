@@ -23,7 +23,9 @@ interface Booking {
     totalPrice?: number;
 }
 
-const BookingCard = memo(({ booking, onPress }: { booking: Booking; onPress: () => void }) => {
+import { Video } from 'lucide-react-native';
+
+const BookingCard = memo(({ booking, onPress, onJoinSession }: { booking: Booking; onPress: () => void, onJoinSession: () => void }) => {
     const { i18n } = useTranslation();
     const t_db = (data: any) => {
         if (!data) return '';
@@ -38,11 +40,12 @@ const BookingCard = memo(({ booking, onPress }: { booking: Booking; onPress: () 
     };
 
     const statusColor = statusColors[booking.status] || 'bg-stone-100 text-stone-700';
+    const showJoinButton = booking.status === 'confirmed' && booking.type === 'monk';
 
     return (
         <Pressable
             onPress={onPress}
-            className="bg-white rounded-xl mb-3 mx-4 shadow-sm overflow-hidden active:bg-stone-50"
+            className="bg-white rounded-xl mb-3 mx-4 shadow-sm overflow-hidden active:bg-stone-50 border border-stone-100"
         >
             <View className="flex-row">
                 <Image
@@ -55,8 +58,8 @@ const BookingCard = memo(({ booking, onPress }: { booking: Booking; onPress: () 
                         {booking.type === 'monk' ? t_db(booking.monkName) : t_db(booking.tourTitle)}
                     </Text>
                     <View className="flex-row items-center mt-1">
-                        <Calendar size={14} color="#9CA3AF" />
-                        <Text className="ml-1 text-stone-600 text-sm">
+                        <Calendar size={14} color="#78716C" />
+                        <Text className="ml-1 text-monk-secondary text-sm">
                             {new Date(booking.date).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -65,21 +68,27 @@ const BookingCard = memo(({ booking, onPress }: { booking: Booking; onPress: () 
                         </Text>
                         {booking.time && (
                             <>
-                                <Clock size={14} color="#9CA3AF" className="ml-2" />
-                                <Text className="ml-1 text-stone-600 text-sm">{booking.time}</Text>
+                                <Clock size={14} color="#78716C" className="ml-2" />
+                                <Text className="ml-1 text-monk-secondary text-sm">{booking.time}</Text>
                             </>
                         )}
                     </View>
-                    <View className="flex-row items-center justify-between mt-2">
+
+                    <View className="flex-row items-center justify-between mt-3">
                         <View className={`px-2 py-1 rounded-md ${statusColor.split(' ')[0]}`}>
                             <Text className={`text-xs font-medium ${statusColor.split(' ')[1]}`}>
                                 {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                             </Text>
                         </View>
-                        {booking.totalPrice && (
-                            <Text className="text-amber-600 font-semibold">
-                                ${booking.totalPrice}
-                            </Text>
+
+                        {showJoinButton && (
+                            <Pressable
+                                onPress={onJoinSession}
+                                className="bg-monk-primary px-3 py-1.5 rounded-full flex-row items-center"
+                            >
+                                <Video size={12} color="white" className="mr-1" />
+                                <Text className="text-white text-xs font-bold uppercase">Join</Text>
+                            </Pressable>
                         )}
                     </View>
                 </View>
@@ -135,9 +144,13 @@ export default function MyBookingsScreen() {
 
     const renderItem = useCallback(
         ({ item }: { item: Booking }) => (
-            <BookingCard booking={item} onPress={() => { }} />
+            <BookingCard
+                booking={item}
+                onPress={() => { }}
+                onJoinSession={() => router.push(`/live-session/${item._id}`)}
+            />
         ),
-        []
+        [router]
     );
 
     const keyExtractor = useCallback((item: Booking) => item._id, []);
