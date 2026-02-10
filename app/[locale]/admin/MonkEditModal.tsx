@@ -15,7 +15,7 @@ interface MonkEditModalProps {
 export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEditModalProps) {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"basic" | "details" | "bio" | "schedule" | "blocked">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "details" | "bio" | "schedule" | "blocked" | "account">("basic");
   const [selectedblockDate, setSelectedBlockDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 dark:border-white/10 px-6 bg-gray-50 dark:bg-black/20 overflow-x-auto">
-          {["basic", "details", "bio", "schedule", "blocked"].map((tab) => (
+          {["basic", "details", "bio", "schedule", "blocked", "account"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -123,7 +123,7 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
             >
-              {{ basic: "Үндсэн", details: "Дэлгэрэнгүй", bio: "Намтар & Бусад", schedule: "Цагийн Хуваарь", blocked: "Хаасан Өдрүүд" }[tab]}
+              {{ basic: "Үндсэн", details: "Дэлгэрэнгүй", bio: "Намтар & Бусад", schedule: "Цагийн Хуваарь", blocked: "Хаасан Өдрүүд", account: "Бүртгэл & Эрх" }[tab]}
             </button>
           ))}
         </div>
@@ -573,6 +573,24 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ACCOUNT INFO */}
+            {activeTab === "account" && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase text-gray-700 dark:text-gray-300 block">Үүрэг (Role)</label>
+                  <select
+                    className="w-full bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-500 transition-colors text-gray-900 dark:text-gray-100"
+                    value={formData.role || "seeker"}
+                    onChange={(e) => handleChange("role", e.target.value)}
+                  >
+                    <option value="seeker" className="dark:bg-[#0C164F]">Seeker (Хэрэглэгч)</option>
+                    <option value="monk" className="dark:bg-[#0C164F]">Monk (Лам)</option>
+                    <option value="admin" className="dark:bg-[#0C164F]">Admin (Админ)</option>
+                  </select>
+                </div>
               </div>
             )}
           </form>

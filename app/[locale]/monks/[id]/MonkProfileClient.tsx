@@ -279,7 +279,7 @@ export default function MonkProfileClient() {
         // FALLBACK: Old Range Logic
         // 1-Hour Lead Time Enforcer
         const filteredBySchedule = times.filter(time => {
-            return time >= dayConfig.start && time < dayConfig.end;
+            return time >= dayConfig.start && time < dayConfig.end && !blockedForDate.includes(time);
         });
 
         const isToday = dateObj.toDateString() === new Date().toDateString();

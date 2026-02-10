@@ -39,7 +39,7 @@ interface UserProfile {
     name?: { mn: string; en: string };
     title?: { mn: string; en: string };
     services?: ServiceItem[];
-    schedule?: { day: string; start: string; end: string; active: boolean }[];
+    schedule?: { day: string; start: string; end: string; active: boolean; slots?: string[] }[];
     blockedSlots?: BlockedSlot[];
     earnings?: number;
     image?: string;
@@ -71,6 +71,7 @@ interface Booking {
 
 const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAYS_MN = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
+const ALL_24_SLOTS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
 export default function DashboardPage() {
     const { user, loading: authLoading, logout } = useAuth();
@@ -78,6 +79,13 @@ export default function DashboardPage() {
     const { signOut } = useClerk();
     const router = useRouter();
     const langKey = language === 'mn' ? 'mn' : 'en';
+
+    // --- REDIRECT LOGIC ---
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push("/sign-in");
+        }
+    }, [authLoading, user, router]);
 
     // --- TRANSLATION DICTIONARY ---
     const TEXT = {
@@ -87,7 +95,8 @@ export default function DashboardPage() {
             bookBtn: "Book New Ritual",
             availability: "Availability Manager",
             updateBtn: "Update System",
-            step1: "Step 1: Set Weekly Hours",
+            step1: "Step 1: Weekly Availability",
+            step1Desc: "Toggle hours you are USUALLY available each week (00:00 - 24:00)",
             step2: "Step 2: Manage Exceptions",
             step2Desc: "Pick a date to mark specific hours as",
             busy: "Busy",
@@ -146,7 +155,8 @@ export default function DashboardPage() {
             bookBtn: "Засал захиалах",
             availability: "Цагийн хуваарь",
             updateBtn: "Хадгалах",
-            step1: "Алхам 1: 7 хоногийн цаг тохируулах",
+            step1: "Алхам 1: 7 хоногийн тогтмол цаг",
+            step1Desc: "Долоо хоног бүр тогтмол ажиллах цагаа сонгоно уу (00:00 - 24:00)",
             step2: "Алхам 2: Тусгай өдөр тохируулах",
             step2Desc: "Тодорхой өдрийн цагийг хаах бол өдрөө сонгоно уу",
             busy: "Завгүй",
@@ -230,8 +240,8 @@ export default function DashboardPage() {
     const [uploadingImage, setUploadingImage] = useState(false);
 
     // --- SCHEDULE STATE ---
-    const [schedule, setSchedule] = useState<{ day: string; start: string; end: string; active: boolean }[]>(
-        DAYS_EN.map(d => ({ day: d, start: "09:00", end: "17:00", active: true }))
+    const [schedule, setSchedule] = useState<{ day: string; start: string; end: string; active: boolean; slots?: string[] }[]>(
+        DAYS_EN.map(d => ({ day: d, start: "09:00", end: "17:00", active: true, slots: ALL_24_SLOTS }))
     );
     const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
     const [selectedBlockDate, setSelectedBlockDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -285,11 +295,12 @@ export default function DashboardPage() {
 
                 if (profileData) {
                     setProfile(profileData);
+                    let currentBookings: Booking[] = [];
                     if (profileData.role === 'monk') {
                         if (profileData.schedule) setSchedule(profileData.schedule);
                         if (profileData.blockedSlots) setBlockedSlots(profileData.blockedSlots);
                         const bRes = await fetch(`/api/bookings?monkId=${profileData._id}`);
-                        if (bRes.ok) setBookings(await bRes.json());
+                        if (bRes.ok) currentBookings = await bRes.json();
                     } else {
                         if (!profileData.firstName || !profileData.lastName || !profileData.dateOfBirth) {
                             router.push("/complete-profile");
@@ -297,9 +308,20 @@ export default function DashboardPage() {
                         }
 
                         const bRes = await fetch(`/api/bookings?userId=${profileData._id}`);
-                        if (bRes.ok) setBookings(await bRes.json());
+                        if (bRes.ok) currentBookings = await bRes.json();
                         const allMonksRes = await fetch('/api/monks');
                         if (allMonksRes.ok) setAllMonks(await allMonksRes.json());
+                    }
+                    setBookings(currentBookings);
+
+                    // --- FORCE START LOGIC ---
+                    // Automatically join room if an active call is detected and we aren't in one
+                    if (!activeRoomToken) {
+                        const activeBooking = currentBookings.find(b => b.callStatus === 'active' && b.status === 'confirmed');
+                        if (activeBooking) {
+                            console.log("Force joining active call:", activeBooking._id);
+                            joinVideoCall(activeBooking);
+                        }
                     }
                 } else {
                     const tempClientProfile: UserProfile = {
@@ -366,26 +388,8 @@ export default function DashboardPage() {
     }, [bookings]);
 
     const dailySlotsForBlocking = useMemo(() => {
-        if (!selectedBlockDate) return [];
-        const dateObj = new Date(selectedBlockDate);
-        const dayName = DAYS_EN[dateObj.getDay()];
-        const dayConfig = schedule.find(s => s.day === dayName);
-        if (!dayConfig || !dayConfig.active) return [];
-
-        const slots: string[] = [];
-        const [startH, startM] = dayConfig.start.split(':').map(Number);
-        const [endH, endM] = dayConfig.end.split(':').map(Number);
-        const current = new Date(dateObj);
-        current.setHours(startH, startM, 0, 0);
-        const end = new Date(dateObj);
-        end.setHours(endH, endM, 0, 0);
-
-        while (current < end) {
-            slots.push(current.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }));
-            current.setMinutes(current.getMinutes() + 60);
-        }
-        return slots;
-    }, [selectedBlockDate, schedule]);
+        return ALL_24_SLOTS;
+    }, []);
 
     const checkRitualAvailability = (booking: Booking) => {
         if (booking.callStatus === 'active') return { isOpen: true, message: TEXT.roomOpen };
@@ -436,6 +440,21 @@ export default function DashboardPage() {
                 .filter(time => !blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
                 .map(time => ({ id: crypto.randomUUID(), date: selectedBlockDate, time }));
             setBlockedSlots([...blockedSlots, ...newBlocks]);
+        }
+    };
+
+    const toggleWeeklySlot = (day: string, time: string) => {
+        const newSchedule = [...schedule];
+        const dayIdx = newSchedule.findIndex(s => s.day === day);
+        if (dayIdx > -1) {
+            const dayConfig = newSchedule[dayIdx];
+            const slots = dayConfig.slots || [];
+            if (slots.includes(time)) {
+                dayConfig.slots = slots.filter(t => t !== time);
+            } else {
+                dayConfig.slots = [...slots, time];
+            }
+            setSchedule(newSchedule);
         }
     };
 
@@ -537,10 +556,7 @@ export default function DashboardPage() {
         } catch (e) { console.error(e); } finally { setIsSaving(false); }
     };
 
-    if (!authLoading && !user) {
-        if (typeof window !== "undefined") {
-            router.push("/sign-in");
-        }
+    if (authLoading || !user) {
         return null;
     }
 
@@ -647,66 +663,127 @@ export default function DashboardPage() {
                     <div className="lg:col-span-2 space-y-8">
                         {isMonk && (
                             <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
-                                <div className="flex justify-between items-center mb-6">
+                                <div className="flex justify-between items-center mb-8">
                                     <h2 className="text-2xl font-serif font-bold text-[#451a03] flex items-center gap-3"><Clock className="text-[#D97706]" /> {TEXT.availability}</h2>
-                                    <button onClick={saveScheduleSettings} disabled={isSaving} className="flex items-center gap-2 bg-[#D97706] text-white px-4 py-2 rounded-full font-bold text-xs">
-                                        {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} {TEXT.updateBtn}
+                                    <button onClick={saveScheduleSettings} disabled={isSaving} className="flex items-center gap-2 bg-[#D97706] text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-amber-500/20 transition-transform active:scale-95">
+                                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {TEXT.updateBtn}
                                     </button>
                                 </div>
-                                <div className="space-y-3">
-                                    {DAYS_EN.map((day, idx) => {
-                                        const config = schedule.find(s => s.day === day) || { day, start: "09:00", end: "17:00", active: false };
-                                        return (
-                                            <div key={day} className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl border transition-all ${config.active ? 'bg-white border-[#D97706]/20' : 'bg-stone-50 border-stone-100 opacity-60'}`}>
-                                                <div className="flex items-center gap-3 mb-2 md:mb-0">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={config.active}
-                                                        onChange={(e) => {
-                                                            const newSchedule = [...schedule];
-                                                            const dayIdx = newSchedule.findIndex(s => s.day === day);
-                                                            if (dayIdx > -1) {
-                                                                newSchedule[dayIdx].active = e.target.checked;
-                                                            } else {
-                                                                newSchedule.push({ day, start: "09:00", end: "17:00", active: e.target.checked });
-                                                            }
-                                                            setSchedule(newSchedule);
-                                                        }}
-                                                        className="w-5 h-5 accent-[#D97706]"
-                                                    />
-                                                    <span className="font-bold text-[#451a03] min-w-25">{DAYS_MN[idx]} ({day.slice(0, 3)})</span>
-                                                </div>
 
-                                                {config.active && (
-                                                    <div className="flex items-center gap-2">
+                                {/* STEP 1: WEEKLY HOURS */}
+                                <div className="mb-12">
+                                    <div className="mb-6">
+                                        <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-2">
+                                            <span className="w-6 h-6 rounded-full bg-[#D97706] text-white flex items-center justify-center text-[10px]">1</span>
+                                            {TEXT.step1}
+                                        </h3>
+                                        <p className="text-[10px] text-stone-400 mt-1 ml-8">{TEXT.step1Desc}</p>
+                                    </div>
+                                    <div className="space-y-6">
+                                        {DAYS_EN.map((day, idx) => {
+                                            const config = schedule.find(s => s.day === day) || { day, start: "00:00", end: "24:00", active: false, slots: [] };
+                                            return (
+                                                <div key={day} className={`p-6 rounded-3xl border transition-all ${config.active ? 'bg-white border-[#D97706]/20' : 'bg-stone-50 border-stone-100 opacity-60'}`}>
+                                                    <div className="flex items-center gap-4 mb-4">
                                                         <input
-                                                            type="time"
-                                                            value={config.start}
+                                                            type="checkbox"
+                                                            checked={config.active}
                                                             onChange={(e) => {
                                                                 const newSchedule = [...schedule];
                                                                 const dayIdx = newSchedule.findIndex(s => s.day === day);
-                                                                newSchedule[dayIdx].start = e.target.value;
+                                                                if (dayIdx > -1) {
+                                                                    newSchedule[dayIdx].active = e.target.checked;
+                                                                    if (e.target.checked && (!newSchedule[dayIdx].slots || newSchedule[dayIdx].slots?.length === 0)) {
+                                                                        newSchedule[dayIdx].slots = ALL_24_SLOTS;
+                                                                    }
+                                                                } else {
+                                                                    newSchedule.push({ day, start: "00:00", end: "24:00", active: e.target.checked, slots: ALL_24_SLOTS });
+                                                                }
                                                                 setSchedule(newSchedule);
                                                             }}
-                                                            className="p-2 rounded-lg border border-stone-200 text-xs font-bold"
+                                                            className="w-6 h-6 rounded-lg accent-[#D97706] cursor-pointer"
                                                         />
-                                                        <span className="text-stone-400 font-bold">-</span>
-                                                        <input
-                                                            type="time"
-                                                            value={config.end}
-                                                            onChange={(e) => {
-                                                                const newSchedule = [...schedule];
-                                                                const dayIdx = newSchedule.findIndex(s => s.day === day);
-                                                                newSchedule[dayIdx].end = e.target.value;
-                                                                setSchedule(newSchedule);
-                                                            }}
-                                                            className="p-2 rounded-lg border border-stone-200 text-xs font-bold"
-                                                        />
+                                                        <span className="font-bold text-[#451a03] text-lg">{DAYS_MN[idx]}</span>
                                                     </div>
-                                                )}
+
+                                                    {config.active && (
+                                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                                                            {ALL_24_SLOTS.map((time) => {
+                                                                const isAvailable = config.slots?.includes(time);
+                                                                return (
+                                                                    <button
+                                                                        key={time}
+                                                                        onClick={() => toggleWeeklySlot(day, time)}
+                                                                        className={`py-2 px-1 rounded-xl border font-bold text-[10px] transition-all ${isAvailable
+                                                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                                                            : 'bg-red-50 border-red-100 text-red-400 line-through opacity-50'
+                                                                            }`}
+                                                                    >
+                                                                        {time}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* STEP 2: EXCEPTIONS */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-2">
+                                            <span className="w-6 h-6 rounded-full bg-[#D97706] text-white flex items-center justify-center text-[10px]">2</span>
+                                            {TEXT.step2}
+                                        </h3>
+                                    </div>
+                                    <div className="bg-stone-50 rounded-[2rem] p-6 border border-stone-100">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                            <div>
+                                                <p className="text-xs text-stone-500 mb-2">{TEXT.step2Desc}</p>
+                                                <input
+                                                    type="date"
+                                                    value={selectedBlockDate}
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => setSelectedBlockDate(e.target.value)}
+                                                    className="p-3 rounded-xl border border-stone-200 bg-white font-bold text-sm outline-none focus:border-[#D97706]"
+                                                />
                                             </div>
-                                        );
-                                    })}
+                                            <button
+                                                onClick={toggleBlockWholeDay}
+                                                className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${dailySlotsForBlocking.every(time => blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
+                                                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                    }`}
+                                            >
+                                                {dailySlotsForBlocking.every(time => blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
+                                                    ? TEXT.unblockDay : TEXT.blockDay}
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                                            {dailySlotsForBlocking.map((time) => {
+                                                const isBlocked = blockedSlots.some(b => b.date === selectedBlockDate && b.time === time);
+                                                return (
+                                                    <button
+                                                        key={time}
+                                                        onClick={() => toggleBlockSlot(time)}
+                                                        className={`py-2 px-1 rounded-xl border font-bold text-[10px] transition-all ${isBlocked
+                                                            ? 'bg-red-50 border-red-200 text-red-600'
+                                                            : 'bg-white border-stone-200 text-stone-600 hover:border-[#D97706]/40'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center justify-between px-1">
+                                                            <span>{time}</span>
+                                                            {isBlocked && <Ban size={8} />}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}

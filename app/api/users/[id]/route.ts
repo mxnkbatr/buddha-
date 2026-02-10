@@ -56,7 +56,6 @@ export async function PATCH(request: Request, props: Props) {
     const { db } = await connectToDatabase();
 
     // 1. Build query to find user by _id or clerkId
-    // We need to find the user in our database first to get their clerkId if it's not provided directly
     let query: any = {
       $or: [
         { clerkId: id }, // Try to match with Clerk User ID
@@ -64,16 +63,41 @@ export async function PATCH(request: Request, props: Props) {
       ]
     };
 
-    // If the provided ID is a valid MongoDB ObjectId string, also query by it
     if (ObjectId.isValid(id)) {
       query.$or.push({ _id: new ObjectId(id) });
+    }
+
+    // Fetch the current user to check for role changes
+    const currentUserDoc = await db.collection("users").findOne(query);
+    if (!currentUserDoc) {
+        return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     // Exclude immutable fields from the body if they are present
     const { _id, clerkId, ...updateFields } = body;
 
+    // Check if role is changing
+    const isPromotingToMonk = updateFields.role === 'monk' && currentUserDoc.role !== 'monk';
+    const isDemotingFromMonk = updateFields.role && updateFields.role !== 'monk' && currentUserDoc.role === 'monk';
+
+    // If promoting to monk, ensure services are assigned if not already there
+    if (isPromotingToMonk) {
+        const allServices = await db.collection("services").find({}).toArray();
+        const serviceRefs = allServices.map((svc: any) => ({
+            id: svc.id || svc._id.toString(),
+            name: svc.name,
+            title: svc.title,
+            type: svc.type,
+            price: svc.price,
+            duration: svc.duration,
+            status: 'active'
+        }));
+        
+        updateFields.services = serviceRefs;
+        updateFields.monkStatus = updateFields.monkStatus || 'approved';
+    }
+
     // Update the document in MongoDB
-    // We use returnDocument: 'after' to get the updated user object immediately
     const result = await db.collection("users").findOneAndUpdate(
       query,
       { $set: updateFields },
@@ -81,6 +105,32 @@ export async function PATCH(request: Request, props: Props) {
     );
 
     let updatedUser = result;
+
+    // Handle Monk profile collection
+    if (isPromotingToMonk && updatedUser) {
+        const monkProfile = {
+            userId: updatedUser._id,
+            clerkId: updatedUser.clerkId,
+            email: updatedUser.email,
+            name: updatedUser.name || { mn: "", en: "" },
+            title: updatedUser.title || { mn: "", en: "" },
+            image: updatedUser.image || "",
+            specialties: updatedUser.specialties || [],
+            services: updatedUser.services || [],
+            yearsOfExperience: updatedUser.yearsOfExperience || 0,
+            rating: 5.0,
+            isAvailable: true,
+            isVerified: true,
+            updatedAt: new Date(),
+        };
+        await db.collection("monks").updateOne(
+            { userId: updatedUser._id },
+            { $set: monkProfile },
+            { upsert: true }
+        );
+    } else if (isDemotingFromMonk && updatedUser) {
+        await db.collection("monks").deleteOne({ userId: updatedUser._id });
+    }
 
     // --- Handle Case: User not found in DB ---
     if (!updatedUser) {

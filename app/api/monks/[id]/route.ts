@@ -69,51 +69,77 @@ export async function PATCH(request: Request, props: Props) {
 
     const { db } = await connectToDatabase();
 
-    // Prevent updating sensitive fields via this route if necessary
-    // For now, we allow updating the fields provided in the body
-    const { _id, clerkId, role, ...updateFields } = body;
+    // 1. Build a robust query to find the user
+    let query: any = {
+      $or: [
+        { clerkId: id },
+        { _id: id }
+      ]
+    };
+    if (ObjectId.isValid(id)) {
+      query.$or.push({ _id: new ObjectId(id) });
+    }
 
-    // 1. Update Database
+    // 2. Fetch current user to check for role changes/demotion
+    const currentUserDoc = await db.collection("users").findOne(query);
+    if (!currentUserDoc) {
+      return NextResponse.json({ message: "Monk profile not found" }, { status: 404 });
+    }
+
+    // Prevent updating immutable fields
+    const { _id, clerkId, ...updateFields } = body;
+
+    const isDemotingFromMonk = updateFields.role && updateFields.role !== 'monk' && currentUserDoc.role === 'monk';
+
+    // 3. Update Database
     const result = await db.collection("users").findOneAndUpdate(
-      { _id: new ObjectId(id), role: "monk" },
+      { _id: currentUserDoc._id },
       { $set: updateFields },
       { returnDocument: 'after' }
     );
 
     if (!result) {
-      return NextResponse.json({ message: "Monk profile not found" }, { status: 404 });
+      return NextResponse.json({ message: "Update failed" }, { status: 500 });
     }
 
     const updatedUser = result;
 
-    // 2. Sync to Clerk Metadata
-    // We update publicMetadata for critical roles/status and unsafeMetadata for profile info
-    if (updatedUser.clerkId) {
+    // 4. Handle Monk profile collection cleanup if demoted
+    if (isDemotingFromMonk) {
+      await db.collection("monks").deleteOne({ userId: updatedUser._id });
+    }
+
+    // 5. Sync to Clerk Metadata
+    if (updatedUser.clerkId && updatedUser.clerkId.startsWith("user_")) {
+      try {
         const client = await clerkClient();
         await client.users.updateUser(updatedUser.clerkId, {
-            publicMetadata: {
-                role: updatedUser.role,
-                monkStatus: updatedUser.monkStatus,
-            },
-            unsafeMetadata: {
-                phone: updatedUser.phone,
-                title: updatedUser.title,
-                name: updatedUser.name
-            }
+          publicMetadata: {
+            role: updatedUser.role,
+            monkStatus: updatedUser.monkStatus,
+          },
+          unsafeMetadata: {
+            phone: updatedUser.phone,
+            title: updatedUser.title,
+            name: updatedUser.name
+          }
         });
 
-        // 3. Add Phone Number as Login Identifier (Auto-Verified)
+        // Add Phone Number as Login Identifier (Auto-Verified)
         if (updatedUser.phone) {
-            try {
-                await client.phoneNumbers.createPhoneNumber({
-                    userId: updatedUser.clerkId,
-                    phoneNumber: updatedUser.phone,
-                    verified: true 
-                });
-            } catch (e) {
-                console.log("Note: Could not add phone number to Clerk (might already exist):", e);
-            }
+          try {
+            await client.phoneNumbers.createPhoneNumber({
+              userId: updatedUser.clerkId,
+              phoneNumber: updatedUser.phone,
+              verified: true
+            });
+          } catch (e) {
+            console.log("Note: Could not add phone number to Clerk:", e);
+          }
         }
+      } catch (clerkErr) {
+        console.error("Clerk Sync Error:", clerkErr);
+      }
     }
 
     return NextResponse.json({ message: "Profile updated", success: true });
@@ -121,7 +147,7 @@ export async function PATCH(request: Request, props: Props) {
   } catch (error: any) {
     console.error("Profile Update Error:", error);
     return NextResponse.json(
-      { message: "Internal Server Error", error: error.message },
+      { message: "Internal Server Error", error: error.message, success: false },
       { status: 500 }
     );
   }
