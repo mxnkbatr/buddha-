@@ -68,10 +68,10 @@ const RoleSelector = ({ role, setRole, content }: any) => (
 // ========================================== 
 
 export default function SignUpPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
-  const { login } = useAuth(); // Custom login from AuthContext
+  const { user, login, loading: authLoading } = useAuth(); // Custom login from AuthContext
 
   const [role, setRole] = useState<"client" | "monk">("client");
 
@@ -84,6 +84,13 @@ export default function SignUpPage() {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Auto-redirect if already logged in
+  React.useEffect(() => {
+    if (!authLoading && user) {
+      router.push(`/${language}/dashboard`);
+    }
+  }, [user, authLoading, router, language]);
 
   // Mouse Torch Effect
   const mouseX = useMotionValue(0);
@@ -143,7 +150,7 @@ export default function SignUpPage() {
 
         // Auto-login after registration
         await login({ identifier: formattedPhone, password });
-        router.push("/dashboard");
+        router.push(`/${language}/dashboard`);
 
       } else {
         // --- CLERK FLOW FOR MONKS ---
@@ -162,7 +169,7 @@ export default function SignUpPage() {
           const completeSignUp = await signUp.attemptPhoneNumberVerification({ code: otp });
           if (completeSignUp.status === "complete") {
             await setActive({ session: completeSignUp.createdSessionId });
-            router.push("/onboarding/monk");
+            router.push(`/${language}/onboarding/monk`);
           } else {
             console.log(JSON.stringify(completeSignUp, null, 2));
             throw new Error("Verification failed. Please check the code.");

@@ -1,6 +1,19 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
+import { useEffect } from 'react';
+import { useAuthStore } from '../../store/authStore';
 
 export default function AuthLayout() {
+    const { isSignedIn, isLoaded } = useAuth();
+    const { isCustomAuth, customToken } = useAuthStore();
+    const router = useRouter();
+
+    useEffect(() => {
+        if ((isLoaded && isSignedIn) || (isCustomAuth && customToken)) {
+            router.replace('/(tabs)');
+        }
+    }, [isSignedIn, isLoaded, isCustomAuth, customToken]);
+
     return (
         <Stack
             screenOptions={{
@@ -10,6 +23,8 @@ export default function AuthLayout() {
         >
             <Stack.Screen name="sign-in" />
             <Stack.Screen name="sign-up" />
+            <Stack.Screen name="phone-login" />
+            <Stack.Screen name="phone-signup" />
         </Stack>
     );
 }

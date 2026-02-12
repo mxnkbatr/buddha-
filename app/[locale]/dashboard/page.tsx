@@ -85,9 +85,9 @@ export default function DashboardPage() {
     // --- REDIRECT LOGIC ---
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push("/sign-in");
+            router.push(`/${language}/sign-in`);
         }
-    }, [authLoading, user, router]);
+    }, [authLoading, user, router, language]);
 
     // --- TRANSLATION DICTIONARY ---
     const TEXT = {

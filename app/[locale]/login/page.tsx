@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 // 1. Import Clerk Components
 import { SignInButton, SignUpButton, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
@@ -13,6 +14,7 @@ import {
   Loader2 // Spinner icon
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- CUSTOM SVG: The Endless Knot (Background Geometry) ---
 const EndlessKnot = ({ className }: { className?: string }) => (
@@ -26,7 +28,16 @@ const EndlessKnot = ({ className }: { className?: string }) => (
 );
 
 export default function LoginPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(`/${language}/dashboard`);
+    }
+  }, [user, authLoading, router, language]);
 
   const content = {
     leftTitle: t({ mn: "Дотоод сүмдээ <br/> эргэн ирээрэй", en: "Return to the <br/> Inner Temple" }),

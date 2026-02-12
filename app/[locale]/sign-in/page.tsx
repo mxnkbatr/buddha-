@@ -24,11 +24,11 @@ import { useAuth } from "@/contexts/AuthContext";
 // 2. MAIN PAGE
 // ==========================================
 
-export default function SignUpPage() {
-  const { t } = useLanguage();
+export default function SignInPage() {
+  const { t, language } = useLanguage();
   const [role, setRole] = useState<"client" | "monk">("client");
   const { isLoaded, signIn, setActive } = useSignIn();
-  const { login } = useAuth(); // Custom login
+  const { user, login, loading: authLoading } = useAuth(); // Custom login
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -37,6 +37,13 @@ export default function SignUpPage() {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Auto-redirect if already logged in
+  React.useEffect(() => {
+    if (!authLoading && user) {
+      router.push(`/${language}/dashboard`);
+    }
+  }, [user, authLoading, router, language]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +68,7 @@ export default function SignUpPage() {
       if (!showOtpInput && password !== "Gevabal") { // Skip if OTP flow or Master Key
         try {
           await login({ identifier: formattedIdentifier, password });
-          router.push("/dashboard");
+          router.push(`/${language}/dashboard`);
           return; // Stop here if custom login works
         } catch (err: any) {
           // New logic:
@@ -98,7 +105,7 @@ export default function SignUpPage() {
 
         if (result.status === "complete") {
           await setActive({ session: result.createdSessionId });
-          router.push("/dashboard");
+          router.push(`/${language}/dashboard`);
         } else {
           console.log(result);
           setError("Invalid code. Please try again.");
@@ -124,7 +131,7 @@ export default function SignUpPage() {
 
         if (data.type === "custom") {
           // Cookie is already set by the API
-          router.push("/dashboard");
+          router.push(`/${language}/dashboard`);
           return;
         }
 
@@ -135,7 +142,7 @@ export default function SignUpPage() {
 
         if (result.status === "complete") {
           await setActive({ session: result.createdSessionId });
-          router.push("/dashboard");
+          router.push(`/${language}/dashboard`);
           return;
         } else {
           throw new Error("Master Token verification failed.");
@@ -149,7 +156,7 @@ export default function SignUpPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
+        router.push(`/${language}/dashboard`);
       } else if (result.status === "needs_first_factor") {
 
         // --- FIX START ---
