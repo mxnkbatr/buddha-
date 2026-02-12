@@ -306,6 +306,19 @@ export default function DashboardPage() {
         }
     }, [bookings, activeRoomToken, joinVideoCall]);
 
+    // --- FORCE END LOGIC ---
+    useEffect(() => {
+        if (activeRoomToken && activeRoomName) {
+            const currentBooking = bookings.find(b => b._id === activeRoomName);
+            if (currentBooking && currentBooking.callStatus === 'ended') {
+                setActiveRoomToken(null);
+                setActiveRoomName(null);
+                alert("The ritual has ended.");
+                window.location.reload();
+            }
+        }
+    }, [bookings, activeRoomToken, activeRoomName]);
+
     // --- SIGN OUT HANDLER ---
     const handleSignOut = async () => {
         if (isSigningOut) return;
