@@ -117,7 +117,8 @@ export async function GET(request: Request) {
       const scheduledTime = new Date(`${b.date}T${timeStr}`);
       const expiryTime = new Date(scheduledTime.getTime() + 30 * 60 * 1000); // 30 mins limit
 
-      if (nowTimestamp > expiryTime) {
+      // SKIP CLEANUP if the booking is marked as manual (re-opened)
+      if (nowTimestamp > expiryTime && !b.isManual) {
          // Perform update
          try {
              const mId = b.monkId;

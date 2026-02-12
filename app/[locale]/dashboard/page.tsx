@@ -931,6 +931,24 @@ export default function DashboardPage() {
                                                             </button>
 
                                                             {/* START OF VIDEO BUTTON LOGIC */}
+                                                            {isMonk && (
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (!confirm("Mark this ritual as completed? This will move it to history.")) return;
+                                                                        try {
+                                                                            const res = await fetch(`/api/bookings/${b._id}`, {
+                                                                                method: 'PATCH',
+                                                                                headers: { 'Content-Type': 'application/json' },
+                                                                                body: JSON.stringify({ status: 'completed', isManual: false })
+                                                                            });
+                                                                            if (res.ok) window.location.reload();
+                                                                        } catch (e) { console.error(e); }
+                                                                    }}
+                                                                    className="w-full md:w-auto px-4 py-2.5 bg-stone-800 text-white rounded-xl text-[10px] md:text-xs font-black uppercase hover:bg-black transition-transform active:scale-95"
+                                                                >
+                                                                    Complete
+                                                                </button>
+                                                            )}
                                                             {b.callStatus === 'active' ? (
                                                                 <button
                                                                     onClick={() => {
@@ -989,7 +1007,25 @@ export default function DashboardPage() {
                                                     <span className="text-[10px] md:text-xs text-stone-400 bg-transparent px-0 py-0">{b.date} • {b.time}</span>
                                                 </div>
                                             </div>
-                                            <div>
+                                            <div className="flex items-center gap-2">
+                                                {isMonk && b.status === 'completed' && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!confirm("Re-open this session for further talk?")) return;
+                                                            try {
+                                                                const res = await fetch(`/api/bookings/${b._id}`, {
+                                                                    method: 'PATCH',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ status: 'confirmed', isManual: true })
+                                                                });
+                                                                if (res.ok) window.location.reload();
+                                                            } catch (e) { console.error(e); }
+                                                        }}
+                                                        className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-amber-600 transition-colors"
+                                                    >
+                                                        Re-open Session
+                                                    </button>
+                                                )}
                                                 <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border ${b.status === 'completed' ? 'bg-green-50 text-green-600 border-green-200' :
                                                     b.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' :
                                                         'bg-stone-100 text-stone-500 border-stone-200'

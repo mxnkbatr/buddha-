@@ -58,7 +58,7 @@ export async function PATCH(
   try {
     const params = await props.params;
     const { id } = params;
-    const { status, callStatus } = await req.json(); // status or callStatus
+    const { status, callStatus, isManual } = await req.json(); // status, callStatus, or isManual
 
     const user = await getAuthenticatedUser();
     if (!user) {
@@ -96,16 +96,17 @@ export async function PATCH(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    // Validation: Only Monks/Admins can confirm or reject
-    if (status === 'confirmed' || status === 'rejected') {
+    // Validation: Only Monks/Admins can confirm, reject, or mark as manual
+    if (status === 'confirmed' || status === 'rejected' || isManual !== undefined) {
       if (!isMonk && !isAdmin) {
-        return NextResponse.json({ message: "Clients cannot confirm bookings" }, { status: 403 });
+        return NextResponse.json({ message: "Only monks can manage booking lifecycle" }, { status: 403 });
       }
     }
 
     // 3. Update the Booking
     const updateData: any = { updatedAt: new Date() };
     if (status) updateData.status = status;
+    if (isManual !== undefined) updateData.isManual = isManual;
     if (callStatus) {
       // Only monks or admins can set callStatus to active
       if (callStatus === 'active' && !isMonk && !isAdmin) {

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { useState, useCallback, memo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
@@ -23,12 +23,21 @@ interface Booking {
     time?: string;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
     totalPrice?: number;
-    serviceName?: any;
+    serviceNam
+    e?: any;
+    isManual?: boolean;
 }
 
-import { Video } from 'lucide-react-native';
+import { Video, CheckCircle2, RotateCcw } from 'lucide-react-native';
 
-const BookingCard = memo(({ booking, onPress, onJoinSession, isMonk }: { booking: Booking; onPress: () => void, onJoinSession: () => void, isMonk: boolean }) => {
+const BookingCard = memo(({ booking, onPress, onJoinSession, onComplete, onReopen, isMonk }: { 
+    booking: Booking; 
+    onPress: () => void, 
+    onJoinSession: () => void,
+    onComplete: () => void,
+    onReopen: () => void,
+    isMonk: boolean 
+}) => {
     const { i18n } = useTranslation();
     const t_db = (data: any) => {
         if (!data) return '';
@@ -45,6 +54,8 @@ const BookingCard = memo(({ booking, onPress, onJoinSession, isMonk }: { booking
 
     const statusColor = statusColors[booking.status] || 'bg-stone-100 text-stone-700';
     const showJoinButton = booking.status === 'confirmed';
+    const showCompleteButton = isMonk && booking.status === 'confirmed';
+    const showReopenButton = isMonk && booking.status === 'completed';
 
     return (
         <Pressable
@@ -85,15 +96,37 @@ const BookingCard = memo(({ booking, onPress, onJoinSession, isMonk }: { booking
                             </Text>
                         </View>
 
-                        {showJoinButton && (
-                            <Pressable
-                                onPress={onJoinSession}
-                                className="bg-monk-primary px-3 py-1.5 rounded-full flex-row items-center"
-                            >
-                                <Video size={12} color="white" className="mr-1" />
-                                <Text className="text-white text-xs font-bold uppercase">Join</Text>
-                            </Pressable>
-                        )}
+                        <View className="flex-row gap-2">
+                            {showReopenButton && (
+                                <Pressable
+                                    onPress={onReopen}
+                                    className="bg-amber-100 px-3 py-1.5 rounded-full flex-row items-center"
+                                >
+                                    <RotateCcw size={12} color="#D97706" className="mr-1" />
+                                    <Text className="text-amber-700 text-xs font-bold uppercase">Re-open</Text>
+                                </Pressable>
+                            )}
+
+                            {showCompleteButton && (
+                                <Pressable
+                                    onPress={onComplete}
+                                    className="bg-stone-800 px-3 py-1.5 rounded-full flex-row items-center"
+                                >
+                                    <CheckCircle2 size={12} color="white" className="mr-1" />
+                                    <Text className="text-white text-xs font-bold uppercase">Done</Text>
+                                </Pressable>
+                            )}
+
+                            {showJoinButton && (
+                                <Pressable
+                                    onPress={onJoinSession}
+                                    className="bg-monk-primary px-3 py-1.5 rounded-full flex-row items-center"
+                                >
+                                    <Video size={12} color="white" className="mr-1" />
+                                    <Text className="text-white text-xs font-bold uppercase">Join</Text>
+                                </Pressable>
+                            )}
+                        </View>
                     </View>
                 </View>
             </View>
@@ -135,20 +168,26 @@ export default function MyBookingsScreen() {
         setRefreshing(false);
     }, [refetch]);
 
+    const handleUpdateStatus = async (id: string, status: string, isManual: boolean) => {
+        try {
+            await api.patch(`/bookings/${id}`, { status, isManual });
+            refetch();
+        } catch (e) {
+            console.error('Failed to update booking status', e);
+            Alert.alert('Error', 'Failed to update ritual status.');
+        }
+    };
+
     const filteredBookings = useCallback(() => {
         if (!bookings) return [];
         const now = new Date();
 
         switch (filter) {
             case 'upcoming':
-                // logic: Show in upcoming if it's confirmed or pending, regardless of date.
-                // It stays in upcoming until it's completed, cancelled, or rejected.
                 return bookings.filter(
                     (b) => (b.status === 'confirmed' || b.status === 'pending')
                 );
             case 'past':
-                // logic: Show in past if it's explicitly completed, rejected, or cancelled.
-                // Or if it's older than today and system hasn't updated it yet (though cleanup usually handles it).
                 return bookings.filter(
                     (b) => ['completed', 'cancelled', 'rejected'].includes(b.status)
                 );
@@ -166,6 +205,26 @@ export default function MyBookingsScreen() {
                 isMonk={isMonk}
                 onPress={() => { }}
                 onJoinSession={() => router.push(`/live-session/${item._id}`)}
+                onComplete={() => {
+                    Alert.alert(
+                        "Complete Ritual",
+                        "Are you sure you want to mark this session as completed?",
+                        [
+                            { text: "Cancel", style: "cancel" },
+                            { text: "Complete", onPress: () => handleUpdateStatus(item._id, 'completed', false) }
+                        ]
+                    );
+                }}
+                onReopen={() => {
+                    Alert.alert(
+                        "Re-open Session",
+                        "Do you want to re-open this session for further talk?",
+                        [
+                            { text: "Cancel", style: "cancel" },
+                            { text: "Re-open", onPress: () => handleUpdateStatus(item._id, 'confirmed', true) }
+                        ]
+                    );
+                }}
             />
         ),
         [router, isMonk]
