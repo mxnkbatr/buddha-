@@ -296,8 +296,8 @@ export default function DashboardPage() {
 
     // --- FORCE START LOGIC ---
     useEffect(() => {
-        // Automatically join room if an active call is detected and we aren't in one
-        if (!activeRoomToken && bookings.length > 0) {
+        // Automatically join room if an active call is detected and we aren't in one (CLIENTS ONLY)
+        if (!isMonk && !activeRoomToken && bookings.length > 0) {
             const activeBooking = bookings.find(b => b.callStatus === 'active' && b.status === 'confirmed');
             if (activeBooking) {
                 console.log("Force joining active call:", activeBooking._id);
@@ -548,7 +548,7 @@ export default function DashboardPage() {
     };
 
     // --- VIDEO CALL HANDLER (FIXED) ---
- 
+
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
