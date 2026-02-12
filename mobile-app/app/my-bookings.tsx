@@ -21,7 +21,7 @@ interface Booking {
     imageUrl?: string;
     date: string;
     time?: string;
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
     totalPrice?: number;
     serviceName?: any;
 }
@@ -40,6 +40,7 @@ const BookingCard = memo(({ booking, onPress, onJoinSession, isMonk }: { booking
         confirmed: 'bg-green-100 text-green-700',
         completed: 'bg-blue-100 text-blue-700',
         cancelled: 'bg-red-100 text-red-700',
+        rejected: 'bg-red-100 text-red-700',
     };
 
     const statusColor = statusColors[booking.status] || 'bg-stone-100 text-stone-700';
@@ -140,15 +141,19 @@ export default function MyBookingsScreen() {
 
         switch (filter) {
             case 'upcoming':
+                // logic: Show in upcoming if it's confirmed or pending, regardless of date.
+                // It stays in upcoming until it's completed, cancelled, or rejected.
                 return bookings.filter(
-                    (b) => new Date(b.date) >= now && b.status !== 'cancelled' && b.status !== 'completed'
+                    (b) => (b.status === 'confirmed' || b.status === 'pending')
                 );
             case 'past':
+                // logic: Show in past if it's explicitly completed, rejected, or cancelled.
+                // Or if it's older than today and system hasn't updated it yet (though cleanup usually handles it).
                 return bookings.filter(
-                    (b) => new Date(b.date) < now || b.status === 'completed'
+                    (b) => ['completed', 'cancelled', 'rejected'].includes(b.status)
                 );
             case 'cancelled':
-                return bookings.filter((b) => b.status === 'cancelled');
+                return bookings.filter((b) => b.status === 'cancelled' || b.status === 'rejected');
             default:
                 return bookings;
         }

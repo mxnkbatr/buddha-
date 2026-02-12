@@ -423,15 +423,21 @@ export default function DashboardPage() {
             }
             const dateOnly = b.date.includes('T') ? b.date.split('T')[0] : b.date;
             const bookingDate = new Date(`${dateOnly}T${timeStr}`);
-            const isCompleted = ['completed', 'cancelled', 'rejected'].includes(b.status);
-            const isPast = bookingDate < new Date(now.getTime() - 2 * 60 * 60 * 1000);
+            
+            // Logic: Keep in upcoming if status is confirmed or pending, UNLESS it's very old and system hasn't cleaned it.
+            // But primarily, if status is 'completed', 'cancelled', or 'rejected', it's history.
+            const isFinalized = ['completed', 'cancelled', 'rejected'].includes(b.status);
+            
+            // If it's confirmed, it stays in upcoming until it's completed.
+            // If it's pending, it stays in upcoming.
+            const shouldBeInUpcoming = !isFinalized && (b.status === 'confirmed' || b.status === 'pending');
 
             // Calculate stats
             if (['confirmed', 'completed'].includes(b.status)) {
                 accCount++;
             }
 
-            if (!isCompleted && !isPast) {
+            if (shouldBeInUpcoming) {
                 upcoming.push(b);
             } else {
                 history.push(b);
