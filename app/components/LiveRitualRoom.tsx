@@ -94,7 +94,7 @@ export default function LiveRitualRoom({ token, serverUrl, roomName, onLeave, is
       <div className="flex-1 flex overflow-hidden relative">
         <div className="flex-1 relative">
           <LiveKitRoom
-            video={true}
+            video={!isMonk}
             audio={true}
             token={token}
             serverUrl={serverUrl}
