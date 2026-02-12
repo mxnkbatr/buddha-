@@ -8,6 +8,7 @@ import { Image } from 'expo-image';
 import { Calendar, MapPin, Clock } from 'lucide-react-native';
 import api from '../lib/api';
 import { useTranslation } from 'react-i18next';
+import { useUserStore } from '../store/userStore';
 
 interface Booking {
     _id: string;
@@ -16,16 +17,18 @@ interface Booking {
     tourId?: string;
     monkName?: string;
     tourTitle?: string;
+    clientName?: string;
     imageUrl?: string;
     date: string;
     time?: string;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
     totalPrice?: number;
+    serviceName?: any;
 }
 
 import { Video } from 'lucide-react-native';
 
-const BookingCard = memo(({ booking, onPress, onJoinSession }: { booking: Booking; onPress: () => void, onJoinSession: () => void }) => {
+const BookingCard = memo(({ booking, onPress, onJoinSession, isMonk }: { booking: Booking; onPress: () => void, onJoinSession: () => void, isMonk: boolean }) => {
     const { i18n } = useTranslation();
     const t_db = (data: any) => {
         if (!data) return '';
@@ -40,7 +43,7 @@ const BookingCard = memo(({ booking, onPress, onJoinSession }: { booking: Bookin
     };
 
     const statusColor = statusColors[booking.status] || 'bg-stone-100 text-stone-700';
-    const showJoinButton = booking.status === 'confirmed' && booking.type === 'monk';
+    const showJoinButton = booking.status === 'confirmed';
 
     return (
         <Pressable
@@ -55,7 +58,7 @@ const BookingCard = memo(({ booking, onPress, onJoinSession }: { booking: Bookin
                 />
                 <View className="flex-1 p-4">
                     <Text className="text-lg font-semibold text-stone-800" numberOfLines={1}>
-                        {booking.type === 'monk' ? t_db(booking.monkName) : t_db(booking.tourTitle)}
+                        {isMonk ? booking.clientName : (booking.type === 'monk' ? t_db(booking.monkName || booking.serviceName) : t_db(booking.tourTitle))}
                     </Text>
                     <View className="flex-row items-center mt-1">
                         <Calendar size={14} color="#78716C" />
@@ -104,16 +107,25 @@ type FilterType = 'all' | 'upcoming' | 'past' | 'cancelled';
 export default function MyBookingsScreen() {
     const router = useRouter();
     const { isSignedIn } = useAuth();
+    const { user: dbUser } = useUserStore();
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<FilterType>('all');
 
+    const isMonk = dbUser?.role === 'monk';
+
     const { data: bookings, isLoading, refetch } = useQuery({
-        queryKey: ['bookings'],
+        queryKey: ['bookings', dbUser?._id, dbUser?.role],
         queryFn: async () => {
-            const res = await api.get('/bookings');
+            if (!dbUser?._id) return [];
+            
+            const params = isMonk 
+                ? `monkId=${dbUser._id}`
+                : `userId=${dbUser._id}`;
+                
+            const res = await api.get(`/bookings?${params}`);
             return res.data as Booking[];
         },
-        enabled: isSignedIn,
+        enabled: isSignedIn && !!dbUser?._id,
     });
 
     const onRefresh = useCallback(async () => {
@@ -129,7 +141,7 @@ export default function MyBookingsScreen() {
         switch (filter) {
             case 'upcoming':
                 return bookings.filter(
-                    (b) => new Date(b.date) >= now && b.status !== 'cancelled'
+                    (b) => new Date(b.date) >= now && b.status !== 'cancelled' && b.status !== 'completed'
                 );
             case 'past':
                 return bookings.filter(
@@ -146,11 +158,12 @@ export default function MyBookingsScreen() {
         ({ item }: { item: Booking }) => (
             <BookingCard
                 booking={item}
+                isMonk={isMonk}
                 onPress={() => { }}
                 onJoinSession={() => router.push(`/live-session/${item._id}`)}
             />
         ),
-        [router]
+        [router, isMonk]
     );
 
     const keyExtractor = useCallback((item: Booking) => item._id, []);
@@ -180,7 +193,7 @@ export default function MyBookingsScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-stone-50">
-            <Stack.Screen options={{ headerTitle: 'My Bookings' }} />
+            <Stack.Screen options={{ headerTitle: isMonk ? 'Ritual Schedule' : 'My Bookings' }} />
 
             {/* Filter Tabs */}
             <View className="flex-row px-4 py-4 gap-2 bg-stone-50">
@@ -216,7 +229,7 @@ export default function MyBookingsScreen() {
                         <Text className="text-stone-500 text-center">
                             {isLoading ? 'Loading bookings...' : 'No bookings found'}
                         </Text>
-                        {!isLoading && (
+                        {!isLoading && !isMonk && (
                             <Pressable
                                 onPress={() => router.push('/(tabs)/monks')}
                                 className="mt-4 bg-amber-600 rounded-xl py-3 px-6 active:bg-amber-700"

@@ -1,5 +1,5 @@
 
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import LiveSession from '../../src/components/LiveSession';
@@ -14,36 +14,57 @@ export default function LiveSessionScreen() {
     const [token, setToken] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const roomName = `room-${id}`;
+    const roomName = id as string;
     const serverUrl = process.env.EXPO_PUBLIC_LIVEKIT_URL;
 
     useEffect(() => {
         const fetchToken = async () => {
             if (!user || !id) return;
 
-            try {
-                // In a real app, you would fetch this from your backend securely
-                // for this implementation we use the Next.js API route we assumed exists
-                // or constructing it here if we had a direct token generator (not safe)
+            if (!serverUrl) {
+                console.error('EXPO_PUBLIC_LIVEKIT_URL is not defined');
+                setError('LiveKit server URL is not configured.');
+                return;
+            }
 
-                // We use the Next.js API: /api/livekit?room={room}&username={name}
-                const username = user.firstName || 'User';
-                const { data } = await api.get(`/livekit?room=${roomName}&username=${username}`);
-                setToken(data.token);
+            try {
+                // Fetch token from backend
+                const username = user.firstName || user.fullName || 'User';
+                const { data } = await api.get(`/livekit?room=${roomName}&username=${encodeURIComponent(username)}`);
+                
+                if (data.token) {
+                    setToken(data.token);
+                    
+                    // Optimistically try to mark call as active if monk
+                    // The backend will check permissions anyway
+                    api.patch(`/bookings/${id}`, { callStatus: 'active' }).catch(err => {
+                        console.log('Not authorized to start call or booking not found', err.message);
+                    });
+                } else {
+                    throw new Error('No token received');
+                }
             } catch (err) {
                 console.error('Failed to fetch token:', err);
-                setError('Failed to connect to session.');
+                setError('Failed to connect to session. Please check your internet.');
             }
         };
 
         fetchToken();
-    }, [id, user]);
+    }, [id, user, serverUrl]);
 
     if (error) {
         return (
             <ScreenWrapper className="justify-center items-center">
-                <Text className="text-red-500">{error}</Text>
-                <Text className="text-monk-secondary mt-4" onPress={() => router.back()}>Go Back</Text>
+                <View className="p-6 bg-white rounded-2xl shadow-sm border border-stone-100 items-center">
+                    <Text className="text-red-500 font-bold text-center mb-2">Connection Error</Text>
+                    <Text className="text-stone-600 text-center mb-6">{error}</Text>
+                    <Text 
+                        className="bg-monk-primary text-white px-8 py-3 rounded-full font-bold uppercase" 
+                        onPress={() => router.back()}
+                    >
+                        Go Back
+                    </Text>
+                </View>
             </ScreenWrapper>
         );
     }
@@ -52,7 +73,7 @@ export default function LiveSessionScreen() {
         return (
             <ScreenWrapper className="justify-center items-center bg-stone-900">
                 <ActivityIndicator size="large" color="#D97706" />
-                <Text className="text-stone-400 mt-4">Connecting to sanctuary...</Text>
+                <Text className="text-stone-400 mt-4 font-serif italic tracking-widest">Connecting to sanctuary...</Text>
             </ScreenWrapper>
         );
     }

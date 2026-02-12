@@ -462,6 +462,7 @@ export default function DashboardPage() {
 
     const checkRitualAvailability = (booking: Booking) => {
         if (booking.callStatus === 'active') return { isOpen: true, message: TEXT.roomOpen };
+        
         let timeStr = booking.time || "00:00";
         if (timeStr.includes(':')) {
             const [h, m] = timeStr.split(':').map(part => part.trim().padStart(2, '0'));
@@ -469,17 +470,19 @@ export default function DashboardPage() {
         }
         const bookingDateTime = new Date(`${booking.date}T${timeStr}`);
         const now = new Date();
+        
+        // Show "Enter" button up to 48 hours before start
         const openTime = new Date(bookingDateTime.getTime() - 48 * 60 * 60 * 1000);
-        const closeTime = new Date(bookingDateTime.getTime() + 30 * 60 * 1000);
+        
+        // If it's still 'confirmed' and we are past the open time, allow entry.
+        // This ensures that even if a monk is late, they can still enter.
+        // The backend/cleanup logic will eventually move it to 'completed'.
+        if (now >= openTime) return { isOpen: true, message: TEXT.roomOpen };
 
-        if (now >= openTime && now <= closeTime) return { isOpen: true, message: TEXT.roomOpen };
-        if (now < openTime) {
-            const diffMs = openTime.getTime() - now.getTime();
-            const diffHrs = Math.floor(diffMs / 3600000);
-            const diffMins = Math.floor((diffMs % 3600000) / 60000);
-            return { isOpen: false, message: `${TEXT.startsIn} ${diffHrs}h ${diffMins}m` };
-        }
-        return { isOpen: false, message: TEXT.roomClosed };
+        const diffMs = openTime.getTime() - now.getTime();
+        const diffHrs = Math.floor(diffMs / 3600000);
+        const diffMins = Math.floor((diffMs % 3600000) / 60000);
+        return { isOpen: false, message: `${TEXT.startsIn} ${diffHrs}h ${diffMins}m` };
     };
 
     const saveScheduleSettings = async () => {
