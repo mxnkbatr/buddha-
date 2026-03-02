@@ -2,6 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
+import { NavigationGuard } from '../../src/components/NavigationGuard';
 
 export default function AuthLayout() {
     const { isSignedIn, isLoaded } = useAuth();
@@ -28,3 +29,4 @@ export default function AuthLayout() {
         </Stack>
     );
 }
+

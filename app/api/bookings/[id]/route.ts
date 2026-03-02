@@ -9,7 +9,7 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
 
 // Helper to get authenticated user from Clerk or Custom JWT
-async function getAuthenticatedUser() {
+async function getAuthenticatedUser(request?: Request) {
   // 1. Try Clerk
   const clerkUser = await currentUser();
   if (clerkUser) {
@@ -21,9 +21,15 @@ async function getAuthenticatedUser() {
     };
   }
 
-  // 2. Try Custom JWT
+  // 2. Try Custom JWT (Cookie OR Bearer token for mobile)
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const cookieToken = cookieStore.get("auth_token")?.value;
+
+  // Also check Bearer token in header (for mobile apps)
+  const authHeader = request?.headers.get("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+  const token = cookieToken || bearerToken;
 
   if (token) {
     try {
@@ -60,7 +66,7 @@ export async function PATCH(
     const { id } = params;
     const { status, callStatus, isManual } = await req.json(); // status, callStatus, or isManual
 
-    const user = await getAuthenticatedUser();
+    const user = await getAuthenticatedUser(req);
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
@@ -160,7 +166,7 @@ export async function DELETE(request: Request, props: Props) {
       return NextResponse.json({ message: "Invalid Booking ID" }, { status: 400 });
     }
 
-    const user = await getAuthenticatedUser();
+    const user = await getAuthenticatedUser(request);
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

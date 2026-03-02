@@ -1,165 +1,83 @@
-import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator, Alert } from 'react-native';
-import { useState, useCallback, memo } from 'react';
+import { View, Text, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-expo';
-import { Image } from 'expo-image';
-import { Calendar, MapPin, Clock } from 'lucide-react-native';
+import { Calendar, Clock, ArrowLeft, CheckCircle2, XCircle, RotateCcw } from 'lucide-react-native';
 import api from '../lib/api';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '../store/userStore';
+import * as Haptics from 'expo-haptics';
+import { useIsAuthenticated } from '../hooks/useIsAuthenticated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useNavigationState } from '@react-navigation/native';
 
 interface Booking {
     _id: string;
-    type: 'monk' | 'tour';
     monkId?: string;
-    tourId?: string;
     monkName?: string;
-    tourTitle?: string;
     clientName?: string;
-    imageUrl?: string;
     date: string;
     time?: string;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'rejected';
-    totalPrice?: number;
-    serviceNam
-    e?: any;
-    isManual?: boolean;
+    serviceName?: any;
 }
 
-import { Video, CheckCircle2, RotateCcw } from 'lucide-react-native';
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
+    pending: { label: 'Pending', color: '#F59E0B', icon: Clock },
+    confirmed: { label: 'Confirmed', color: '#10B981', icon: CheckCircle2 },
+    completed: { label: 'Completed', color: '#6B7280', icon: CheckCircle2 },
+    cancelled: { label: 'Cancelled', color: '#EF4444', icon: XCircle },
+    rejected: { label: 'Rejected', color: '#EF4444', icon: XCircle },
+};
 
-const BookingCard = memo(({ booking, onPress, onJoinSession, onComplete, onReopen, isMonk }: { 
-    booking: Booking; 
-    onPress: () => void, 
-    onJoinSession: () => void,
-    onComplete: () => void,
-    onReopen: () => void,
-    isMonk: boolean 
-}) => {
+export default function MyBookingsScreen() {
+    try {
+        useNavigationState(state => state);
+    } catch {
+        return (
+            <View className="flex-1 bg-[#0F172A] items-center justify-center">
+                <ActivityIndicator size="large" color="#D4AF37" />
+            </View>
+        );
+    }
+
+    return <MyBookingsContent />;
+}
+
+function MyBookingsContent() {
+    const router = useRouter();
+    const { isSignedIn } = useAuth();
+    const isAuthenticated = useIsAuthenticated();
+    const { user: dbUser } = useUserStore();
+    const [refreshing, setRefreshing] = useState(false);
     const { i18n } = useTranslation();
+    const lang = i18n.language === 'mn' ? 'mn' : 'en';
+
     const t_db = (data: any) => {
         if (!data) return '';
         if (typeof data === 'string') return data;
-        return data[i18n.language] || data.en || data.mn || '';
-    };
-    const statusColors = {
-        pending: 'bg-yellow-100 text-yellow-700',
-        confirmed: 'bg-green-100 text-green-700',
-        completed: 'bg-blue-100 text-blue-700',
-        cancelled: 'bg-red-100 text-red-700',
-        rejected: 'bg-red-100 text-red-700',
+        return data[lang] || data.en || data.mn || '';
     };
 
-    const statusColor = statusColors[booking.status] || 'bg-stone-100 text-stone-700';
-    const showJoinButton = booking.status === 'confirmed';
-    const showCompleteButton = isMonk && booking.status === 'confirmed';
-    const showReopenButton = isMonk && booking.status === 'completed';
-
-    return (
-        <Pressable
-            onPress={onPress}
-            className="bg-white rounded-xl mb-3 mx-4 shadow-sm overflow-hidden active:bg-stone-50 border border-stone-100"
-        >
-            <View className="flex-row">
-                <Image
-                    source={{ uri: booking.imageUrl || 'https://via.placeholder.com/100' }}
-                    style={{ width: 100, height: 100 }}
-                    contentFit="cover"
-                />
-                <View className="flex-1 p-4">
-                    <Text className="text-lg font-semibold text-stone-800" numberOfLines={1}>
-                        {isMonk ? booking.clientName : (booking.type === 'monk' ? t_db(booking.monkName || booking.serviceName) : t_db(booking.tourTitle))}
-                    </Text>
-                    <View className="flex-row items-center mt-1">
-                        <Calendar size={14} color="#78716C" />
-                        <Text className="ml-1 text-monk-secondary text-sm">
-                            {new Date(booking.date).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                            })}
-                        </Text>
-                        {booking.time && (
-                            <>
-                                <Clock size={14} color="#78716C" className="ml-2" />
-                                <Text className="ml-1 text-monk-secondary text-sm">{booking.time}</Text>
-                            </>
-                        )}
-                    </View>
-
-                    <View className="flex-row items-center justify-between mt-3">
-                        <View className={`px-2 py-1 rounded-md ${statusColor.split(' ')[0]}`}>
-                            <Text className={`text-xs font-medium ${statusColor.split(' ')[1]}`}>
-                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                            </Text>
-                        </View>
-
-                        <View className="flex-row gap-2">
-                            {showReopenButton && (
-                                <Pressable
-                                    onPress={onReopen}
-                                    className="bg-amber-100 px-3 py-1.5 rounded-full flex-row items-center"
-                                >
-                                    <RotateCcw size={12} color="#D97706" className="mr-1" />
-                                    <Text className="text-amber-700 text-xs font-bold uppercase">Re-open</Text>
-                                </Pressable>
-                            )}
-
-                            {showCompleteButton && (
-                                <Pressable
-                                    onPress={onComplete}
-                                    className="bg-stone-800 px-3 py-1.5 rounded-full flex-row items-center"
-                                >
-                                    <CheckCircle2 size={12} color="white" className="mr-1" />
-                                    <Text className="text-white text-xs font-bold uppercase">Done</Text>
-                                </Pressable>
-                            )}
-
-                            {showJoinButton && (
-                                <Pressable
-                                    onPress={onJoinSession}
-                                    className="bg-monk-primary px-3 py-1.5 rounded-full flex-row items-center"
-                                >
-                                    <Video size={12} color="white" className="mr-1" />
-                                    <Text className="text-white text-xs font-bold uppercase">Join</Text>
-                                </Pressable>
-                            )}
-                        </View>
-                    </View>
-                </View>
-            </View>
-        </Pressable>
-    );
-});
-
-BookingCard.displayName = 'BookingCard';
-
-type FilterType = 'all' | 'upcoming' | 'past' | 'cancelled';
-
-export default function MyBookingsScreen() {
-    const router = useRouter();
-    const { isSignedIn } = useAuth();
-    const { user: dbUser } = useUserStore();
-    const [refreshing, setRefreshing] = useState(false);
-    const [filter, setFilter] = useState<FilterType>('all');
-
+    const userId = dbUser?._id?.toString() || dbUser?.clerkId;
     const isMonk = dbUser?.role === 'monk';
 
     const { data: bookings, isLoading, refetch } = useQuery({
-        queryKey: ['bookings', dbUser?._id, dbUser?.role],
+        queryKey: ['bookings', userId, isMonk],
         queryFn: async () => {
-            if (!dbUser?._id) return [];
-            
-            const params = isMonk 
-                ? `monkId=${dbUser._id}`
-                : `userId=${dbUser._id}`;
-                
-            const res = await api.get(`/bookings?${params}`);
-            return res.data as Booking[];
+            if (!userId) return [];
+            // Monks see bookings clients made WITH them; users see bookings they made
+            const param = isMonk ? `monkId=${userId}` : `userId=${userId}`;
+            const res = await api.get(`/bookings?${param}`);
+            const data = Array.isArray(res.data) ? res.data : (res.data?.bookings || []);
+            // Sort newest first
+            return data.sort((a: Booking, b: Booking) =>
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
         },
-        enabled: isSignedIn && !!dbUser?._id,
+        enabled: !!userId && isAuthenticated,
     });
 
     const onRefresh = useCallback(async () => {
@@ -168,147 +86,129 @@ export default function MyBookingsScreen() {
         setRefreshing(false);
     }, [refetch]);
 
-    const handleUpdateStatus = async (id: string, status: string, isManual: boolean) => {
-        try {
-            await api.patch(`/bookings/${id}`, { status, isManual });
-            refetch();
-        } catch (e) {
-            console.error('Failed to update booking status', e);
-            Alert.alert('Error', 'Failed to update ritual status.');
-        }
+    const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString(lang === 'mn' ? 'mn-MN' : 'en-US', {
+            weekday: 'short', month: 'short', day: 'numeric'
+        });
     };
 
-    const filteredBookings = useCallback(() => {
-        if (!bookings) return [];
-        const now = new Date();
-
-        switch (filter) {
-            case 'upcoming':
-                return bookings.filter(
-                    (b) => (b.status === 'confirmed' || b.status === 'pending')
-                );
-            case 'past':
-                return bookings.filter(
-                    (b) => ['completed', 'cancelled', 'rejected'].includes(b.status)
-                );
-            case 'cancelled':
-                return bookings.filter((b) => b.status === 'cancelled' || b.status === 'rejected');
-            default:
-                return bookings;
-        }
-    }, [bookings, filter]);
-
-    const renderItem = useCallback(
-        ({ item }: { item: Booking }) => (
-            <BookingCard
-                booking={item}
-                isMonk={isMonk}
-                onPress={() => { }}
-                onJoinSession={() => router.push(`/live-session/${item._id}`)}
-                onComplete={() => {
-                    Alert.alert(
-                        "Complete Ritual",
-                        "Are you sure you want to mark this session as completed?",
-                        [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Complete", onPress: () => handleUpdateStatus(item._id, 'completed', false) }
-                        ]
-                    );
-                }}
-                onReopen={() => {
-                    Alert.alert(
-                        "Re-open Session",
-                        "Do you want to re-open this session for further talk?",
-                        [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Re-open", onPress: () => handleUpdateStatus(item._id, 'confirmed', true) }
-                        ]
-                    );
-                }}
-            />
-        ),
-        [router, isMonk]
-    );
-
-    const keyExtractor = useCallback((item: Booking) => item._id, []);
-
-    if (!isSignedIn) {
+    if (!isAuthenticated) {
         return (
-            <SafeAreaView className="flex-1 bg-stone-50">
-                <Stack.Screen options={{ headerTitle: 'My Bookings' }} />
-                <View className="flex-1 items-center justify-center px-6">
-                    <Text className="text-2xl font-bold text-stone-800 mb-2">
-                        Sign In Required
+            <View className="flex-1 bg-[#0F172A]">
+                <Stack.Screen options={{ headerShown: false }} />
+                <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6">
+                    <Text className="text-white text-xl font-serif font-bold mb-4">
+                        {lang === 'mn' ? 'Нэвтрэх шаардлагатай' : 'Sign in required'}
                     </Text>
-                    <Text className="text-stone-600 text-center mb-6">
-                        Please sign in to view your bookings
-                    </Text>
-                    <Pressable
+                    <TouchableOpacity
                         onPress={() => router.push('/(auth)/sign-in')}
-                        className="bg-amber-600 rounded-xl py-4 px-8 active:bg-amber-700"
-                        style={{ minHeight: 52 }}
+                        className="bg-monk-primary rounded-full px-8 py-4"
                     >
-                        <Text className="text-white font-semibold text-lg">Sign In</Text>
-                    </Pressable>
-                </View>
-            </SafeAreaView>
+                        <Text className="text-[#0F172A] font-bold uppercase tracking-widest text-xs">
+                            {lang === 'mn' ? 'Нэвтрэх' : 'Sign In'}
+                        </Text>
+                    </TouchableOpacity>
+                </SafeAreaView>
+            </View>
         );
     }
 
-    return (
-        <SafeAreaView className="flex-1 bg-stone-50">
-            <Stack.Screen options={{ headerTitle: isMonk ? 'Ritual Schedule' : 'My Bookings' }} />
+    const renderBooking = ({ item, index }: { item: Booking; index: number }) => {
+        const config = STATUS_CONFIG[item.status] || STATUS_CONFIG.pending;
+        const StatusIcon = config.icon;
 
-            {/* Filter Tabs */}
-            <View className="flex-row px-4 py-4 gap-2 bg-stone-50">
-                {(['all', 'upcoming', 'past', 'cancelled'] as FilterType[]).map((tab) => (
-                    <Pressable
-                        key={tab}
-                        onPress={() => setFilter(tab)}
-                        className={`px-4 py-2 rounded-full ${filter === tab ? 'bg-amber-600' : 'bg-white'
-                            }`}
-                        style={{ minHeight: 36 }}
-                    >
-                        <Text
-                            className={`font-medium capitalize ${filter === tab ? 'text-white' : 'text-stone-700'
-                                }`}
-                        >
-                            {tab}
-                        </Text>
-                    </Pressable>
-                ))}
-            </View>
-
-            {/* Bookings List */}
-            <FlatList
-                data={filteredBookings()}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                contentContainerStyle={{ paddingVertical: 8 }}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-                ListEmptyComponent={
-                    <View className="flex-1 items-center justify-center py-20">
-                        <Text className="text-stone-500 text-center">
-                            {isLoading ? 'Loading bookings...' : 'No bookings found'}
-                        </Text>
-                        {!isLoading && !isMonk && (
-                            <Pressable
-                                onPress={() => router.push('/(tabs)/monks')}
-                                className="mt-4 bg-amber-600 rounded-xl py-3 px-6 active:bg-amber-700"
-                            >
-                                <Text className="text-white font-semibold">
-                                    Explore Monks & Tours
+        return (
+            <Animated.View entering={FadeInDown.delay(index * 80).duration(400)}>
+                <View className="bg-white/5 rounded-3xl p-5 mb-3 border border-white/10">
+                    <View className="flex-row items-center justify-between mb-3">
+                        <View className="flex-1">
+                            <Text className="text-white font-serif font-bold text-lg" numberOfLines={1}>
+                                {isMonk ? (item.clientName || 'Client') : (item.monkName || 'Booking')}
+                            </Text>
+                            {item.serviceName && (
+                                <Text className="text-slate-400 text-xs mt-0.5" numberOfLines={1}>
+                                    {t_db(item.serviceName)}
                                 </Text>
-                            </Pressable>
+                            )}
+                        </View>
+                        <View className="flex-row items-center px-3 py-1.5 rounded-full" style={{ backgroundColor: `${config.color}20` }}>
+                            <StatusIcon size={12} color={config.color} />
+                            <Text className="ml-1.5 text-xs font-bold" style={{ color: config.color }}>
+                                {config.label}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View className="flex-row items-center gap-4 opacity-70">
+                        <View className="flex-row items-center">
+                            <Calendar size={13} color="#D4AF37" />
+                            <Text className="text-slate-300 text-xs ml-1.5 font-bold">
+                                {formatDate(item.date)}
+                            </Text>
+                        </View>
+                        {item.time && (
+                            <View className="flex-row items-center">
+                                <Clock size={13} color="#D4AF37" />
+                                <Text className="text-slate-300 text-xs ml-1.5 font-bold">
+                                    {item.time}
+                                </Text>
+                            </View>
                         )}
                     </View>
-                }
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={10}
-                windowSize={5}
-            />
-        </SafeAreaView>
+                </View>
+            </Animated.View>
+        );
+    };
+
+    return (
+        <View className="flex-1 bg-[#0F172A]">
+            <Stack.Screen options={{ headerShown: false }} />
+            <SafeAreaView edges={['top']} className="flex-1">
+                {/* Header */}
+                <View className="flex-row items-center px-6 py-4">
+                    <TouchableOpacity
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            router.back();
+                        }}
+                        className="w-10 h-10 rounded-full bg-white/10 items-center justify-center mr-4"
+                    >
+                        <ArrowLeft size={20} color="#FFF" />
+                    </TouchableOpacity>
+                    <Text className="text-white text-2xl font-serif font-bold tracking-tight">
+                        {lang === 'mn' ? 'Миний захиалгууд' : 'My Bookings'}
+                    </Text>
+                </View>
+
+                {isLoading ? (
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator size="large" color="#D4AF37" />
+                    </View>
+                ) : !bookings || bookings.length === 0 ? (
+                    <View className="flex-1 items-center justify-center px-6">
+                        <RotateCcw size={48} color="#64748B" />
+                        <Text className="text-slate-400 text-center mt-6 text-base">
+                            {lang === 'mn' ? 'Захиалга байхгүй' : 'No bookings yet'}
+                        </Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={bookings}
+                        keyExtractor={(item) => item._id}
+                        renderItem={renderBooking}
+                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                tintColor="#D4AF37"
+                            />
+                        }
+                    />
+                )}
+            </SafeAreaView>
+        </View>
     );
 }

@@ -8,7 +8,12 @@ export default function OfflineBanner() {
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener((state) => {
-            setIsOffline(!state.isConnected);
+            const newIsOffline = !state.isConnected;
+            if (isOffline && !newIsOffline) {
+                // Connection restored, give haptic feedback
+                import('expo-haptics').then(Haptics => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
+            }
+            setIsOffline(newIsOffline);
         });
 
         return () => unsubscribe();
@@ -19,9 +24,9 @@ export default function OfflineBanner() {
     }
 
     return (
-        <View className="bg-yellow-500 px-4 py-2 flex-row items-center justify-center">
-            <WifiOff size={16} color="white" />
-            <Text className="text-white ml-2 font-medium text-sm">
+        <View className="bg-monk-primary/90 px-4 py-2 flex-row items-center justify-center border-b border-monk-primary">
+            <WifiOff size={16} color="#0F172A" />
+            <Text className="text-[#0F172A] ml-2 font-serif font-bold text-sm">
                 You're offline. Showing cached data.
             </Text>
         </View>

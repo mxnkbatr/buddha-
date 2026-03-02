@@ -11,39 +11,17 @@ const getBaseUrl = () => {
         return process.env.EXPO_PUBLIC_API_URL;
     }
 
-    // For Expo Go on physical device, use the debugger host IP
-    const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-
-    if (Platform.OS === 'android') {
-        // Physical device - use debugger host if available
-        if (debuggerHost && debuggerHost !== 'localhost') {
-            return `http://${debuggerHost}:3000/api`;
-        }
-        // Android Emulator
-        return 'http://10.0.2.2:3000/api';
-    }
-
-    if (Platform.OS === 'ios') {
-        // Physical iOS device - use debugger host
-        if (debuggerHost && debuggerHost !== 'localhost') {
-            return `http://${debuggerHost}:3000/api`;
-        }
-        // iOS Simulator
-        return 'http://localhost:3000/api';
-    }
-
-    // Web
-    return 'http://localhost:3000/api';
+    // Connect to the local network IP where the Next.js server is running
+    return 'http://192.168.1.42:3000/api';
 };
 
 export const API_URL = getBaseUrl();
 
-// Log API URL for debugging
 console.log('API Base URL:', API_URL);
 
 const api = axios.create({
     baseURL: API_URL,
-    timeout: 10000, // 10 second timeout
+    timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -75,10 +53,8 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (!error.response) {
-            // Network error - provide helpful debugging info
             console.error('Network Error:', error.message);
             console.error('Attempted URL:', API_URL);
-            console.error('Make sure Next.js server is running: cd ../buddha && npm run dev');
             error.message = `Cannot connect to server at ${API_URL}. Make sure the server is running.`;
         } else if (error.response.status === 401) {
             console.error('Unauthorized - token may be invalid');
@@ -87,21 +63,140 @@ api.interceptors.response.use(
     }
 );
 
-export const getMonks = async (): Promise<Monk[]> => {
-    const response = await api.get('/monks');
+// ==========================================
+// AUTH — Exact same as parent website
+// ==========================================
+
+// GET /api/auth/me — Get current authenticated user (same as parent dashboard)
+export const getAuthMe = async (): Promise<{ user: any }> => {
+    const response = await api.get('/auth/me');
     return response.data;
 };
 
-export const getServices = async (): Promise<Service[]> => {
-    const response = await api.get('/services');
+// POST /api/sync-user — Sync Clerk user to MongoDB (same as parent)
+export const syncUser = async (): Promise<{ success: boolean }> => {
+    const response = await api.post('/sync-user');
     return response.data;
 };
 
+// ==========================================
+// USERS — Exact same as parent website
+// ==========================================
+
+// GET /api/users/{id} — Get user by Clerk ID or MongoDB ID (same as parent dashboard)
+export const getUserById = async (id: string): Promise<any> => {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+};
+
+// GET /api/users/profile — Get current user profile
 export const getUserProfile = async (): Promise<User> => {
     const response = await api.get('/users/profile');
     return response.data;
 };
 
+// ==========================================
+// MONKS — Exact same as parent website
+// ==========================================
+
+// GET /api/monks — Get all monks (same as parent)
+export const getMonks = async (): Promise<Monk[]> => {
+    const response = await api.get('/monks');
+    return response.data;
+};
+
+// GET /api/monks/{id} — Get monk by ID (same as parent)
+export const getMonkById = async (id: string): Promise<Monk> => {
+    const response = await api.get(`/monks/${id}`);
+    return response.data;
+};
+
+// ==========================================
+// SERVICES — Exact same as parent website
+// ==========================================
+
+// GET /api/services
+export const getServices = async (): Promise<Service[]> => {
+    const response = await api.get('/services');
+    return response.data;
+};
+
+// GET /api/services/{id}
+export const getServiceById = async (id: string): Promise<Service> => {
+    const response = await api.get(`/services/${id}`);
+    return response.data;
+};
+
+// ==========================================
+// BOOKINGS — Exact same as parent website
+// ==========================================
+
+// GET /api/bookings?userId={id} — Same as parent dashboard
+export const getBookings = async (userId: string): Promise<Booking[]> => {
+    const response = await api.get(`/bookings?userId=${userId}`);
+    return response.data;
+};
+
+// POST /api/bookings — Create booking (same as parent)
+export const createBooking = async (bookingData: Partial<Booking>): Promise<{ success: boolean; id: string }> => {
+    const response = await api.post('/bookings', bookingData);
+    return response.data;
+};
+
+// PATCH /api/bookings/{id} — Update booking status (same as parent)
+export const cancelBooking = async (bookingId: string): Promise<{ success: boolean }> => {
+    const response = await api.patch(`/bookings/${bookingId}`, { status: 'cancelled' });
+    return response.data;
+};
+
+export const updateBookingStatus = async (bookingId: string, data: { status?: string; callStatus?: string; isManual?: boolean }): Promise<{ success: boolean }> => {
+    const response = await api.patch(`/bookings/${bookingId}`, data);
+    return response.data;
+};
+
+// DELETE /api/bookings/{id}
+export const deleteBooking = async (bookingId: string): Promise<void> => {
+    await api.delete(`/bookings/${bookingId}`);
+};
+
+// ==========================================
+// CHAT — Exact same as parent website
+// ==========================================
+
+export interface ChatMessage {
+    _id?: string;
+    bookingId: string;
+    senderId: string;
+    senderName: string;
+    text: string;
+    createdAt: string;
+}
+
+// GET /api/chat?bookingId={id}
+export const getChatMessages = async (bookingId: string): Promise<ChatMessage[]> => {
+    const response = await api.get(`/chat?bookingId=${bookingId}`);
+    return response.data;
+};
+
+// POST /api/chat
+export const sendChatMessage = async (bookingId: string, text: string, senderName?: string): Promise<ChatMessage> => {
+    const response = await api.post('/chat', { bookingId, text, senderName });
+    return response.data;
+};
+
+// ==========================================
+// LIVEKIT — Exact same as parent website
+// ==========================================
+
+// GET /api/livekit?room={room}&username={username}
+export const getLivekitToken = async (roomName: string, username: string): Promise<{ token: string }> => {
+    const response = await api.get(`/livekit?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(username)}`);
+    return response.data;
+};
+
+// ==========================================
+// BLOGS — Exact same as parent website
+// ==========================================
 
 export interface BlogPost {
     _id: string;
@@ -114,13 +209,37 @@ export interface BlogPost {
     authorName: string;
 }
 
+// GET /api/blogs
 export const getBlogs = async (): Promise<BlogPost[]> => {
     const response = await api.get('/blogs');
     return response.data;
 };
 
-export const createBooking = async (bookingData: Partial<Booking>): Promise<{ success: boolean; id: string }> => {
-    const response = await api.post('/bookings', bookingData);
+
+// ==========================================
+// COMMENTS — Exact same as parent website
+// ==========================================
+
+export interface Comment {
+    _id?: string;
+    targetId: string; // The ID of the blog post, service, or object being commented on
+    targetType?: string;
+    authorId?: string;
+    authorName: string;
+    text: string;
+    karma?: number;
+    createdAt?: string;
+}
+
+// GET /api/comments
+export const getComments = async (): Promise<Comment[]> => {
+    const response = await api.get('/comments');
+    return response.data;
+};
+
+// POST /api/comments
+export const postComment = async (commentData: Partial<Comment>): Promise<Comment> => {
+    const response = await api.post('/comments', commentData);
     return response.data;
 };
 

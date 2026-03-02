@@ -50,15 +50,6 @@ export default function RootLayout() {
                                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                                     <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                                     <Stack.Screen
-                                        name="tour/[id]"
-                                        options={{
-                                            headerShown: true,
-                                            headerTitle: '',
-                                            headerTransparent: true,
-                                            headerBackTitle: 'Back',
-                                        }}
-                                    />
-                                    <Stack.Screen
                                         name="monk/[id]"
                                         options={{
                                             headerShown: true,
@@ -68,6 +59,7 @@ export default function RootLayout() {
                                         }}
                                     />
                                 </Stack>
+                                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
                             </ThemeProvider>
                         </SafeAreaProvider>
                     </PersistQueryClientProvider>

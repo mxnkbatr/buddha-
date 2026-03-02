@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, ActivityIndicator, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/Colors';
 
 interface ButtonProps {
@@ -24,54 +25,70 @@ export function Button({
     className,
 }: ButtonProps) {
 
+    const handlePress = async () => {
+        if (!disabled && !isLoading) {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            onPress();
+        }
+    };
+
     const getVariantStyle = () => {
         switch (variant) {
             case 'primary':
-                return 'bg-monk-primary';
+                // Dark slate background with pure gold border for a premium, gilded minimalism look
+                return 'bg-monk-text dark:bg-earth-100 border-[0.5px] border-monk-primary shadow-sm';
             case 'secondary':
-                return 'bg-monk-secondary';
+                // Slate background with subtle border
+                return 'bg-earth-200 dark:bg-earth-800 border-[0.5px] border-earth-300 dark:border-earth-700';
             case 'outline':
-                return 'bg-transparent border border-monk-primary';
+                // Gold border, transparent bg
+                return 'bg-transparent border-[0.5px] border-monk-primary';
             case 'ghost':
                 return 'bg-transparent';
             default:
-                return 'bg-monk-primary';
+                return 'bg-monk-text dark:bg-earth-100 border-[0.5px] border-monk-primary shadow-sm';
         }
     };
 
     const getSizeStyle = () => {
         switch (size) {
             case 'sm':
-                return 'px-3 py-1.5';
+                return 'px-4 py-2';
             case 'md':
-                return 'px-4 py-2';
+                return 'px-5 py-3';
             case 'lg':
-                return 'px-6 py-3';
+                return 'px-8 py-4';
             default:
-                return 'px-4 py-2';
+                return 'px-5 py-3';
         }
     };
 
     const getTextStyle = () => {
         switch (variant) {
+            case 'primary':
+                // Pure gold text on dark slate
+                return 'text-monk-primary dark:text-monk-text tracking-wide';
             case 'outline':
-                return 'text-monk-primary';
             case 'ghost':
-                return 'text-monk-primary';
+                // Gold text
+                return 'text-monk-primary tracking-wide';
+            case 'secondary':
+                return 'text-monk-text dark:text-earth-100 tracking-wide';
             default:
-                return 'text-white';
+                return 'text-monk-primary dark:text-monk-text tracking-wide';
         }
     };
 
     return (
         <TouchableOpacity
-            onPress={onPress}
+            onPress={handlePress}
             disabled={disabled || isLoading}
-            className={`rounded-lg flex-row items-center justify-center ${getVariantStyle()} ${getSizeStyle()} ${disabled ? 'opacity-50' : ''
+            activeOpacity={0.8}
+            className={`rounded-xl flex-row items-center justify-center ${getVariantStyle()} ${getSizeStyle()} ${disabled ? 'opacity-50' : ''
                 } ${className}`}
         >
             {isLoading ? (
-                <ActivityIndicator color={variant === 'outline' || variant === 'ghost' ? Colors.monk.primary : 'white'} />
+                <ActivityIndicator color={variant === 'secondary' ? Colors.monk.text : Colors.monk.primary} />
             ) : (
                 <>
                     {icon && <View className="mr-2">{icon}</View>}

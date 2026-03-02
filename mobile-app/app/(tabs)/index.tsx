@@ -1,195 +1,389 @@
-import { ScrollView, View, Text, ImageBackground, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { ScrollView, View, Text, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { ScreenWrapper } from '@/components/ui/ScreenWrapper';
-import { Calendar, Quote, Sparkles } from 'lucide-react-native';
-import { useUserStore } from '../../store/userStore';
 import { useQuery } from '@tanstack/react-query';
 import { getMonks } from '../../lib/api';
 import { Image } from 'expo-image';
-import { Video } from 'lucide-react-native';
-import api from '../../lib/api';
-import { useAuth } from '@clerk/clerk-expo';
+import { ArrowRight, Sparkles, Users, Video, BookOpen, Quote, Star } from 'lucide-react-native';
+import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, SharedValue, Extrapolation } from 'react-native-reanimated';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const COMMENTS = [
+    {
+        name: 'Munkhbaatar D.',
+        role: 'Seeker',
+        text: 'Хүүхдүүд маань энэ сайтыг зааж өгөөд, багштай холбож өгсөн. Дүрс нь маш тод, дуу нь цэвэрхэн. Их буянтай ажил байна.',
+        avatar: 'https://i.pravatar.cc/150?u=1',
+    },
+    {
+        name: 'Sarnai B.',
+        role: 'Seeker',
+        text: 'Заавал хийд явж дугаарлахгүйгээр, гэрээсээ бүх үйлчилгээгээ аваад, төлбөрөө төлчихдөг нь цаг маш их хэмнэсэн.',
+        avatar: 'https://i.pravatar.cc/150?u=2',
+    },
+    {
+        name: 'Bold E.',
+        role: 'Seeker',
+        text: 'Үзмэрч маань маш тодорхой, ойлгомжтой тайлбарлаж өгсөн. Вэбсайт нь хэрэглэхэд маш хялбар юм байна.',
+        avatar: 'https://i.pravatar.cc/150?u=3',
+    },
+];
+
+function MonkParallaxCard({ monk, index, scrollX, lang, router }: { monk: any, index: number, scrollX: SharedValue<number>, lang: 'en' | 'mn', router: any }) {
+    const ITEM_WIDTH = SCREEN_WIDTH * 0.75;
+    const SPACING = 24;
+    const FULL_SIZE = ITEM_WIDTH + SPACING;
+
+    const animatedImageStyle = useAnimatedStyle(() => {
+        const inputRange = [
+            (index - 1) * FULL_SIZE,
+            index * FULL_SIZE,
+            (index + 1) * FULL_SIZE,
+        ];
+        const translateX = interpolate(
+            scrollX.value,
+            inputRange,
+            [-100, 0, 100],
+            Extrapolation.CLAMP
+        );
+        const scale = interpolate(
+            scrollX.value,
+            inputRange,
+            [1.2, 1, 1.2],
+            Extrapolation.CLAMP
+        );
+        return {
+            transform: [{ translateX }, { scale }],
+        };
+    });
+
+    const animatedContainerStyle = useAnimatedStyle(() => {
+        const inputRange = [
+            (index - 1) * FULL_SIZE,
+            index * FULL_SIZE,
+            (index + 1) * FULL_SIZE,
+        ];
+        const scale = interpolate(
+            scrollX.value,
+            inputRange,
+            [0.9, 1, 0.9],
+            Extrapolation.CLAMP
+        );
+        const opacity = interpolate(
+            scrollX.value,
+            inputRange,
+            [0.5, 1, 0.5],
+            Extrapolation.CLAMP
+        );
+        return {
+            transform: [{ scale }],
+            opacity,
+        };
+    });
+
+    return (
+        <Animated.View style={[{ width: ITEM_WIDTH }, animatedContainerStyle]}>
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => {
+                    import('expo-haptics').then(Haptics => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
+                    router.push(`/monk/${monk._id}`);
+                }}
+            >
+                <View className="rounded-[40px] overflow-hidden border border-white/10 bg-[#0F172A] shadow-2xl"
+                    style={{ height: 420, shadowColor: '#000', shadowRadius: 30, shadowOpacity: 0.5, shadowOffset: { width: 0, height: 20 }, elevation: 15 }}
+                >
+                    <View style={{ width: '100%', height: 300, overflow: 'hidden' }}>
+                        <Animated.View style={[{ width: '100%', height: '100%' }, animatedImageStyle]}>
+                            <Image
+                                source={{ uri: monk.image }}
+                                style={{ width: '130%', height: '100%', marginLeft: '-15%' }}
+                                contentFit="cover"
+                                transition={400}
+                            />
+                        </Animated.View>
+                        {/* Deep Dark Gradient Overlay */}
+                        <View className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent" />
+                    </View>
+
+                    <View className="absolute bottom-0 w-full p-6 bg-transparent">
+                        <View className="flex-row items-center mb-2">
+                            <Sparkles size={12} color="#D4AF37" />
+                            <Text numberOfLines={1} className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[4px] ml-2">
+                                {monk.title?.[lang] || monk.title?.en || 'Master'}
+                            </Text>
+                        </View>
+                        <Text numberOfLines={1} className="text-3xl font-serif text-white font-bold mb-1 tracking-tight">
+                            {monk.name?.[lang] || monk.name?.en}
+                        </Text>
+                        <Text numberOfLines={1} className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">
+                            {monk.specialties?.[0] || 'Meditation'}
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        </Animated.View>
+    );
+}
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { t, i18n } = useTranslation();
-    const { user } = useUserStore();
+    const { i18n } = useTranslation();
+    const lang = (i18n.language === 'mn' ? 'mn' : 'en') as 'mn' | 'en';
 
-    // Mock specific data for "Zen" vibe
-    const dailyMantra = "Peace comes from within. Do not seek it without.";
-    const dailyMantraAuthor = "Buddha";
+    const tr = (data: { mn: string; en: string }) => data[lang] || data.en;
 
     const { data: monks } = useQuery({
         queryKey: ['monks'],
         queryFn: getMonks,
     });
 
-    const { isSignedIn } = useAuth();
-    const { data: bookings } = useQuery({
-        queryKey: ['bookings'],
-        queryFn: async () => {
-            if (!isSignedIn) return [];
-            const res = await api.get('/bookings');
-            return res.data;
-        },
-        enabled: !!isSignedIn,
-    });
-
-    // Find active session (confirmed monk booking within 15 mins)
-    const activeSession = bookings?.find((b: any) => {
-        if (b.status !== 'confirmed' || b.type !== 'monk') return false;
-
-        // Check if time is within window (mocking 'now' overlap for simplicity or rigorous check)
-        // For this feature, we assume if it's confirmed and today, it's "Live" or "Upcoming"
-        // In real app, check specific time window (start_time - 15m <= now <= end_time)
-        const bookingDate = new Date(b.date);
-        const now = new Date();
-        const isSameDay = bookingDate.toDateString() === now.toDateString();
-        return isSameDay;
-    });
-
-    // Sort logic handled by backend usually, but for "Featured" we can take the first few
     const featuredMonks = monks?.slice(0, 5) || [];
-    const lang = (i18n.language === 'mn' ? 'mn' : 'en') as 'mn' | 'en';
+    const scrollX = useSharedValue(0);
+    const mainScrollY = useSharedValue(0);
+
+    const horizontalScrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollX.value = event.contentOffset.x;
+        },
+    });
+
+    const mainScrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            mainScrollY.value = event.contentOffset.y;
+        },
+    });
+
+    const heroAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                {
+                    translateY: interpolate(
+                        mainScrollY.value,
+                        [-100, 0, SCREEN_HEIGHT],
+                        [-50, 0, SCREEN_HEIGHT * 0.5],
+                        Extrapolation.CLAMP
+                    )
+                }
+            ],
+            opacity: interpolate(
+                mainScrollY.value,
+                [0, SCREEN_HEIGHT * 0.5],
+                [1, 0],
+                Extrapolation.CLAMP
+            )
+        };
+    });
+
+    const features = [
+        {
+            icon: <Users size={28} color="#D4AF37" />,
+            title: tr({ mn: 'Мэргэжлийн Багш нар', en: 'Expert Masters' }),
+            desc: tr({ mn: 'Олон жилийн туршлагатай, шашны гүн ухаанд мэргэшсэн багш нар.', en: 'Experienced masters specialized in spiritual philosophy.' }),
+        },
+        {
+            icon: <Video size={28} color="#D4AF37" />,
+            title: tr({ mn: 'Онлайн Засал', en: 'Live Rituals' }),
+            desc: tr({ mn: 'Гэрээсээ гаралгүйгээр засал номоо уншуулж, шууд холбогдох боломж.', en: 'Attend rituals and connect live from the comfort of your home.' }),
+        },
+        {
+            icon: <BookOpen size={28} color="#D4AF37" />,
+            title: tr({ mn: 'Өв Соёл', en: 'Ancient Wisdom' }),
+            desc: tr({ mn: 'Монголчуудын уламжлалт өв соёл, сургаалыг орчин үеийн хэлбэрээр.', en: 'Traditional Mongolian heritage and teachings in a modern format.' }),
+        },
+    ];
 
     return (
-        <ScreenWrapper>
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-                {/* Header Section */}
-                <View className="px-6 pt-8 pb-6 flex-row justify-between items-start">
-                    <View>
-                        <Text className="text-monk-text text-lg font-medium">Good Morning,</Text>
-                        <Text className="text-3xl font-serif text-monk-primary font-bold mt-1">
-                            {user?.firstName || 'Seeker'}
-                        </Text>
-                    </View>
-                    {user?.karma ? (
-                        <View className="bg-monk-accent/20 px-3 py-1 rounded-full flex-row items-center">
-                            <Sparkles size={14} color="#D97706" className="mr-1" />
-                            <Text className="text-monk-primary font-bold">{user.karma} Karma</Text>
-                        </View>
-                    ) : null}
-                </View>
-
-                {/* Live Now / One-Tap Join Card - High Priority */}
-                {activeSession && (
-                    <View className="px-4 mb-6">
-                        <TouchableOpacity
-                            onPress={() => router.push(`/live-session/${activeSession._id}`)}
-                            activeOpacity={0.9}
-                        >
-                            <Card className="bg-monk-deep-red border-monk-gold/30 p-0 overflow-hidden flex-row items-center">
-                                <View className="p-4 flex-1">
-                                    <View className="flex-row items-center mb-2">
-                                        <View className="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse" />
-                                        <Text className="text-white/90 font-bold uppercase text-xs tracking-wider">
-                                            {activeSession.status === 'confirmed' ? (i18n.language === 'mn' ? 'Уншлага эхэллээ' : 'Reading Started') : 'Live Now'}
-                                        </Text>
-                                    </View>
-                                    <Text className="text-monk-gold font-serif font-bold text-xl mb-1">
-                                        {activeSession.monkName?.mn || activeSession.monkName?.en || 'Monk Session'}
-                                    </Text>
-                                    <Text className="text-white/60 text-xs">
-                                        Tap to join video call immediately
-                                    </Text>
-                                </View>
-                                <View className="bg-monk-gold/10 h-full px-5 justify-center items-center border-l border-monk-gold/10">
-                                    <View className="bg-monk-gold w-10 h-10 rounded-full justify-center items-center shadow-lg shadow-black/20">
-                                        <Video size={20} color="#800000" fill="#800000" />
-                                    </View>
-                                </View>
-                            </Card>
-                        </TouchableOpacity>
-                    </View>
-                )}
-
-                {/* Daily Wisdom Card */}
-                <View className="px-4 mb-8">
-                    <Card className="bg-monk-surface/80 border-monk-secondary/20">
-                        <Quote size={24} color="#78716C" className="mb-4 opacity-50" />
-                        <Text className="text-xl font-serif text-monk-text italic leading-8 text-center">
-                            "{dailyMantra}"
-                        </Text>
-                        <Text className="text-right text-monk-secondary mt-4 font-medium">— {dailyMantraAuthor}</Text>
-                    </Card>
-                </View>
-
-                {/* Main Action: Book Ceremony */}
-                <View className="px-4 mb-8">
-                    <Card className="bg-monk-primary border-none p-0 overflow-hidden min-h-[200px] justify-end">
+        <View className="flex-1 bg-[#0F172A]">
+            <Animated.ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingBottom: 120 }}
+                showsVerticalScrollIndicator={false}
+                onScroll={mainScrollHandler}
+                scrollEventThrottle={16}
+            >
+                {/* ===== CINEMATIC HERO SECTION ===== */}
+                <View style={{ height: SCREEN_HEIGHT * 0.85, width: SCREEN_WIDTH, overflow: 'hidden' }}>
+                    <Animated.View style={[{ width: '100%', height: '100%' }, heroAnimatedStyle]}>
                         <ImageBackground
-                            source={{ uri: 'https://images.unsplash.com/photo-1600609842388-3e4b7c8d9e76?q=80&w=800&auto=format&fit=crop' }}
-                            className="absolute inset-0 opacity-40"
+                            source={{ uri: 'https://res.cloudinary.com/dxoxdiuwr/video/upload/q_60,f_webp,c_fill,w_1280,h_720,so_0/video_kakyvu.webp' }}
+                            className="w-full h-full"
                             resizeMode="cover"
-                        />
-                        <View className="p-6 bg-gradient-to-t from-monk-primary/90 to-transparent">
-                            <Text className="text-monk-accent text-lg font-medium mb-1">Begin Your Journey</Text>
-                            <Text className="text-white text-2xl font-serif font-bold mb-4">Book a Sacred Ceremony</Text>
-                            <Button
-                                title="View Rituals"
-                                variant="secondary"
-                                onPress={() => router.push('/rituals')}
-                                icon={<Calendar size={18} color="white" />}
-                            />
-                        </View>
-                    </Card>
-                </View>
-
-                {/* Featured Monks Section */}
-                <View className="px-6 mb-4 flex-row justify-between items-end">
-                    <View>
-                        <Text className="text-lg font-bold text-monk-text">Featured Monks</Text>
-                        <Text className="text-xs text-monk-secondary">Guided by wisdom</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => router.push('/monks')}>
-                        <Text className="text-monk-accent font-bold">View All</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 24, paddingRight: 24 }} className="gap-4">
-                    {featuredMonks.map((monk) => (
-                        <TouchableOpacity
-                            key={monk._id?.toString()}
-                            activeOpacity={0.8}
-                            onPress={() => router.push(`/monk/${monk._id}`)}
                         >
-                            <Card className="w-[140px] h-[190px] p-0 overflow-hidden border-stone-100 bg-white">
-                                <Image
-                                    source={{ uri: monk.image }}
-                                    style={{ width: '100%', height: 120 }}
-                                    contentFit="cover"
-                                />
-                                <View className="p-2">
-                                    <Text numberOfLines={1} className="text-[10px] font-bold text-monk-accent uppercase tracking-wider mb-0.5">
-                                        {monk.title[lang] || monk.title.en}
-                                    </Text>
-                                    <Text numberOfLines={1} className="text-sm font-serif font-bold text-monk-primary">
-                                        {monk.name[lang] || monk.name.en}
-                                    </Text>
-                                    <Text numberOfLines={1} className="text-[10px] text-monk-secondary mt-1">
-                                        {monk.specialties?.[0] || 'Meditation'}
-                                    </Text>
-                                </View>
-                            </Card>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                            {/* Deep Cinematic Gradients */}
+                            <View className="absolute inset-0 bg-black/50" />
+                            <View className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-black/40" />
+                        </ImageBackground>
+                    </Animated.View>
 
-                {/* Recent or Recommendations (Placeholder) */}
-                <View className="px-6 mt-8">
-                    <Text className="text-lg font-bold text-monk-text mb-4">Suggested for You</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-4">
-                        {[1, 2, 3].map((i) => (
-                            <Card key={i} className="w-[160px] h-[120px] justify-center items-center bg-white">
-                                <Text className="text-monk-secondary">Ritual {i}</Text>
-                            </Card>
-                        ))}
-                    </ScrollView>
+                    {/* Content (Absolute to overlay the parallaxing background) */}
+                    <View className="absolute inset-0 flex-1 justify-end pb-32 px-6">
+                        {/* Tagline Badge */}
+                        <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()}>
+                            <View className="self-start px-6 py-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl mb-8">
+                                <Text className="text-[10px] font-bold tracking-[6px] uppercase text-[#D4AF37]">
+                                    Gevabal Sanctuary
+                                </Text>
+                            </View>
+                        </Animated.View>
+
+                        {/* Main Title */}
+                        <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()}>
+                            <Text className="text-[56px] font-serif text-white leading-[64px] mb-2 font-bold tracking-tight">
+                                {tr({ mn: 'Бид таны', en: 'Find your' })}
+                            </Text>
+                            <Text className="text-[56px] font-serif text-[#D4AF37] leading-[64px] mb-6 font-bold tracking-tight" style={{ textShadowColor: 'rgba(212, 175, 55, 0.4)', textShadowRadius: 20 }}>
+                                {tr({ mn: 'асуудлын шийдлийг олоход тань тусална.', en: 'inner peace.' })}
+                            </Text>
+                        </Animated.View>
+
+                        {/* CTA Button */}
+                        <Animated.View entering={FadeInUp.delay(600).duration(1000).springify()}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    import('expo-haptics').then(Haptics => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
+                                    router.push('/(tabs)/monks');
+                                }}
+                                activeOpacity={0.9}
+                                className="flex-row items-center justify-between bg-white/10 p-2 pl-8 rounded-full border border-white/20 backdrop-blur-xl mt-6 max-w-[280px]"
+                            >
+                                <Text className="text-white font-bold text-xs uppercase tracking-[3px]">
+                                    {tr({ mn: 'Цаг захиалах', en: 'Begin Journey' })}
+                                </Text>
+                                <View className="w-12 h-12 bg-[#D4AF37] rounded-full items-center justify-center">
+                                    <ArrowRight size={20} color="#0F172A" />
+                                </View>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    </View>
                 </View>
-            </ScrollView>
-        </ScreenWrapper>
+
+                {/* ===== FEATURED MONKS SECTION (PARALLAX HORIZONTAL) ===== */}
+                <View className="py-20 bg-[#0F172A]">
+                    {/* Header */}
+                    <View className="items-center mb-16 px-6">
+                        <View className="flex-row items-center gap-4 mb-6">
+                            <View className="h-[1px] w-12 bg-[#D4AF37]/50" />
+                            <Text className="text-xs font-bold tracking-[6px] uppercase text-[#D4AF37]">
+                                {tr({ mn: 'Мэргэн Ухаан', en: 'Divine Masters' })}
+                            </Text>
+                            <View className="h-[1px] w-12 bg-[#D4AF37]/50" />
+                        </View>
+                        <Text className="text-[40px] font-serif text-white text-center font-bold tracking-tight leading-[48px]">
+                            {tr({ mn: 'Үзмэрч', en: 'The Mentors' })}
+                        </Text>
+                    </View>
+
+                    {/* Monks Horizontal Parallax Scroll */}
+                    <Animated.ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingHorizontal: (SCREEN_WIDTH - (SCREEN_WIDTH * 0.75)) / 2, paddingVertical: 20, gap: 24 }}
+                        onScroll={horizontalScrollHandler}
+                        scrollEventThrottle={16}
+                        snapToInterval={(SCREEN_WIDTH * 0.75) + 24} // ITEM_WIDTH + SPACING
+                        decelerationRate="fast"
+                    >
+                        {featuredMonks.map((monk: any, index: number) => (
+                            <MonkParallaxCard
+                                key={monk._id?.toString() || index}
+                                monk={monk}
+                                index={index}
+                                scrollX={scrollX}
+                                lang={lang}
+                                router={router}
+                            />
+                        ))}
+                    </Animated.ScrollView>
+
+                    {/* View All */}
+                    <View className="items-center mt-16">
+                        <TouchableOpacity
+                            onPress={() => {
+                                import('expo-haptics').then(Haptics => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
+                                router.push('/(tabs)/monks');
+                            }}
+                            activeOpacity={0.8}
+                            className="flex-row items-center justify-center pb-2 border-b border-[#D4AF37]/30"
+                        >
+                            <Text className="text-[#D4AF37] font-bold text-xs uppercase tracking-[4px] mr-3">
+                                {tr({ mn: 'Илүү үзэх', en: 'Explore The Order' })}
+                            </Text>
+                            <ArrowRight size={16} color="#D4AF37" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* ===== PHILOSOPHY / VALUES SECTION ===== */}
+                <View className="py-24 px-6 bg-[#0F172A]">
+                    <View className="mb-16">
+                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-slate-500 mb-6 font-serif">
+                            01 / {tr({ mn: 'ФИЛОСОФИ', en: 'Philosophy' })}
+                        </Text>
+                        <Text className="text-[40px] font-serif text-white font-bold tracking-tight leading-[48px]">
+                            {tr({ mn: 'Бидний Үнэт Зүйл', en: 'Our Sacred Vault' })}
+                        </Text>
+                    </View>
+
+                    {/* Feature Cards */}
+                    <View className="gap-8 mb-16">
+                        {features.map((f, i) => (
+                            <View key={i} className="bg-white/5 p-8 rounded-[32px] border border-white/10 shadow-2xl relative overflow-hidden" style={{ elevation: 5 }}>
+                                {/* Decorative Glow */}
+                                <View className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-[40px] -mr-8 -mt-8" />
+
+                                <View className="w-16 h-16 rounded-2xl bg-white/10 items-center justify-center mb-8 border border-white/10 backdrop-blur-md">
+                                    {f.icon}
+                                </View>
+                                <Text className="text-2xl font-serif text-white mb-4 font-bold">{f.title}</Text>
+                                <Text className="text-slate-400 leading-8 text-[15px]">{f.desc}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+
+                {/* ===== TESTIMONIALS SECTION ===== */}
+                <View className="py-24 px-6 bg-[#0F172A] border-t border-white/5">
+                    <View className="mb-16">
+                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-slate-500 mb-6 font-serif">
+                            02 / {tr({ mn: 'Сэтгэгдэл', en: 'Voices' })}
+                        </Text>
+                        <Text className="text-[40px] font-serif text-white font-bold tracking-tight leading-[48px]">
+                            {tr({ mn: 'Үйлчлүүлэгчдийн үг', en: 'Echoes of Peace' })}
+                        </Text>
+                    </View>
+
+                    <View className="gap-8">
+                        {COMMENTS.map((c, i) => (
+                            <View key={i} className="bg-white/5 p-8 rounded-[32px] border border-white/10 shadow-xl" style={{ shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 }}>
+                                <View className="flex-row mb-8">
+                                    <Quote size={32} color="#D4AF37" style={{ opacity: 0.3 }} />
+                                </View>
+                                <Text className="text-slate-300 italic leading-9 text-lg opacity-90 font-serif mb-10">"{c.text}"</Text>
+
+                                <View className="flex-row items-center border-t border-white/5 pt-6">
+                                    <Image
+                                        source={{ uri: c.avatar }}
+                                        style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#D4AF37' }}
+                                        contentFit="cover"
+                                    />
+                                    <View className="ml-4 flex-1">
+                                        <Text className="font-serif font-bold text-white tracking-wide">{c.name}</Text>
+                                        <Text className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[2px]">{c.role}</Text>
+                                    </View>
+                                    <View className="flex-row gap-0.5 opacity-80">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <Star key={star} size={14} color="#D4AF37" fill="#D4AF37" />
+                                        ))}
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            </Animated.ScrollView>
+        </View>
     );
 }

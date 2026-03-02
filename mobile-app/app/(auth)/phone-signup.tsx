@@ -53,7 +53,7 @@ export default function PhoneSignupScreen() {
 
         try {
             const formattedPhone = `+976${phone}`;
-            await signup(formattedPhone, password, email || undefined);
+            await signup(formattedPhone, password, { email: email || undefined });
             await fetchProfile();
             router.replace('/(tabs)');
         } catch (err: any) {

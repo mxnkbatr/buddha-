@@ -25,12 +25,16 @@ export const authApi = {
     signup: async (
         phoneNumber: string,
         password: string,
-        email?: string
+        extra?: { email?: string; firstName?: string; lastName?: string; dateOfBirth?: string; zodiacYear?: string }
     ): Promise<SignupResponse> => {
         const response = await api.post('/auth/client-signup', {
             phoneNumber,
             password,
-            email,
+            email: extra?.email,
+            firstName: extra?.firstName,
+            lastName: extra?.lastName,
+            dateOfBirth: extra?.dateOfBirth,
+            zodiacYear: extra?.zodiacYear,
         });
         return response.data;
     },

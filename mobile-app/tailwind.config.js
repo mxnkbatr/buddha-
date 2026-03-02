@@ -12,18 +12,20 @@ module.exports = {
             serif: ['System'], // Recommend replacing with Playfair Display if available
         },
         colors: {
-            // Monastic/Zen Palette (Synced with Web App)
+            // Gilded Minimalism Palette
             monk: {
-                primary: '#D97706', // Amber 600 - Warm spiritual gold
-                secondary: '#78716C', // Stone 500 - Earthy balance
-                accent: '#D97706', // Amber 600 - Unifying accent
-                bg: '#FAFAF9', // Stone 50 - Warm white/paper
-                text: '#292524', // Stone 800 - Soft Black
-                surface: '#FFFFFF', // White for cards
-                glass: 'rgba(255, 255, 255, 0.8)', // Glassmorphism base
-                'surface-highlight': '#F5F5F4', // Stone 100 for active states
-                'deep-red': '#800000', // Deep Red/Maroon for Live stream background
-                gold: '#FFD700', // Golden Yellow for accents/buttons
+                primary: '#D4AF37', // Metallic Gold - Primary Accent
+                secondary: '#1E293B', // Slate 800 - Secondary
+                accent: '#E6C762', // Light Gold - Highlights
+                bg: '#FDFBF7', // Cream 50 - Warm white background
+                text: '#0F172A', // Slate 900 - Soft Black Base Text
+                surface: '#F3EFE6', // Cream 100 for Cards
+                glass: 'rgba(253, 251, 247, 0.8)', // Cream Glassmorphism
+                'surface-highlight': '#E6E0D1', // Active states/borders
+                'deep-red': '#7F1D1D', // Deep Red for Live stream
+                gold: '#D4AF37', // Core Gold
+                'dark-surface': '#1E293B', // Slate 800
+                'dark-bg': '#0F172A', // Slate 900
             },
             earth: {
                 100: '#F5F5F4', // Stone 100

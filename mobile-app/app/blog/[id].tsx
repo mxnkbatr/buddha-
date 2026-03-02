@@ -1,6 +1,6 @@
 
 import { View, Text, ScrollView, useWindowDimensions, ActivityIndicator } from 'react-native';
-import { ScreenWrapper } from '../../src/components/ui';
+import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
 import { useQuery } from '@tanstack/react-query';
 import { getBlogs } from '../../lib/api';
 import { Image } from 'expo-image';

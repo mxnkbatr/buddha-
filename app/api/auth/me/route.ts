@@ -7,15 +7,21 @@ import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // 1. Check Custom Cookie first
     const cookieStore = await cookies();
     const token = cookieStore.get("auth_token")?.value;
 
-    if (token) {
+    // Also check for Bearer token in header (for mobile apps)
+    const authHeader = request.headers.get("Authorization");
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+    const effectiveToken = token || bearerToken;
+
+    if (effectiveToken) {
       try {
-        const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+        const { payload } = await jwtVerify(effectiveToken, new TextEncoder().encode(JWT_SECRET));
         const userId = payload.sub as string;
 
         const { db } = await connectToDatabase();
@@ -25,15 +31,14 @@ export async function GET() {
           return NextResponse.json({
             user: {
               ...user,
-              id: user._id, // normalizing ID
+              id: user._id,
               isAuthenticated: true,
               authType: 'custom'
             }
           });
         }
       } catch (e) {
-        console.error("Invalid Token", e);
-        // Token invalid, continue to Clerk check
+        console.log("Custom token verification failed, checking Clerk...");
       }
     }
 

@@ -14,7 +14,7 @@ interface AuthState {
     isLoading: boolean;
     error: string | null;
     login: (phone: string, password: string) => Promise<void>;
-    signup: (phone: string, password: string, email?: string) => Promise<void>;
+    signup: (phone: string, password: string, extra?: { email?: string; firstName?: string; lastName?: string; dateOfBirth?: string; zodiacYear?: string }) => Promise<void>;
     logout: () => Promise<void>;
     setCustomAuth: (token: string, user: User) => Promise<void>;
     clearCustomAuth: () => Promise<void>;
@@ -57,13 +57,17 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            signup: async (phone: string, password: string, email?: string) => {
+            signup: async (phone: string, password: string, extra?: { email?: string; firstName?: string; lastName?: string; dateOfBirth?: string; zodiacYear?: string }) => {
                 set({ isLoading: true, error: null });
                 try {
                     const response = await api.post('/auth/client-signup', {
                         phoneNumber: phone,
                         password,
-                        email,
+                        email: extra?.email,
+                        firstName: extra?.firstName,
+                        lastName: extra?.lastName,
+                        dateOfBirth: extra?.dateOfBirth,
+                        zodiacYear: extra?.zodiacYear,
                     });
 
                     if (response.data.userId) {

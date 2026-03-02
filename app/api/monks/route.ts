@@ -12,6 +12,8 @@ const getMonksHandler = asyncHandler(async (request: Request) => {
   const url = new URL(request.url);
   const cacheKey = `monks:list:${url.searchParams.toString()}`;
 
+  let cacheStatus = 'MISS';
+
   // Use cache with 15-minute TTL
   const monks = await withCache(
     cacheKey,
@@ -19,19 +21,37 @@ const getMonksHandler = asyncHandler(async (request: Request) => {
       const { db } = await connectToDatabase();
 
       // Fetch from 'users' collection where role is 'monk'
-      // Projection: Select only necessary fields for the list view to reduce payload size
+      // Use projection to fetch ONLY needed fields for the list view
+      // This significantly reduces the size of the initial response
       const monksData = await db.collection("users").find(
-        { role: "monk" },
+        {
+          role: "monk",
+          $or: [
+            { "name.en": { $exists: true, $ne: "" } },
+            { "name.mn": { $exists: true, $ne: "" } },
+          ],
+        },
         {
           projection: {
-            _id: 1,
+            clerkId: 1,
             name: 1,
             title: 1,
             image: 1,
-            specialties: 1,
+            imageUrl: 1,
+            isAvailable: 1,
             isSpecial: 1,
-            yearsOfExperience: 1,
-            bio: 1
+            specialties: 1,
+            role: 1,
+            phone: 1,
+            email: 1,
+            avatar: 1,
+            firstName: 1,
+            lastName: 1,
+            karma: 1,
+            totalMerits: 1,
+            earnings: 1,
+            // bio: 0, // Exclude large bio from list if possible, or keep if small
+            // schedule: 0, // Exclude full schedule from list
           }
         }
       ).toArray() as unknown as Monk[];
@@ -57,6 +77,9 @@ const getMonksHandler = asyncHandler(async (request: Request) => {
     900 // 15 minutes cache
   );
 
+  // Determine if it was a hit (this is a bit tricky with withCache wrapper but works for headers)
+  // In a real app we might pass the status back from withCache
+  
   // Return with cache headers for CDN/browser caching
   return new NextResponse(JSON.stringify(monks), {
     status: 200,

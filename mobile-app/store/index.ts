@@ -51,30 +51,19 @@ export const useBookingStore = create<BookingState>((set) => ({
 
 interface FavoritesState {
     favoriteMonks: string[];
-    favoriteTours: string[];
     toggleMonkFavorite: (id: string) => void;
-    toggleTourFavorite: (id: string) => void;
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
     persist(
         (set, get) => ({
             favoriteMonks: [],
-            favoriteTours: [],
             toggleMonkFavorite: (id) => {
                 const { favoriteMonks } = get();
                 if (favoriteMonks.includes(id)) {
                     set({ favoriteMonks: favoriteMonks.filter((m) => m !== id) });
                 } else {
                     set({ favoriteMonks: [...favoriteMonks, id] });
-                }
-            },
-            toggleTourFavorite: (id) => {
-                const { favoriteTours } = get();
-                if (favoriteTours.includes(id)) {
-                    set({ favoriteTours: favoriteTours.filter((t) => t !== id) });
-                } else {
-                    set({ favoriteTours: [...favoriteTours, id] });
                 }
             },
         }),

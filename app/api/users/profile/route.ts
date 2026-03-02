@@ -94,9 +94,15 @@ export async function PUT(request: Request) {
         const cookieStore = await cookies();
         const token = cookieStore.get("auth_token")?.value;
 
-        if (token) {
+        // Also check for Bearer token in header (for mobile apps)
+        const authHeader = request.headers.get("Authorization");
+        const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+        const effectiveToken = token || bearerToken;
+
+        if (effectiveToken) {
             try {
-                const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+                const { payload } = await jwtVerify(effectiveToken, new TextEncoder().encode(JWT_SECRET));
                 userId = payload.sub as string;
                 authType = 'custom';
             } catch (e) {

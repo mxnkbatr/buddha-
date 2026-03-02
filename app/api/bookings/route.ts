@@ -71,30 +71,30 @@ export async function GET(request: Request) {
     // --- OPTIMIZED LAZY CLEANUP LOGIC ---
     // Only fetch bookings that actually NEED cleanup (Confirmed + Past Time)
     // Run this check independent of the user's view query
-    
+
     // We only check for cleanup occasionally or efficiently. 
     // Let's check only "confirmed" bookings for the related user/monk to scope it down
     // or better, verify if we can do this efficiently.
-    
+
     // For now, to prevent O(N) scan on every read:
     // 1. We skip cleanup on general reads unless specifically requested or random chance (10%)
     // 2. Or we trust the loop is fast if N is small.
     // 3. BEST: Fetch expired confirmed bookings explicitly.
-    
+
     // Auto-complete bookings that are more than 30 minutes past their start time
     const nowTimestamp = new Date();
-    
+
     // Only run cleanup if we are filtering by a specific monk or user (contextual cleanup)
     if (monkId || userId || userEmail) {
-       const cleanupQuery = {
-          status: 'confirmed',
-          $or: [
-             { monkId: monkId },
-             { userId: { $in: query.$or?.[0]?.userId?.$in || [] } },
-             { clientId: { $in: query.$or?.[1]?.clientId?.$in || [] } }
-          ]
-       };
-       // Cleanup logic below... (Refactored to be safe)
+      const cleanupQuery = {
+        status: 'confirmed',
+        $or: [
+          { monkId: monkId },
+          { userId: { $in: query.$or?.[0]?.userId?.$in || [] } },
+          { clientId: { $in: query.$or?.[1]?.clientId?.$in || [] } }
+        ]
+      };
+      // Cleanup logic below... (Refactored to be safe)
     }
 
     const bookings = await db.collection("bookings")
@@ -119,28 +119,28 @@ export async function GET(request: Request) {
 
       // SKIP CLEANUP if the booking is marked as manual (re-opened)
       if (nowTimestamp > expiryTime && !b.isManual) {
-         // Perform update
-         try {
-             const mId = b.monkId;
-             if (mId) {
-                const monkQ = ObjectId.isValid(mId) ? { _id: new ObjectId(mId) } : { _id: mId };
-                const monk = await db.collection("users").findOne(monkQ);
-                if (monk) {
-                   const isSpecial = monk.isSpecial === true;
-                   const earnings = isSpecial ? 88800 : 40000;
-                   await db.collection("users").updateOne(monkQ, { $inc: { earnings: earnings } });
-                   if (!isSpecial) {
-                      await db.collection("users").updateMany({ role: "monk", isSpecial: true }, { $inc: { earnings: 10000 } });
-                   }
-                }
-             }
-             await db.collection("messages").deleteMany({ bookingId: b._id.toString() });
-             await db.collection("bookings").updateOne({ _id: b._id }, { $set: { status: 'completed', updatedAt: new Date() } });
-             b.status = 'completed'; // Update in memory
-         } catch (err) { console.error("Cleanup error", err); }
+        // Perform update
+        try {
+          const mId = b.monkId;
+          if (mId) {
+            const monkQ = ObjectId.isValid(mId) ? { _id: new ObjectId(mId) } : { _id: mId };
+            const monk = await db.collection("users").findOne(monkQ);
+            if (monk) {
+              const isSpecial = monk.isSpecial === true;
+              const earnings = isSpecial ? 88800 : 40000;
+              await db.collection("users").updateOne(monkQ, { $inc: { earnings: earnings } });
+              if (!isSpecial) {
+                await db.collection("users").updateMany({ role: "monk", isSpecial: true }, { $inc: { earnings: 10000 } });
+              }
+            }
+          }
+          await db.collection("messages").deleteMany({ bookingId: b._id.toString() });
+          await db.collection("bookings").updateOne({ _id: b._id }, { $set: { status: 'completed', updatedAt: new Date() } });
+          b.status = 'completed'; // Update in memory
+        } catch (err) { console.error("Cleanup error", err); }
       }
     }
-    
+
     if (monkId && searchParams.get("date")) {
       return NextResponse.json(bookings.filter(b => b.status !== 'rejected' && b.status !== 'cancelled').map(b => b.time));
     }
@@ -160,10 +160,17 @@ export async function POST(request: Request) {
     const { userId: clerkUserId } = await auth();
     authenticatedUserId = clerkUserId;
 
-    // Check Custom if no Clerk
+    // Check Custom if no Clerk (Cookie OR Bearer token for mobile)
     if (!authenticatedUserId) {
       const cookieStore = await cookies();
-      const token = cookieStore.get("auth_token")?.value;
+      const cookieToken = cookieStore.get("auth_token")?.value;
+
+      // Also check for Bearer token in header (for mobile apps)
+      const authHeader = request.headers.get("Authorization");
+      const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+      const token = cookieToken || bearerToken;
+
       if (token) {
         try {
           const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));

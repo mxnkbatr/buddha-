@@ -1,10 +1,10 @@
-import { ObjectId } from "mongodb";
+
 
 // Copied from database/types.ts to ensure consistency because we cannot import directly from outside root
 // In a monorepo we would use a shared package, but for now we sync manually.
 
 export interface User {
-    _id?: ObjectId | string;
+    _id?: string;
     clerkId: string; // Links to Clerk Auth (or 'custom-db' for direct users)
     email?: string;
     firstName?: string;
@@ -27,7 +27,7 @@ export interface User {
 }
 
 export interface Monk {
-    _id?: ObjectId | string;
+    _id?: string;
     name: {
         mn: string;
         en: string;
@@ -101,9 +101,9 @@ export interface Monk {
 }
 
 export interface Booking {
-    _id?: ObjectId | string;
+    _id?: string;
     userId: string; // Clerk ID or Custom ID
-    monkId: ObjectId | string;
+    monkId: string;
     date: Date;
     time?: string; // Add time to interface as it is used
     userPhone?: string;
@@ -116,7 +116,7 @@ export interface Booking {
 }
 
 export interface Comment {
-    _id?: ObjectId | string;
+    _id?: string;
     userId?: string; // Optional if guest
     authorName: string;
     authorRole: string;
@@ -127,7 +127,7 @@ export interface Comment {
     createdAt: Date;
 }
 export interface Service {
-    _id?: ObjectId | string;
+    _id?: string;
     id: string;
     name: {
         mn: string;
@@ -166,7 +166,7 @@ export interface Service {
 }
 
 export interface Message {
-    _id?: ObjectId | string;
+    _id?: string;
     bookingId: string;
     senderId: string;
     senderName: string;

@@ -4,35 +4,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface FavoritesState {
     monks: string[];
-    tours: string[];
-    addFavorite: (type: 'monks' | 'tours', id: string) => void;
-    removeFavorite: (type: 'monks' | 'tours', id: string) => void;
-    toggleFavorite: (type: 'monks' | 'tours', id: string) => void;
-    isFavorite: (type: 'monks' | 'tours', id: string) => boolean;
+    addFavorite: (id: string) => void;
+    removeFavorite: (id: string) => void;
+    toggleFavorite: (id: string) => void;
+    isFavorite: (id: string) => boolean;
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
     persist(
         (set, get) => ({
             monks: [],
-            tours: [],
-            addFavorite: (type, id) =>
+            addFavorite: (id) =>
                 set((state) => ({
-                    [type]: [...new Set([...state[type], id])],
+                    monks: [...new Set([...state.monks, id])],
                 })),
-            removeFavorite: (type, id) =>
+            removeFavorite: (id) =>
                 set((state) => ({
-                    [type]: state[type].filter((itemId) => itemId !== id),
+                    monks: state.monks.filter((itemId) => itemId !== id),
                 })),
-            toggleFavorite: (type, id) => {
+            toggleFavorite: (id) => {
                 const { isFavorite, addFavorite, removeFavorite } = get();
-                if (isFavorite(type, id)) {
-                    removeFavorite(type, id);
+                if (isFavorite(id)) {
+                    removeFavorite(id);
                 } else {
-                    addFavorite(type, id);
+                    addFavorite(id);
                 }
             },
-            isFavorite: (type, id) => get()[type].includes(id),
+            isFavorite: (id) => get().monks.includes(id),
         }),
         {
             name: 'favorites-storage',
