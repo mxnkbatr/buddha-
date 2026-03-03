@@ -7,7 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useUserStore } from '../../store/userStore';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ScreenWrapper } from '../../src/components/ui/index';
+import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
 
 const ZODIAC_ANIMALS = [
     { mn: 'Хулгана', en: 'Mouse' },

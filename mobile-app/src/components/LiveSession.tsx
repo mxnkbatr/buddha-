@@ -1,16 +1,49 @@
 
 import * as React from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
-import { LiveKitRoom, useTracks, VideoTrack, TrackReferenceOrPlaceholder } from '@livekit/react-native';
-import { Track } from 'livekit-client';
+import { View, Text, StyleSheet, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Mic, MicOff, Video, VideoOff } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+
+// LiveKit requires native module linking — not available in Expo Go.
+// We lazy-import to prevent a hard crash when running in managed workflow.
+let LiveKitRoom: any = null;
+let useTracks: any = null;
+let VideoTrack: any = null;
+let TrackType: any = null;
+let LIVEKIT_AVAILABLE = false;
+
+try {
+    const lk = require('@livekit/react-native');
+    LiveKitRoom = lk.LiveKitRoom;
+    useTracks = lk.useTracks;
+    VideoTrack = lk.VideoTrack;
+    const lkClient = require('livekit-client');
+    TrackType = lkClient.Track;
+    LIVEKIT_AVAILABLE = true;
+} catch (e) {
+    console.warn('LiveKit native module not available. Video calls are disabled in Expo Go.');
+}
 
 export default function LiveSession({ token, serverUrl, roomName, onDisconnect }: { token: string, serverUrl: string, roomName: string, onDisconnect: () => void }) {
     const [micEnabled, setMicEnabled] = React.useState(true);
     const [camEnabled, setCamEnabled] = React.useState(true);
+
+    if (!LIVEKIT_AVAILABLE) {
+        return (
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#FDF6E3', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#44403C', marginBottom: 8, textAlign: 'center' }}>
+                    Video Calls Unavailable
+                </Text>
+                <Text style={{ fontSize: 14, color: '#78716C', textAlign: 'center', marginBottom: 24 }}>
+                    LiveKit native module is not linked. Please use a development build instead of Expo Go to enable video calls.
+                </Text>
+                <TouchableOpacity onPress={onDisconnect} style={{ backgroundColor: '#D97706', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 }}>
+                    <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Go Back</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: '#800000' }}>
@@ -37,11 +70,11 @@ export default function LiveSession({ token, serverUrl, roomName, onDisconnect }
 
 function VideoConference({ onToggleMic, onToggleCam, micEnabled, camEnabled, onDisconnect }: any) {
     const tracks = useTracks([
-        Track.Source.Camera,
-        Track.Source.ScreenShare,
+        TrackType.Source.Camera,
+        TrackType.Source.ScreenShare,
     ]);
 
-    const renderTrack = (track: TrackReferenceOrPlaceholder) => {
+    const renderTrack = (track: any) => {
         if (!track.publication) return null;
         return (
             <View style={styles.participantView} key={track.participant.identity}>

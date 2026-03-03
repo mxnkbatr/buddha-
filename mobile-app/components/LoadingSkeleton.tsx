@@ -27,7 +27,7 @@ export function Skeleton({ width = 300, height = 20, borderRadius = 8, className
     }, [shimmer]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(shimmer.value, [0, 0.5, 1], [0.3, 0.6, 0.3]);
+        const opacity = interpolate(shimmer.value, [0, 0.5, 1], [0.3, 0.7, 0.3]);
 
         return { opacity };
     });
@@ -39,7 +39,7 @@ export function Skeleton({ width = 300, height = 20, borderRadius = 8, className
                     width,
                     height,
                     borderRadius,
-                    backgroundColor: '#E7E5E4',
+                    backgroundColor: '#FFF9E6', // Soft golden glow for skeleton base
                 },
                 animatedStyle,
             ]}
@@ -50,7 +50,7 @@ export function Skeleton({ width = 300, height = 20, borderRadius = 8, className
 
 export function MonkCardSkeleton() {
     return (
-        <View className="bg-white rounded-xl p-4 mb-3 mx-4 shadow-sm">
+        <View className="bg-white/60 rounded-xl p-4 mb-3 mx-4 shadow-sm border border-white/50 backdrop-blur-md">
             <View className="flex-row items-center">
                 <Skeleton width={70} height={70} borderRadius={35} />
                 <View className="ml-4 flex-1">

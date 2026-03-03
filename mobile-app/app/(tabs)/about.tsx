@@ -6,7 +6,7 @@ import { Users, Globe, Lock, Zap, Orbit } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import SpotlightCard from '../../components/SpotlightCard';
-import { ScreenWrapper } from '../../src/components/ui/index';
+import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
 
 export default function AboutScreen() {
     const { t, i18n } = useTranslation();
@@ -38,29 +38,29 @@ export default function AboutScreen() {
     ];
 
     return (
-        <ScreenWrapper className="bg-[#0F172A]">
-            <SafeAreaView className="flex-1 bg-[#0F172A]" edges={['top']}>
+        <ScreenWrapper className="bg-[#FDFBF7]">
+            <SafeAreaView className="flex-1 bg-[#FDFBF7]" edges={['top']}>
                 <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                     {/* Hero Section */}
                     <Animated.View
                         entering={FadeInDown.delay(100).duration(800)}
                         className="items-center py-10"
                     >
-                        <View className="flex-row items-center gap-2 px-5 py-2.5 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/5 mb-8 shadow-sm">
+                        <View className="flex-row items-center gap-2 px-5 py-2.5 rounded-full border border-[#D4AF37]/50 bg-[#FFF9E6] mb-8 shadow-sm">
                             <Orbit size={14} color="#D4AF37" />
                             <Text className="text-[10px] font-bold uppercase tracking-[4px] text-[#D4AF37]">
                                 {tr({ mn: 'Бидний түүх', en: 'Our Story' })}
                             </Text>
                         </View>
 
-                        <Text className="text-5xl font-serif font-bold text-white text-center leading-tight mb-2 tracking-tight">
+                        <Text className="text-5xl font-serif font-bold text-[#291E14] text-center leading-tight mb-2 tracking-tight">
                             {tr({ mn: 'Өв Соёл', en: 'Heritage' })}
                         </Text>
-                        <Text className="text-5xl font-serif font-light italic text-[#D4AF37] text-center leading-tight mb-8">
+                        <Text className="text-5xl font-serif font-light italic text-[#D4AF37] text-center leading-tight mb-8" style={{ textShadowColor: 'rgba(212, 175, 55, 0.2)', textShadowRadius: 10 }}>
                             {tr({ mn: '& Технологи', en: '& Future' })}
                         </Text>
 
-                        <Text className="text-lg text-slate-300 text-center font-light leading-relaxed mb-10 opacity-90 px-2 font-serif">
+                        <Text className="text-lg text-[#544636] text-center font-light leading-relaxed mb-10 px-2 font-serif">
                             {tr({
                                 mn: 'Эртний мэргэн ухааныг орчин үеийн технологитой хослуулан, хүн бүрт хүртээмжтэй түгээх нь бидний зорилго.',
                                 en: 'Bridging ancient wisdom with modern technology to bring clarity to the digital age.'
@@ -86,14 +86,14 @@ export default function AboutScreen() {
 
                     {/* Mission Section */}
                     <View className="py-24 items-center">
-                        <Text className="text-3xl font-serif font-bold text-white text-center mb-2">
+                        <Text className="text-3xl font-serif font-bold text-[#291E14] text-center mb-2">
                             {tr({ mn: 'Бидний Эрхэм', en: 'Our Noble' })}
                         </Text>
                         <Text className="text-3xl font-serif font-light italic text-[#D4AF37] text-center mb-10">
                             {tr({ mn: 'Зорилго', en: 'Mission' })}
                         </Text>
 
-                        <Text className="text-lg text-slate-300 text-center leading-relaxed mb-10 opacity-90 font-serif">
+                        <Text className="text-lg text-[#544636] text-center leading-relaxed mb-10 font-serif">
                             {tr({
                                 mn: 'Бид Монголын Бурхан шашны олон зуун жилийн түүхтэй зан үйл, сургаал номлолыг цаг хугацаа, орон зайнаас үл хамааран хүн бүрт хүртээмжтэй болгохыг зорьдог.',
                                 en: 'We aim to make centuries-old Mongolian Buddhist rituals accessible to everyone, transcending the barriers of time and space.'
@@ -101,22 +101,22 @@ export default function AboutScreen() {
                         </Text>
 
                         <View className="pl-6 border-l-[3px] border-[#D4AF37]/40 py-2">
-                            <Text className="text-xl font-serif font-medium italic text-slate-200">
+                            <Text className="text-xl font-serif font-medium italic text-[#786851]">
                                 "{tr({ mn: 'Мэргэн ухаан таны гарт.', en: 'Wisdom in your hands.' })}"
                             </Text>
                         </View>
 
                         {/* Stats */}
                         <View className="flex-row gap-5 mt-16 w-full">
-                            <View className="flex-1 p-6 rounded-3xl border border-[#D4AF37]/20 bg-white/5 items-center shadow-lg" style={{ elevation: 5 }}>
+                            <View className="flex-1 p-6 rounded-3xl border border-white/80 bg-white/60 items-center shadow-lg backdrop-blur-xl" style={{ shadowColor: '#D4AF37', shadowRadius: 15, shadowOpacity: 0.1, elevation: 5 }}>
                                 <Text className="text-[40px] font-serif font-bold text-[#D4AF37] mb-2 shadow-sm">120<Text className="text-2xl text-[#D4AF37]/80">+</Text></Text>
-                                <Text className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">
+                                <Text className="text-[10px] font-bold uppercase tracking-[3px] text-[#A89F91]">
                                     {tr({ mn: 'Багш нар', en: 'Masters' })}
                                 </Text>
                             </View>
-                            <View className="flex-1 p-6 rounded-3xl border border-[#D4AF37]/20 bg-white/5 items-center shadow-lg" style={{ elevation: 5 }}>
+                            <View className="flex-1 p-6 rounded-3xl border border-white/80 bg-white/60 items-center shadow-lg backdrop-blur-xl" style={{ shadowColor: '#D4AF37', shadowRadius: 15, shadowOpacity: 0.1, elevation: 5 }}>
                                 <Text className="text-[40px] font-serif font-bold text-[#D4AF37] mb-2 shadow-sm">5K<Text className="text-2xl text-[#D4AF37]/80">+</Text></Text>
-                                <Text className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">
+                                <Text className="text-[10px] font-bold uppercase tracking-[3px] text-[#A89F91]">
                                     {tr({ mn: 'Хэрэглэгч', en: 'Seekers' })}
                                 </Text>
                             </View>

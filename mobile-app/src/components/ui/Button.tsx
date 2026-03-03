@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import clsx from 'clsx';
 import * as Haptics from 'expo-haptics';
 
 export interface ButtonProps extends React.ComponentProps<typeof TouchableOpacity> {
@@ -26,7 +25,6 @@ export const Button = ({
 
     const baseStyles = "flex-row items-center justify-center rounded-full border shadow-lg";
 
-    // Applying robust hover/active states via React Native Touchables + Haptics
     const variants = {
         primary: "bg-[#D4AF37] border-[#D4AF37]/50 shadow-[#D4AF37]/30",
         secondary: "bg-white/10 border-white/20 shadow-black/20",
@@ -47,13 +45,13 @@ export const Button = ({
 
     return (
         <TouchableOpacity
-            className={clsx(baseStyles, variants[variant], sizes[size], className)}
+            className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className || ''}`}
             onPress={handlePress}
             activeOpacity={0.8}
             {...props}
         >
             {icon && <View className="mr-2">{icon}</View>}
-            <Text className={clsx(textStyles[variant])}>{label}</Text>
+            <Text className={textStyles[variant]}>{label}</Text>
         </TouchableOpacity>
     );
 };

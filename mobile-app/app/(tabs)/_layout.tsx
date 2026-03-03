@@ -10,8 +10,8 @@ export default function TabLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
-                sceneStyle: { backgroundColor: '#FDFBF7' },
-                tabBarBackground: () => <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(15, 23, 42, 0.96)' }]} />,
+                sceneStyle: { backgroundColor: '#FDFBF7' }, // Cream background
+                tabBarBackground: () => <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(253, 251, 247, 0.96)' }]} />, // Luminous frosted
                 tabBarStyle: {
                     position: 'absolute',
                     bottom: Platform.OS === 'ios' ? 32 : 16,
@@ -22,16 +22,16 @@ export default function TabLayout() {
                     paddingBottom: 0,
                     borderTopWidth: 0,
                     elevation: 15,
-                    shadowColor: '#000',
+                    shadowColor: '#D4AF37', // Golden glow
                     shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.4,
+                    shadowOpacity: 0.15,
                     shadowRadius: 20,
                     borderWidth: 0.5,
-                    borderColor: 'rgba(212, 175, 55, 0.2)',
+                    borderColor: 'rgba(212, 175, 55, 0.3)',
                     overflow: 'hidden',
                 },
-                tabBarActiveTintColor: '#D4AF37',
-                tabBarInactiveTintColor: '#64748B',
+                tabBarActiveTintColor: '#D4AF37', // Gold
+                tabBarInactiveTintColor: '#A89F91', // Warm Grey
                 tabBarShowLabel: false,
                 tabBarItemStyle: {
                     borderRadius: 9999,

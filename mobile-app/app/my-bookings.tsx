@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/clerk-expo';
-import { Calendar, Clock, ArrowLeft, CheckCircle2, XCircle, RotateCcw } from 'lucide-react-native';
+import { Calendar, Clock, ArrowLeft, CheckCircle2, XCircle, RotateCcw, MessageCircle, Video } from 'lucide-react-native';
 import api from '../lib/api';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '../store/userStore';
@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { useIsAuthenticated } from '../hooks/useIsAuthenticated';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useNavigationState } from '@react-navigation/native';
+import { GlassContainer } from '../src/components/ui/GlassContainer';
 
 interface Booking {
     _id: string;
@@ -25,9 +26,9 @@ interface Booking {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
-    pending: { label: 'Pending', color: '#F59E0B', icon: Clock },
+    pending: { label: 'Pending', color: '#D4AF37', icon: Clock },
     confirmed: { label: 'Confirmed', color: '#10B981', icon: CheckCircle2 },
-    completed: { label: 'Completed', color: '#6B7280', icon: CheckCircle2 },
+    completed: { label: 'Completed', color: '#A89F91', icon: CheckCircle2 },
     cancelled: { label: 'Cancelled', color: '#EF4444', icon: XCircle },
     rejected: { label: 'Rejected', color: '#EF4444', icon: XCircle },
 };
@@ -37,7 +38,7 @@ export default function MyBookingsScreen() {
         useNavigationState(state => state);
     } catch {
         return (
-            <View className="flex-1 bg-[#0F172A] items-center justify-center">
+            <View className="flex-1 bg-[#FDFBF7] items-center justify-center">
                 <ActivityIndicator size="large" color="#D4AF37" />
             </View>
         );
@@ -95,17 +96,18 @@ function MyBookingsContent() {
 
     if (!isAuthenticated) {
         return (
-            <View className="flex-1 bg-[#0F172A]">
+            <View className="flex-1 bg-[#FDFBF7]">
                 <Stack.Screen options={{ headerShown: false }} />
                 <SafeAreaView edges={['top']} className="flex-1 items-center justify-center px-6">
-                    <Text className="text-white text-xl font-serif font-bold mb-4">
+                    <Text className="text-[#291E14] text-xl font-serif font-bold mb-4 tracking-tight">
                         {lang === 'mn' ? 'Нэвтрэх шаардлагатай' : 'Sign in required'}
                     </Text>
                     <TouchableOpacity
                         onPress={() => router.push('/(auth)/sign-in')}
-                        className="bg-monk-primary rounded-full px-8 py-4"
+                        className="bg-[#D4AF37] rounded-full px-8 py-4 shadow-lg border border-[#D4AF37]"
+                        style={{ shadowColor: '#D4AF37', shadowRadius: 15, shadowOpacity: 0.2 }}
                     >
-                        <Text className="text-[#0F172A] font-bold uppercase tracking-widest text-xs">
+                        <Text className="text-[#FDFBF7] font-bold uppercase tracking-widest text-xs">
                             {lang === 'mn' ? 'Нэвтрэх' : 'Sign In'}
                         </Text>
                     </TouchableOpacity>
@@ -120,95 +122,140 @@ function MyBookingsContent() {
 
         return (
             <Animated.View entering={FadeInDown.delay(index * 80).duration(400)}>
-                <View className="bg-white/5 rounded-3xl p-5 mb-3 border border-white/10">
+                <GlassContainer className="rounded-3xl p-5 mb-4 border border-white bg-white/60 shadow-sm backdrop-blur-xl" style={{ shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10 }}>
                     <View className="flex-row items-center justify-between mb-3">
-                        <View className="flex-1">
-                            <Text className="text-white font-serif font-bold text-lg" numberOfLines={1}>
+                        <View className="flex-1 pr-2">
+                            <Text className="text-[#291E14] font-serif font-bold text-lg tracking-tight" numberOfLines={1}>
                                 {isMonk ? (item.clientName || 'Client') : (item.monkName || 'Booking')}
                             </Text>
                             {item.serviceName && (
-                                <Text className="text-slate-400 text-xs mt-0.5" numberOfLines={1}>
+                                <Text className="text-[#544636] text-xs mt-0.5 tracking-wide font-medium" numberOfLines={1}>
                                     {t_db(item.serviceName)}
                                 </Text>
                             )}
                         </View>
-                        <View className="flex-row items-center px-3 py-1.5 rounded-full" style={{ backgroundColor: `${config.color}20` }}>
+                        <View className="flex-row items-center px-3 py-1.5 rounded-full border" style={{ backgroundColor: `${config.color}10`, borderColor: `${config.color}30` }}>
                             <StatusIcon size={12} color={config.color} />
-                            <Text className="ml-1.5 text-xs font-bold" style={{ color: config.color }}>
+                            <Text className="ml-1.5 text-[10px] font-bold uppercase tracking-[2px]" style={{ color: config.color }}>
                                 {config.label}
                             </Text>
                         </View>
                     </View>
 
-                    <View className="flex-row items-center gap-4 opacity-70">
+                    <View className="h-[1px] bg-[#E8E0D5]/50 w-full mb-3" />
+
+                    <View className="flex-row items-center gap-6">
                         <View className="flex-row items-center">
-                            <Calendar size={13} color="#D4AF37" />
-                            <Text className="text-slate-300 text-xs ml-1.5 font-bold">
+                            <View className="w-6 h-6 rounded-full bg-[#FFF9E6] border border-[#D4AF37]/20 items-center justify-center mr-2">
+                                <Calendar size={12} color="#D4AF37" />
+                            </View>
+                            <Text className="text-[#544636] text-xs font-bold tracking-wide">
                                 {formatDate(item.date)}
                             </Text>
                         </View>
                         {item.time && (
                             <View className="flex-row items-center">
-                                <Clock size={13} color="#D4AF37" />
-                                <Text className="text-slate-300 text-xs ml-1.5 font-bold">
+                                <View className="w-6 h-6 rounded-full bg-[#FFF9E6] border border-[#D4AF37]/20 items-center justify-center mr-2">
+                                    <Clock size={12} color="#D4AF37" />
+                                </View>
+                                <Text className="text-[#544636] text-xs font-bold tracking-[1px]">
                                     {item.time}
                                 </Text>
                             </View>
                         )}
                     </View>
-                </View>
+
+                    {/* Chat & Call buttons for confirmed bookings */}
+                    {item.status === 'confirmed' && (
+                        <View className="flex-row gap-3 mt-3 pt-3 border-t border-[#E8E0D5]/50">
+                            <TouchableOpacity
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    router.push(`/chat/${item._id}`);
+                                }}
+                                activeOpacity={0.9}
+                                className="flex-1 flex-row items-center justify-center gap-2 bg-[#FFF9E6] rounded-2xl py-3.5 border border-[#D4AF37]/20"
+                            >
+                                <MessageCircle size={16} color="#D4AF37" />
+                                <Text className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest">
+                                    {lang === 'mn' ? 'Чат' : 'Chat'}
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                    router.push(`/live-session/${item._id}`);
+                                }}
+                                activeOpacity={0.9}
+                                className="flex-1 flex-row items-center justify-center gap-2 bg-[#D4AF37] rounded-2xl py-3.5 shadow-lg"
+                                style={{ shadowColor: '#D4AF37', shadowRadius: 10, shadowOpacity: 0.2 }}
+                            >
+                                <Video size={16} color="#FDFBF7" />
+                                <Text className="text-xs font-bold text-[#FDFBF7] uppercase tracking-widest">
+                                    {lang === 'mn' ? 'Дуудлага' : 'Call'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </GlassContainer>
             </Animated.View>
         );
     };
 
     return (
-        <View className="flex-1 bg-[#0F172A]">
+        <View className="flex-1 bg-[#FDFBF7]">
             <Stack.Screen options={{ headerShown: false }} />
-            <SafeAreaView edges={['top']} className="flex-1">
-                {/* Header */}
-                <View className="flex-row items-center px-6 py-4">
+
+            {/* Premium Header */}
+            <SafeAreaView edges={['top']} className="bg-[#FDFBF7] z-10 pb-4 shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
+                <View className="px-6 py-4 flex-row items-center border-b border-[#E8E0D5]/50">
                     <TouchableOpacity
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             router.back();
                         }}
-                        className="w-10 h-10 rounded-full bg-white/10 items-center justify-center mr-4"
+                        className="w-10 h-10 bg-white/80 rounded-full items-center justify-center border border-[#E8E0D5] shadow-sm backdrop-blur-3xl"
                     >
-                        <ArrowLeft size={20} color="#FFF" />
+                        <ArrowLeft size={20} color="#291E14" />
                     </TouchableOpacity>
-                    <Text className="text-white text-2xl font-serif font-bold tracking-tight">
+                    <Text className="text-2xl font-serif font-bold text-[#291E14] ml-5 tracking-tight flex-1">
                         {lang === 'mn' ? 'Миний захиалгууд' : 'My Bookings'}
                     </Text>
                 </View>
-
-                {isLoading ? (
-                    <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#D4AF37" />
-                    </View>
-                ) : !bookings || bookings.length === 0 ? (
-                    <View className="flex-1 items-center justify-center px-6">
-                        <RotateCcw size={48} color="#64748B" />
-                        <Text className="text-slate-400 text-center mt-6 text-base">
-                            {lang === 'mn' ? 'Захиалга байхгүй' : 'No bookings yet'}
-                        </Text>
-                    </View>
-                ) : (
-                    <FlatList
-                        data={bookings}
-                        keyExtractor={(item) => item._id}
-                        renderItem={renderBooking}
-                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={onRefresh}
-                                tintColor="#D4AF37"
-                            />
-                        }
-                    />
-                )}
             </SafeAreaView>
+
+            {isLoading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#D4AF37" />
+                </View>
+            ) : !bookings || bookings.length === 0 ? (
+                <View className="flex-1 items-center justify-center px-6">
+                    <View className="w-24 h-24 rounded-full bg-[#FFF9E6] border border-[#D4AF37]/20 items-center justify-center mb-6 shadow-sm">
+                        <RotateCcw size={40} color="#D4AF37" opacity={0.5} />
+                    </View>
+                    <Text className="text-[#544636] text-center font-serif text-lg tracking-wide">
+                        {lang === 'mn' ? 'Захиалга байхгүй' : 'The path is empty'}
+                    </Text>
+                    <Text className="text-[#A89F91] text-center mt-2 text-sm max-w-[200px]">
+                        {lang === 'mn' ? 'Одоогоор ямар нэгэн захиалга алга байна.' : 'You have no confirmed spiritual sessions yet.'}
+                    </Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={bookings}
+                    keyExtractor={(item) => item._id}
+                    renderItem={renderBooking}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 100 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#D4AF37"
+                        />
+                    }
+                />
+            )}
         </View>
     );
 }

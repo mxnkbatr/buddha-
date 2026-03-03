@@ -139,7 +139,7 @@ export default function ProfileScreen() {
     }
 
     return (
-        <ScreenWrapper className="bg-monk-bg">
+        <ScreenWrapper className="bg-[#FDFBF7]">
             <SafeAreaView className="flex-1" edges={['top']}>
                 <Animated.ScrollView
                     className="flex-1"
@@ -152,31 +152,31 @@ export default function ProfileScreen() {
                     }
                 >
                     {/* Immersive Profile Header Card with Parallax */}
-                    <Animated.View style={headerAnimatedStyle} className="mx-4 mt-4 rounded-[40px] overflow-hidden bg-[#0F172A] p-6 shadow-2xl">
-                        <View className="absolute top-0 right-0 w-32 h-32 bg-monk-primary/10 rounded-full blur-3xl -mr-10 -mt-10" />
-                        <View className="absolute bottom-0 left-0 w-40 h-40 bg-monk-primary/5 rounded-full blur-3xl -ml-16 -mb-16" />
+                    <Animated.View style={[headerAnimatedStyle, { shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.1 }]} className="mx-4 mt-4 rounded-[40px] overflow-hidden bg-white/60 border border-white/80 p-6 shadow-lg backdrop-blur-2xl">
+                        <View className="absolute top-0 right-0 w-48 h-48 bg-[#D4AF37]/10 rounded-full blur-[40px] -mr-16 -mt-16" />
+                        <View className="absolute bottom-0 left-0 w-48 h-48 bg-[#FFF9E6]/80 rounded-full blur-[40px] -ml-20 -mb-20" />
 
                         <View className="items-center z-10">
-                            <View className="relative shadow-lg" style={{ shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.3 }}>
+                            <View className="relative shadow-xl rounded-full" style={{ shadowColor: '#D4AF37', shadowRadius: 25, shadowOpacity: 0.2 }}>
                                 <Image
                                     source={{ uri: (dbUser as any)?.image || dbUser?.avatar || clerkUser?.imageUrl || 'https://via.placeholder.com/150' }}
-                                    style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 2, borderColor: '#D4AF37' }}
+                                    style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#D4AF37' }}
                                     contentFit="cover"
                                     transition={500}
                                 />
                                 {isMonk && (
-                                    <View className="absolute bottom-0 right-0 bg-monk-primary p-1.5 rounded-full border-2 border-[#0F172A]">
-                                        <Sparkles size={14} color="#0F172A" />
+                                    <View className="absolute bottom-0 right-0 bg-[#D4AF37] p-1.5 rounded-full border-2 border-white">
+                                        <Sparkles size={14} color="#FDFBF7" />
                                     </View>
                                 )}
                             </View>
 
-                            <Text className="text-3xl font-serif font-bold text-monk-bg mt-5 tracking-tight shadow-sm shadow-monk-primary/20">
+                            <Text className="text-3xl font-serif font-bold text-[#291E14] mt-5 tracking-tight shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.1, shadowRadius: 5 }}>
                                 {getName() || 'Seeker'}
                             </Text>
 
-                            <View className={`mt-3 px-5 py-1.5 rounded-full border ${isMonk ? 'bg-monk-primary/20 border-monk-primary/50' : 'bg-white/10 border-white/20'}`}>
-                                <Text className={`text-xs font-bold uppercase tracking-widest ${isMonk ? 'text-monk-primary' : 'text-monk-bg'}`}>
+                            <View className={`mt-3 px-5 py-1.5 rounded-full border ${isMonk ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50' : 'bg-white/60 border-[#E8E0D5]'}`}>
+                                <Text className={`text-xs font-bold uppercase tracking-widest ${isMonk ? 'text-[#D4AF37]' : 'text-[#786851]'}`}>
                                     {isMonk ? (getTitle() || (lang === 'mn' ? 'Лам' : 'Monk')) : (lang === 'mn' ? 'Эрхэм сүсэгтэн' : 'Seeker')}
                                 </Text>
                             </View>
@@ -185,23 +185,23 @@ export default function ProfileScreen() {
                             <View className="mt-5 w-full flex-row justify-center items-center flex-wrap gap-x-4 gap-y-2">
                                 {getPhone() ? (
                                     <View className="flex-row items-center">
-                                        <Phone size={12} color="#94A3B8" />
-                                        <Text className="text-slate-400 ml-1.5 text-xs tracking-wider">{getPhone()}</Text>
+                                        <Phone size={12} color="#A89F91" />
+                                        <Text className="text-[#786851] ml-1.5 text-xs tracking-wider">{getPhone()}</Text>
                                     </View>
                                 ) : null}
                                 {dbUser?.dateOfBirth ? (
                                     <View className="flex-row items-center">
-                                        <Cake size={12} color="#94A3B8" />
-                                        <Text className="text-slate-400 ml-1.5 text-xs tracking-wider">{formatDate(dbUser.dateOfBirth as string)}</Text>
+                                        <Cake size={12} color="#A89F91" />
+                                        <Text className="text-[#786851] ml-1.5 text-xs tracking-wider">{formatDate(dbUser.dateOfBirth as string)}</Text>
                                     </View>
                                 ) : null}
                             </View>
 
                             {/* Zodiac */}
                             {dbUser?.zodiacYear && (
-                                <View className="flex-row items-center mt-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                                <View className="flex-row items-center mt-3 bg-white/60 px-4 py-2 rounded-2xl border border-white/80 shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05 }}>
                                     <ZodiacDisplay zodiacKey={dbUser.zodiacYear} size="small" />
-                                    <Text className="text-slate-300 ml-2 font-medium tracking-widest uppercase text-[10px]">
+                                    <Text className="text-[#544636] ml-2 font-medium tracking-widest uppercase text-[10px]">
                                         {getZodiacByKey(dbUser.zodiacYear)?.mn || getZodiacByKey(dbUser.zodiacYear)?.en}
                                     </Text>
                                 </View>
@@ -213,11 +213,11 @@ export default function ProfileScreen() {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                     router.push('/edit-profile');
                                 }}
-                                className="mt-6 flex-row items-center justify-center bg-monk-primary px-6 py-3 rounded-full w-full active:opacity-80 border-t border-monk-primary/50 shadow-lg"
-                                style={{ shadowColor: '#D4AF37', shadowRadius: 10, shadowOpacity: 0.2 }}
+                                className="mt-6 flex-row items-center justify-center bg-[#D4AF37] px-6 py-3 rounded-full w-full active:opacity-80 border-t border-white/30 shadow-lg"
+                                style={{ shadowColor: '#D4AF37', shadowRadius: 15, shadowOpacity: 0.3 }}
                             >
-                                <Edit3 size={16} color="#0F172A" />
-                                <Text className="text-[#0F172A] font-bold tracking-widest uppercase text-xs ml-2">
+                                <Edit3 size={16} color="#FDFBF7" />
+                                <Text className="text-[#FDFBF7] font-bold tracking-widest uppercase text-xs ml-2">
                                     {lang === 'mn' ? 'Профайл засах' : 'Edit Profile'}
                                 </Text>
                             </Pressable>
@@ -253,12 +253,12 @@ export default function ProfileScreen() {
                                         label="Karma"
                                     />
                                     <StatItem
-                                        icon={<Moon size={18} color="#0F172A" />}
+                                        icon={<Moon size={18} color="#291E14" />}
                                         value={String(dbUser.meditationDays || 0)}
                                         label={lang === 'mn' ? 'Хоног' : 'Days'}
                                     />
                                     <StatItem
-                                        icon={<Heart size={18} color="#0F172A" />}
+                                        icon={<Heart size={18} color="#291E14" />}
                                         value={String(dbUser.totalMerits || 0)}
                                         label={lang === 'mn' ? 'Буян' : 'Merits'}
                                     />
@@ -269,22 +269,22 @@ export default function ProfileScreen() {
 
                     {/* Navigation Menu */}
                     <View className="mt-8 px-4">
-                        <Text className="text-[10px] font-bold tracking-[3px] text-monk-secondary uppercase px-2 mb-3">
+                        <Text className="text-[10px] font-bold tracking-[3px] text-[#A89F91] uppercase px-2 mb-3">
                             {lang === 'mn' ? 'Миний бүртгэл' : 'Account Management'}
                         </Text>
-                        <View className="bg-monk-surface rounded-3xl border border-monk-primary/10 overflow-hidden shadow-sm">
-                            <MenuItem icon={<Calendar size={18} color="#0F172A" />} title={lang === 'mn' ? 'Миний захиалгууд' : 'My Bookings'} onPress={() => router.push('/my-bookings')} isFirst />
-                            <MenuItem icon={<Heart size={18} color="#0F172A" />} title={lang === 'mn' ? 'Дуртай' : 'Favorites'} onPress={() => router.push('/favorites')} />
-                            <MenuItem icon={<Settings size={18} color="#0F172A" />} title={lang === 'mn' ? 'Тохиргоо' : 'Settings'} onPress={() => router.push('/settings')} isLast />
+                        <View className="bg-white/80 rounded-3xl border border-white/60 overflow-hidden shadow-sm backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
+                            <MenuItem icon={<Calendar size={18} color="#291E14" />} title={lang === 'mn' ? 'Миний захиалгууд' : 'My Bookings'} onPress={() => router.push('/my-bookings')} isFirst />
+                            <MenuItem icon={<Heart size={18} color="#291E14" />} title={lang === 'mn' ? 'Дуртай' : 'Favorites'} onPress={() => router.push('/favorites')} />
+                            <MenuItem icon={<Settings size={18} color="#291E14" />} title={lang === 'mn' ? 'Тохиргоо' : 'Settings'} onPress={() => router.push('/settings')} isLast />
                         </View>
                     </View>
 
                     {/* Language Settings */}
                     <View className="mt-8 px-4">
-                        <Text className="text-[10px] font-bold tracking-[3px] text-monk-secondary uppercase px-2 mb-3">
+                        <Text className="text-[10px] font-bold tracking-[3px] text-[#A89F91] uppercase px-2 mb-3">
                             {lang === 'mn' ? 'Хэл' : 'Language'}
                         </Text>
-                        <View className="bg-monk-surface rounded-3xl p-2 border border-monk-primary/10 shadow-sm flex-row">
+                        <View className="bg-white/80 rounded-3xl p-2 border border-white/60 shadow-sm flex-row backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
                             {supportedLanguages.map((l: any) => (
                                 <Pressable
                                     key={l.code}
@@ -292,9 +292,9 @@ export default function ProfileScreen() {
                                         Haptics.selectionAsync();
                                         changeLanguage(l.code);
                                     }}
-                                    className={`flex-1 py-4 rounded-2xl items-center ${i18n.language === l.code ? 'bg-[#0F172A] shadow-md border-b-2 border-monk-primary' : 'bg-transparent'}`}
+                                    className={`flex-1 py-4 rounded-2xl items-center ${i18n.language === l.code ? 'bg-[#FDFBF7] shadow-sm border-b-2 border-[#D4AF37]' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-bold tracking-widest uppercase text-[11px] ${i18n.language === l.code ? 'text-monk-primary' : 'text-monk-text'}`}>
+                                    <Text className={`font-bold tracking-widest uppercase text-[11px] ${i18n.language === l.code ? 'text-[#D4AF37]' : 'text-[#786851]'}`}>
                                         {l.nativeName}
                                     </Text>
                                 </Pressable>
@@ -311,7 +311,7 @@ export default function ProfileScreen() {
                                 if (isSignedIn) await signOut();
                                 router.replace('/(auth)/sign-in');
                             }}
-                            className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 border border-red-100 shadow-sm active:opacity-70"
+                            className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 border border-red-100 shadow-md active:opacity-70"
                         >
                             <LogOut size={18} color="#EF4444" />
                             <Text className="text-red-500 font-bold tracking-widest uppercase text-xs ml-3">
@@ -328,12 +328,12 @@ export default function ProfileScreen() {
 
 function StatItem({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
     return (
-        <View className="flex-1 items-center bg-monk-surface p-4 rounded-3xl shadow-sm border border-monk-primary/10">
-            <View className="w-10 h-10 rounded-full bg-monk-primary/10 items-center justify-center mb-2">
+        <View className="flex-1 items-center bg-white/80 p-4 rounded-3xl shadow-sm border border-white/60 backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
+            <View className="w-10 h-10 rounded-full bg-[#FFF9E6] items-center justify-center mb-2 border border-[#D4AF37]/10">
                 {icon}
             </View>
-            <Text className="text-xl font-serif font-bold text-monk-text tracking-tight">{value}</Text>
-            <Text className="text-[9px] text-monk-secondary uppercase tracking-[2px] mt-1 font-bold">{label}</Text>
+            <Text className="text-xl font-serif font-bold text-[#291E14] tracking-tight">{value}</Text>
+            <Text className="text-[9px] text-[#A89F91] uppercase tracking-[2px] mt-1 font-bold">{label}</Text>
         </View>
     );
 }
@@ -345,13 +345,13 @@ function MenuItem({ icon, title, onPress, isFirst, isLast }: { icon: React.React
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 onPress();
             }}
-            className={`flex-row items-center bg-transparent px-5 py-5 active:bg-monk-primary/5 ${!isLast ? 'border-b border-monk-primary/10' : ''}`}
+            className={`flex-row items-center bg-transparent px-5 py-5 active:bg-[#FDFBF7]/80 ${!isLast ? 'border-b border-[#E8E0D5]/50' : ''}`}
         >
-            <View className="w-8 h-8 rounded-full bg-[#FDFBF7] items-center justify-center mr-4 border border-monk-primary/20">
+            <View className="w-8 h-8 rounded-full bg-[#FFF9E6] items-center justify-center mr-4 border border-[#D4AF37]/10">
                 {icon}
             </View>
-            <Text className="text-monk-text font-medium text-sm flex-1 tracking-wide">{title}</Text>
-            <ChevronRight size={18} color="#1E293B" opacity={0.3} />
+            <Text className="text-[#291E14] font-medium text-sm flex-1 tracking-wide">{title}</Text>
+            <ChevronRight size={18} color="#A89F91" opacity={0.5} />
         </Pressable>
     );
 }

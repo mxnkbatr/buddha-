@@ -63,11 +63,11 @@ export default function RitualsScreen() {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <View style={[styles.container, { backgroundColor: '#FDFBF7', paddingTop: insets.top }]}>
+            <StatusBar style="dark" />
 
             <View style={styles.topBar}>
-                <Text style={[styles.screenTitle, { color: colors.text }]}>Гүрэм Засал</Text>
+                <Text style={[styles.screenTitle, { color: '#291E14' }]}>Гүрэм Засал</Text>
             </View>
 
             <FlatList
@@ -88,32 +88,37 @@ export default function RitualsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#FDFBF7',
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#FDFBF7',
     },
     topBar: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: 24,
+        paddingVertical: 16,
         marginBottom: 8,
     },
     screenTitle: {
-        fontSize: 28,
+        fontSize: 36,
+        fontFamily: 'serif',
         fontWeight: 'bold',
         letterSpacing: -0.5,
+        color: '#291E14',
     },
     headerContainer: {
-        marginTop: 24,
-        marginBottom: 8,
-        paddingHorizontal: 16,
+        marginTop: 32,
+        marginBottom: 12,
+        paddingHorizontal: 24,
     },
     headerText: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 14,
+        fontWeight: 'bold',
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 3,
+        color: '#D4AF37',
     },
     listContent: {
         paddingVertical: 8,

@@ -7,7 +7,7 @@ export type CardProps = ViewProps & {
 export function Card({ className, style, ...props }: CardProps) {
     return (
         <View
-            className={`bg-white dark:bg-stone-900 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 p-4 ${className}`}
+            className={`bg-[#FFFFFF] rounded-xl border border-[#E8E0D5] shadow-sm shadow-amber-900/5 p-4 ${className}`}
             style={style}
             {...props}
         />

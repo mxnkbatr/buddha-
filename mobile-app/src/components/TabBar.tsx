@@ -3,7 +3,6 @@ import { View, Pressable, Platform, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import clsx from 'clsx';
 
 function TabItem({ isFocused, options, route, onPress, onLongPress }: any) {
     const scale = useSharedValue(isFocused ? 1 : 0.9);
@@ -44,10 +43,7 @@ function TabItem({ isFocused, options, route, onPress, onLongPress }: any) {
             onLongPress={onLongPress}
             className="flex-1 items-center justify-center py-3 rounded-full"
         >
-            <Animated.View className={clsx(
-                "items-center justify-center p-3 rounded-full",
-                isFocused ? "bg-[#D4AF37]/20 border border-[#D4AF37]/30 shadow-lg" : "bg-transparent"
-            )} style={animatedStyle}>
+            <Animated.View className={`items-center justify-center p-3 rounded-full ${isFocused ? "bg-[#D4AF37]/20 border border-[#D4AF37]/30 shadow-lg" : "bg-transparent"}`} style={animatedStyle}>
                 {renderIcon()}
             </Animated.View>
         </Pressable>

@@ -1,13 +1,9 @@
 import { View, ViewProps } from 'react-native';
-import clsx from 'clsx';
 
 export const Card = ({ className, children, ...props }: ViewProps) => {
     return (
         <View
-            className={clsx(
-                "bg-white/5 rounded-[24px] shadow-xl border border-white/10 p-5",
-                className
-            )}
+            className={`bg-white/5 rounded-[24px] shadow-xl border border-white/10 p-5 ${className || ''}`}
             style={{
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 4 },

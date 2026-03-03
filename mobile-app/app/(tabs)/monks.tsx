@@ -49,32 +49,35 @@ const DivineMonkCard = memo(({ monk, index, lang, onPress }: { monk: Monk; index
 
     return (
         <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ width: cardWidth, height: cardHeight }}>
-            <View className="flex-1 rounded-[32px] overflow-hidden border border-[#D4AF37]/30 bg-white/5 shadow-2xl" style={{ elevation: 8, shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 20 }}>
-                {/* Image */}
-                <Image source={{ uri: imgUri }} style={{ width: '100%', height: '100%', position: 'absolute', opacity: 0.9 }} contentFit="cover" transition={400} />
+            <View className="flex-1 rounded-[32px] overflow-hidden border border-white/80 bg-white/60 shadow-lg backdrop-blur-3xl" style={{ elevation: 5, shadowColor: '#D4AF37', shadowOpacity: 0.1, shadowRadius: 15 }}>
+                {/* Decorative Glow */}
+                <View className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-[40px] -mr-8 -mt-8" />
 
-                {/* Deep Shadow Overlays */}
-                <View style={{ position: 'absolute', bottom: 0, width: '100%', height: '80%', backgroundColor: 'transparent' }} className="bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent" />
+                {/* Image Background styled to match new bright theme */}
+                <Image source={{ uri: imgUri }} style={{ width: '100%', height: '100%', position: 'absolute', opacity: 0.8 }} contentFit="cover" transition={400} />
+
+                {/* Light Divine Overlay */}
+                <View style={{ position: 'absolute', bottom: 0, width: '100%', height: '80%', backgroundColor: 'transparent' }} className="bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/90 to-transparent" />
 
                 {/* Price Badge - top right */}
-                <View className="absolute top-4 right-4 bg-black/40 border border-[#D4AF37]/50 rounded-xl px-4 py-2 items-center backdrop-blur-md">
-                    <Text className="text-[8px] font-bold uppercase tracking-[3px] text-[#D4AF37] opacity-90 mb-0.5">
+                <View className="absolute top-4 right-4 bg-white/80 border border-[#D4AF37]/30 rounded-xl px-4 py-2 items-center backdrop-blur-md shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.2, shadowRadius: 5 }}>
+                    <Text className="text-[8px] font-bold uppercase tracking-[3px] text-[#A89F91] mb-0.5">
                         {lang === 'mn' ? 'Үнэ' : 'Starting'}
                     </Text>
-                    <Text className="text-base font-serif font-bold text-white shadow-sm">
+                    <Text className="text-base font-serif font-bold text-[#291E14]">
                         {monk.isSpecial ? '88,800₮' : '50,000₮'}
                     </Text>
                 </View>
 
                 {/* Favorite Button - top left */}
-                <TouchableOpacity onPress={handleFav} className="absolute top-4 left-4 w-12 h-12 rounded-full bg-black/40 border border-[#D4AF37]/30 items-center justify-center backdrop-blur-md">
-                    <Heart size={20} color={isFav ? '#EF4444' : '#FFF'} fill={isFav ? '#EF4444' : 'transparent'} />
+                <TouchableOpacity onPress={handleFav} className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/80 border border-[#D4AF37]/20 items-center justify-center backdrop-blur-md shadow-sm">
+                    <Heart size={20} color={isFav ? '#EF4444' : '#291E14'} fill={isFav ? '#EF4444' : 'transparent'} />
                 </TouchableOpacity>
 
                 {/* Arcana Tag - bottom left */}
                 <View className="absolute top-20 left-4">
-                    <View className="px-4 py-2 rounded-full border border-[#D4AF37]/40 bg-white/10 backdrop-blur-sm">
-                        <Text className="text-[10px] font-bold uppercase tracking-[4px] text-white">
+                    <View className="px-4 py-2 rounded-full border border-[#D4AF37]/30 bg-white/60 backdrop-blur-sm shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.1 }}>
+                        <Text className="text-[10px] font-bold uppercase tracking-[4px] text-[#786851]">
                             Arcana {ROMAN[index] || index + 1}
                         </Text>
                     </View>
@@ -83,7 +86,7 @@ const DivineMonkCard = memo(({ monk, index, lang, onPress }: { monk: Monk; index
                 {/* Bottom Content */}
                 <View className="absolute bottom-0 left-0 right-0 items-center pb-6 px-4">
                     {/* Name */}
-                    <Text className="text-3xl font-serif font-bold text-white text-center mb-2 shadow-sm" style={{ textShadowColor: 'rgba(0,0,0,0.8)', textShadowRadius: 10 }}>
+                    <Text className="text-3xl font-serif font-bold text-[#291E14] text-center mb-2 shadow-sm" style={{ textShadowColor: 'rgba(253, 251, 247, 0.8)', textShadowRadius: 10 }}>
                         {t_db(monk.name)}
                     </Text>
 
@@ -91,17 +94,17 @@ const DivineMonkCard = memo(({ monk, index, lang, onPress }: { monk: Monk; index
                     <View className="h-[2px] w-12 rounded-full bg-[#D4AF37] mb-3 opacity-80" />
 
                     {/* Title */}
-                    <Text className="text-[10px] font-bold uppercase tracking-[4px] text-[#D4AF37] mb-6 opacity-90">
+                    <Text className="text-[10px] font-bold uppercase tracking-[4px] text-[#A89F91] mb-6">
                         {t_db(monk.title) || (lang === 'mn' ? 'Мэргэн ухаанч' : 'Master of Fate')}
                     </Text>
 
                     {/* CTA Button */}
-                    <View className="rounded-full overflow-hidden shadow-2xl flex-row items-center justify-center w-full max-w-[200px] py-4 bg-white/10 border border-[#D4AF37]/40 backdrop-blur-md" style={{ shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10 }}>
-                        <Text className="text-[11px] font-bold uppercase tracking-[4px] text-white mr-3">
+                    <View className="rounded-full overflow-hidden shadow-lg flex-row items-center justify-center w-full max-w-[200px] py-4 bg-white/80 border border-white backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.15, shadowRadius: 10 }}>
+                        <Text className="text-[11px] font-bold uppercase tracking-[4px] text-[#291E14] mr-3">
                             {lang === 'mn' ? 'Захиалах' : 'Book Session'}
                         </Text>
-                        <View className="w-8 h-8 rounded-full bg-[#D4AF37] items-center justify-center shadow-lg">
-                            <ArrowRight size={14} color="#0F172A" strokeWidth={3} />
+                        <View className="w-8 h-8 rounded-full bg-[#D4AF37] items-center justify-center shadow-md">
+                            <ArrowRight size={14} color="#FDFBF7" strokeWidth={3} />
                         </View>
                     </View>
                 </View>
@@ -137,8 +140,8 @@ export default function MonksScreen() {
     }, [refetch]);
 
     return (
-        <ScreenWrapper className="bg-[#0F172A]">
-            <SafeAreaView className="flex-1 bg-[#0F172A]" edges={['top']}>
+        <ScreenWrapper className="bg-[#FDFBF7]">
+            <SafeAreaView className="flex-1 bg-[#FDFBF7]" edges={['top']}>
                 <FlatList
                     data={monks}
                     keyExtractor={(item) => item._id}
@@ -147,11 +150,11 @@ export default function MonksScreen() {
                     contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 120, gap: 24 }}
                     columnWrapperStyle={isLargeScreen ? { gap: 24 } : undefined}
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" colors={['#D4AF37']} />}
                     ListHeaderComponent={
                         <View className="items-center mb-10 pt-6">
                             {/* Badge */}
-                            <View className="flex-row items-center gap-2 mb-6 bg-white/5 border border-[#D4AF37]/30 px-6 py-2.5 rounded-full">
+                            <View className="flex-row items-center gap-2 mb-6 bg-[#FFF9E6] border border-[#D4AF37]/30 px-6 py-2.5 rounded-full shadow-sm" style={{ shadowColor: '#D4AF37', shadowRadius: 5, shadowOpacity: 0.1 }}>
                                 <Sparkles size={14} color="#D4AF37" />
                                 <Text className="text-[10px] font-bold tracking-[4px] uppercase text-[#D4AF37]">
                                     {tr({ mn: 'Мэргэн Ухаан', en: 'Divine Wisdom' })}
@@ -160,12 +163,12 @@ export default function MonksScreen() {
                             </View>
 
                             {/* Title */}
-                            <Text className="text-5xl font-serif font-bold text-white text-center tracking-tight mb-3">
+                            <Text className="text-5xl font-serif font-bold text-[#291E14] text-center tracking-tight mb-3">
                                 {tr({ mn: 'Үзмэрч', en: 'Exhibitor' })}
                             </Text>
 
                             {/* Subtitle */}
-                            <Text className="text-xs text-slate-400 uppercase tracking-[4px] text-center mb-4">
+                            <Text className="text-xs text-[#786851] uppercase tracking-[4px] text-center mb-4">
                                 {tr({ mn: 'Хувь тавилангийн хөтөч', en: 'Guidance through the threads of fate' })}
                             </Text>
                         </View>
@@ -188,7 +191,7 @@ export default function MonksScreen() {
                                 <MonkCardSkeleton />
                             </>
                         ) : (
-                            <Text className="text-center text-slate-500 mt-10 italic font-serif">
+                            <Text className="text-center text-[#A89F91] mt-10 italic font-serif">
                                 {tr({ mn: 'Багш нар олдсонгүй.', en: 'No monks available.' })}
                             </Text>
                         )

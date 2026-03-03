@@ -1,11 +1,13 @@
 
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import LiveSession from '../../src/components/LiveSession';
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import React, { useEffect, useState } from 'react';
+import { useUser } from '@clerk/clerk-expo';
 import api from '../../lib/api';
-import { ScreenWrapper } from '../../src/components/ui';
+import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
+
+// Lazy-load LiveSession to avoid crashing on startup (requires native LiveKit module)
+const LiveSession = React.lazy(() => import('../../src/components/LiveSession'));
 
 export default function LiveSessionScreen() {
     const { id } = useLocalSearchParams();
@@ -28,15 +30,12 @@ export default function LiveSessionScreen() {
             }
 
             try {
-                // Fetch token from backend
                 const username = user.firstName || user.fullName || 'User';
                 const { data } = await api.get(`/livekit?room=${roomName}&username=${encodeURIComponent(username)}`);
-                
+
                 if (data.token) {
                     setToken(data.token);
-                    
-                    // Optimistically try to mark call as active if monk
-                    // The backend will check permissions anyway
+
                     api.patch(`/bookings/${id}`, { callStatus: 'active' }).catch(err => {
                         console.log('Not authorized to start call or booking not found', err.message);
                     });
@@ -58,8 +57,8 @@ export default function LiveSessionScreen() {
                 <View className="p-6 bg-white rounded-2xl shadow-sm border border-stone-100 items-center">
                     <Text className="text-red-500 font-bold text-center mb-2">Connection Error</Text>
                     <Text className="text-stone-600 text-center mb-6">{error}</Text>
-                    <Text 
-                        className="bg-monk-primary text-white px-8 py-3 rounded-full font-bold uppercase" 
+                    <Text
+                        className="bg-monk-primary text-white px-8 py-3 rounded-full font-bold uppercase"
                         onPress={() => router.back()}
                     >
                         Go Back
@@ -80,12 +79,18 @@ export default function LiveSessionScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: 'black' }}>
-            <LiveSession
-                token={token}
-                serverUrl={serverUrl}
-                roomName={roomName}
-                onDisconnect={() => router.back()}
-            />
+            <React.Suspense fallback={
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
+                    <ActivityIndicator size="large" color="#D97706" />
+                </View>
+            }>
+                <LiveSession
+                    token={token}
+                    serverUrl={serverUrl}
+                    roomName={roomName}
+                    onDisconnect={() => router.back()}
+                />
+            </React.Suspense>
         </View>
     );
 }

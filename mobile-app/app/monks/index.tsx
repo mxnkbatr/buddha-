@@ -1,6 +1,6 @@
 
+import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { ScreenWrapper, Card } from '../../src/components/ui';
 import { useQuery } from '@tanstack/react-query';
 import { getMonks } from '../../lib/api';
 import { Image } from 'expo-image';
@@ -52,7 +52,7 @@ export default function MonkListScreen() {
                             onPress={() => router.push(`/monk/${monk._id}`)}
                             className="mb-6"
                         >
-                            <Card className="p-0 overflow-hidden border-monk-secondary/20 bg-white">
+                            <View className="p-0 overflow-hidden border-monk-secondary/20 bg-white rounded-[24px] shadow-xl border border-white/10">
                                 <View className="flex-row">
                                     <Image
                                         source={{ uri: monk.image }}
@@ -85,7 +85,7 @@ export default function MonkListScreen() {
                                         </View>
                                     </View>
                                 </View>
-                            </Card>
+                            </View>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>

@@ -35,18 +35,18 @@ export function Button({
     const getVariantStyle = () => {
         switch (variant) {
             case 'primary':
-                // Dark slate background with pure gold border for a premium, gilded minimalism look
-                return 'bg-monk-text dark:bg-earth-100 border-[0.5px] border-monk-primary shadow-sm';
+                // Bright Warm: Amber background with soft shadow
+                return 'bg-[#D97706] shadow-md shadow-amber-600/20';
             case 'secondary':
-                // Slate background with subtle border
-                return 'bg-earth-200 dark:bg-earth-800 border-[0.5px] border-earth-300 dark:border-earth-700';
+                // Cream background with soft warm border
+                return 'bg-[#FFFFFF] border border-[#E8E0D5] shadow-sm';
             case 'outline':
-                // Gold border, transparent bg
-                return 'bg-transparent border-[0.5px] border-monk-primary';
+                // Gold/Amber border, transparent bg
+                return 'bg-transparent border border-[#D97706]';
             case 'ghost':
                 return 'bg-transparent';
             default:
-                return 'bg-monk-text dark:bg-earth-100 border-[0.5px] border-monk-primary shadow-sm';
+                return 'bg-[#D97706] shadow-md shadow-amber-600/20';
         }
     };
 
@@ -66,16 +66,17 @@ export function Button({
     const getTextStyle = () => {
         switch (variant) {
             case 'primary':
-                // Pure gold text on dark slate
-                return 'text-monk-primary dark:text-monk-text tracking-wide';
+                // Inverse text (Cream) on colored background
+                return 'text-[#FDFBF7] tracking-widest uppercase text-sm';
             case 'outline':
             case 'ghost':
-                // Gold text
-                return 'text-monk-primary tracking-wide';
+                // Warm amber text
+                return 'text-[#D97706] tracking-widest uppercase text-sm';
             case 'secondary':
-                return 'text-monk-text dark:text-earth-100 tracking-wide';
+                // Deep warm brown text
+                return 'text-[#291E14] tracking-wide';
             default:
-                return 'text-monk-primary dark:text-monk-text tracking-wide';
+                return 'text-[#FDFBF7] tracking-widest uppercase text-sm';
         }
     };
 

@@ -34,18 +34,18 @@ const FavoriteMonkCard = memo(
             >
                 <Pressable
                     onPress={onPress}
-                    className="bg-white/5 rounded-[24px] mb-4 mx-6 overflow-hidden border border-white/10 shadow-lg"
-                    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}
+                    className="bg-white/60 rounded-[24px] mb-4 mx-6 overflow-hidden border border-white/80 shadow-md backdrop-blur-xl"
+                    style={{ shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 }}
                 >
                     <View className="flex-row items-center p-4">
                         <Image
                             source={{ uri: monk.image || 'https://via.placeholder.com/100' }}
-                            style={{ width: 80, height: 80, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)' }}
+                            style={{ width: 80, height: 80, borderRadius: 20, borderWidth: 2, borderColor: '#D4AF37' }}
                             contentFit="cover"
                             transition={300}
                         />
                         <View className="flex-1 ml-4 justify-center">
-                            <Text className="text-xl font-serif font-bold text-white mb-1 tracking-wide" numberOfLines={1}>
+                            <Text className="text-xl font-serif font-bold text-[#291E14] mb-1 tracking-wide" numberOfLines={1}>
                                 {name}
                             </Text>
                             {title ? (
@@ -54,14 +54,14 @@ const FavoriteMonkCard = memo(
                                 </Text>
                             ) : null}
                             {monk.specialties?.length ? (
-                                <Text className="text-slate-400 text-xs tracking-wider" numberOfLines={1}>
+                                <Text className="text-[#786851] text-xs tracking-wider font-medium" numberOfLines={1}>
                                     {monk.specialties.slice(0, 2).join(' • ')}
                                 </Text>
                             ) : null}
                         </View>
                         <TouchableOpacity
                             onPress={onRemove}
-                            className="w-12 h-12 rounded-full items-center justify-center bg-red-500/10 border border-red-500/20"
+                            className="w-12 h-12 rounded-full items-center justify-center bg-red-50 border border-red-100 shadow-sm"
                             activeOpacity={0.7}
                         >
                             <Heart size={20} color="#EF4444" fill="#EF4444" />
@@ -108,22 +108,22 @@ export default function FavoritesScreen() {
     );
 
     return (
-        <View className="flex-1 bg-[#0F172A]">
+        <View className="flex-1 bg-[#FDFBF7]">
             <Stack.Screen options={{ headerShown: false }} />
 
             {/* Premium Header */}
-            <SafeAreaView edges={['top']} className="bg-[#0F172A] z-10 pb-4">
+            <SafeAreaView edges={['top']} className="bg-[#FDFBF7] z-10 pb-4 shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
                 <View className="px-6 py-4 flex-row items-center">
                     <TouchableOpacity
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             router.back();
                         }}
-                        className="w-10 h-10 bg-white/10 rounded-full items-center justify-center border border-white/20"
+                        className="w-10 h-10 bg-white/80 rounded-full items-center justify-center border border-[#E8E0D5] shadow-sm"
                     >
-                        <ArrowLeft size={20} color="#FFF" />
+                        <ArrowLeft size={20} color="#291E14" />
                     </TouchableOpacity>
-                    <Text className="text-2xl font-serif font-bold text-white ml-5 tracking-tight flex-1">
+                    <Text className="text-2xl font-serif font-bold text-[#291E14] ml-5 tracking-tight flex-1">
                         Sanctuary Stars
                     </Text>
                     <Sparkles size={24} color="#D4AF37" />
@@ -147,17 +147,17 @@ export default function FavoritesScreen() {
                 contentContainerStyle={{ paddingVertical: 16, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" colors={['#D4AF37']} />
                 }
                 ListEmptyComponent={
                     <Animated.View entering={FadeInDown.duration(600)} className="flex-1 items-center justify-center py-32 px-10">
-                        <View className="w-24 h-24 bg-red-500/5 rounded-full items-center justify-center mb-6 border border-red-500/10">
-                            <HeartOff size={40} color="#EF4444" opacity={0.6} strokeWidth={1.5} />
+                        <View className="w-24 h-24 bg-[#FFF9E6] rounded-full items-center justify-center mb-6 border border-[#D4AF37]/20 shadow-sm">
+                            <HeartOff size={40} color="#D4AF37" opacity={0.8} strokeWidth={1.5} />
                         </View>
-                        <Text className="text-2xl font-serif font-bold text-white mb-3 text-center tracking-tight">
+                        <Text className="text-2xl font-serif font-bold text-[#291E14] mb-3 text-center tracking-tight">
                             Empty Sanctuary
                         </Text>
-                        <Text className="text-slate-400 text-center mb-8 leading-6">
+                        <Text className="text-[#786851] text-center mb-8 leading-6">
                             Wander the paths and find guides whose light resonates with your spirit.
                         </Text>
                         <TouchableOpacity
@@ -169,7 +169,7 @@ export default function FavoritesScreen() {
                             className="bg-monk-primary rounded-full py-4 px-10 shadow-lg border border-monk-primary/50"
                             style={{ shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.3 }}
                         >
-                            <Text className="text-[#0F172A] font-bold text-xs tracking-widest uppercase">
+                            <Text className="text-white font-bold text-xs tracking-widest uppercase">
                                 Begin Your Journey
                             </Text>
                         </TouchableOpacity>

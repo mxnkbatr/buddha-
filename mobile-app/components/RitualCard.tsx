@@ -60,16 +60,18 @@ const styles = StyleSheet.create({
         padding: 16,
         marginVertical: 8,
         marginHorizontal: 16,
-        borderRadius: 16,
+        borderRadius: 24,
         borderWidth: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.6)', // Glassmorphism
+        borderColor: 'rgba(255, 255, 255, 0.8)',
         // Ensure touch target >= 48px
         minHeight: 80,
-        // Subtle shadow for depth
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        // Divine shadow for depth
+        shadowColor: '#D4AF37',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 3,
     },
     contentContainer: {
         flex: 1,
@@ -77,21 +79,26 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: 'bold',
+        fontFamily: 'serif',
         marginBottom: 4,
         letterSpacing: 0.3,
+        color: '#291E14',
     },
     description: {
         fontSize: 14,
         opacity: 0.8,
         lineHeight: 20,
+        color: '#544636',
     },
     iconContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(100, 116, 139, 0.1)', // Subtle slate background
+        backgroundColor: '#FFF9E6', // Subtle gold background
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.2)',
     }
 });

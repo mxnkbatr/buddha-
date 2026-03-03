@@ -104,8 +104,7 @@ function MonkParallaxCard({ monk, index, scrollX, lang, router }: { monk: any, i
                                 transition={400}
                             />
                         </Animated.View>
-                        {/* Deep Dark Gradient Overlay */}
-                        <View className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent" />
+                        <View className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/80 to-transparent" />
                     </View>
 
                     <View className="absolute bottom-0 w-full p-6 bg-transparent">
@@ -115,10 +114,10 @@ function MonkParallaxCard({ monk, index, scrollX, lang, router }: { monk: any, i
                                 {monk.title?.[lang] || monk.title?.en || 'Master'}
                             </Text>
                         </View>
-                        <Text numberOfLines={1} className="text-3xl font-serif text-white font-bold mb-1 tracking-tight">
+                        <Text numberOfLines={1} className="text-3xl font-serif text-[#291E14] font-bold mb-1 tracking-tight">
                             {monk.name?.[lang] || monk.name?.en}
                         </Text>
-                        <Text numberOfLines={1} className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-1">
+                        <Text numberOfLines={1} className="text-xs text-[#786851] uppercase tracking-widest font-bold mt-1">
                             {monk.specialties?.[0] || 'Meditation'}
                         </Text>
                     </View>
@@ -196,7 +195,7 @@ export default function HomeScreen() {
     ];
 
     return (
-        <View className="flex-1 bg-[#0F172A]">
+        <View className="flex-1 bg-[#FDFBF7]">
             <Animated.ScrollView
                 className="flex-1"
                 contentContainerStyle={{ paddingBottom: 120 }}
@@ -212,9 +211,9 @@ export default function HomeScreen() {
                             className="w-full h-full"
                             resizeMode="cover"
                         >
-                            {/* Deep Cinematic Gradients */}
-                            <View className="absolute inset-0 bg-black/50" />
-                            <View className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-black/40" />
+                            {/* Divine Bright Gradients */}
+                            <View className="absolute inset-0 bg-[#FDFBF7]/30" />
+                            <View className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] via-transparent to-[#FDFBF7]/40" />
                         </ImageBackground>
                     </Animated.View>
 
@@ -222,7 +221,7 @@ export default function HomeScreen() {
                     <View className="absolute inset-0 flex-1 justify-end pb-32 px-6">
                         {/* Tagline Badge */}
                         <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()}>
-                            <View className="self-start px-6 py-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl mb-8">
+                            <View className="self-start px-6 py-2.5 rounded-full border border-white/60 bg-white/40 backdrop-blur-xl mb-8 shadow-sm">
                                 <Text className="text-[10px] font-bold tracking-[6px] uppercase text-[#D4AF37]">
                                     Gevabal Sanctuary
                                 </Text>
@@ -231,7 +230,7 @@ export default function HomeScreen() {
 
                         {/* Main Title */}
                         <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()}>
-                            <Text className="text-[56px] font-serif text-white leading-[64px] mb-2 font-bold tracking-tight">
+                            <Text className="text-[56px] font-serif text-[#291E14] leading-[64px] mb-2 font-bold tracking-tight">
                                 {tr({ mn: 'Бид таны', en: 'Find your' })}
                             </Text>
                             <Text className="text-[56px] font-serif text-[#D4AF37] leading-[64px] mb-6 font-bold tracking-tight" style={{ textShadowColor: 'rgba(212, 175, 55, 0.4)', textShadowRadius: 20 }}>
@@ -247,13 +246,13 @@ export default function HomeScreen() {
                                     router.push('/(tabs)/monks');
                                 }}
                                 activeOpacity={0.9}
-                                className="flex-row items-center justify-between bg-white/10 p-2 pl-8 rounded-full border border-white/20 backdrop-blur-xl mt-6 max-w-[280px]"
+                                className="flex-row items-center justify-between bg-white/40 p-2 pl-8 rounded-full border border-white/60 backdrop-blur-xl mt-6 max-w-[280px]"
                             >
-                                <Text className="text-white font-bold text-xs uppercase tracking-[3px]">
+                                <Text className="text-[#291E14] font-bold text-xs uppercase tracking-[3px]">
                                     {tr({ mn: 'Цаг захиалах', en: 'Begin Journey' })}
                                 </Text>
-                                <View className="w-12 h-12 bg-[#D4AF37] rounded-full items-center justify-center">
-                                    <ArrowRight size={20} color="#0F172A" />
+                                <View className="w-12 h-12 bg-[#D4AF37] rounded-full items-center justify-center shadow-md">
+                                    <ArrowRight size={20} color="#FFFFFF" />
                                 </View>
                             </TouchableOpacity>
                         </Animated.View>
@@ -261,7 +260,7 @@ export default function HomeScreen() {
                 </View>
 
                 {/* ===== FEATURED MONKS SECTION (PARALLAX HORIZONTAL) ===== */}
-                <View className="py-20 bg-[#0F172A]">
+                <View className="py-20 bg-[#FDFBF7]">
                     {/* Header */}
                     <View className="items-center mb-16 px-6">
                         <View className="flex-row items-center gap-4 mb-6">
@@ -271,7 +270,7 @@ export default function HomeScreen() {
                             </Text>
                             <View className="h-[1px] w-12 bg-[#D4AF37]/50" />
                         </View>
-                        <Text className="text-[40px] font-serif text-white text-center font-bold tracking-tight leading-[48px]">
+                        <Text className="text-[40px] font-serif text-[#291E14] text-center font-bold tracking-tight leading-[48px]">
                             {tr({ mn: 'Үзмэрч', en: 'The Mentors' })}
                         </Text>
                     </View>
@@ -317,12 +316,12 @@ export default function HomeScreen() {
                 </View>
 
                 {/* ===== PHILOSOPHY / VALUES SECTION ===== */}
-                <View className="py-24 px-6 bg-[#0F172A]">
+                <View className="py-24 px-6 bg-[#FDFBF7]">
                     <View className="mb-16">
-                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-slate-500 mb-6 font-serif">
+                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-[#786851] mb-6 font-serif">
                             01 / {tr({ mn: 'ФИЛОСОФИ', en: 'Philosophy' })}
                         </Text>
-                        <Text className="text-[40px] font-serif text-white font-bold tracking-tight leading-[48px]">
+                        <Text className="text-[40px] font-serif text-[#291E14] font-bold tracking-tight leading-[48px]">
                             {tr({ mn: 'Бидний Үнэт Зүйл', en: 'Our Sacred Vault' })}
                         </Text>
                     </View>
@@ -330,50 +329,50 @@ export default function HomeScreen() {
                     {/* Feature Cards */}
                     <View className="gap-8 mb-16">
                         {features.map((f, i) => (
-                            <View key={i} className="bg-white/5 p-8 rounded-[32px] border border-white/10 shadow-2xl relative overflow-hidden" style={{ elevation: 5 }}>
+                            <View key={i} className="bg-white/60 p-8 rounded-[32px] border border-white/80 backdrop-blur-3xl shadow-lg relative overflow-hidden" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.1, shadowRadius: 20, elevation: 5 }}>
                                 {/* Decorative Glow */}
                                 <View className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-[40px] -mr-8 -mt-8" />
 
-                                <View className="w-16 h-16 rounded-2xl bg-white/10 items-center justify-center mb-8 border border-white/10 backdrop-blur-md">
+                                <View className="w-16 h-16 rounded-2xl bg-[#FFF9E6] items-center justify-center mb-8 border border-white/50 shadow-sm">
                                     {f.icon}
                                 </View>
-                                <Text className="text-2xl font-serif text-white mb-4 font-bold">{f.title}</Text>
-                                <Text className="text-slate-400 leading-8 text-[15px]">{f.desc}</Text>
+                                <Text className="text-2xl font-serif text-[#291E14] mb-4 font-bold">{f.title}</Text>
+                                <Text className="text-[#544636] leading-8 text-[15px]">{f.desc}</Text>
                             </View>
                         ))}
                     </View>
                 </View>
 
                 {/* ===== TESTIMONIALS SECTION ===== */}
-                <View className="py-24 px-6 bg-[#0F172A] border-t border-white/5">
+                <View className="py-24 px-6 bg-[#FDFBF7] border-t border-[#D4AF37]/10">
                     <View className="mb-16">
-                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-slate-500 mb-6 font-serif">
+                        <Text className="text-[10px] font-bold tracking-[4px] uppercase text-[#786851] mb-6 font-serif">
                             02 / {tr({ mn: 'Сэтгэгдэл', en: 'Voices' })}
                         </Text>
-                        <Text className="text-[40px] font-serif text-white font-bold tracking-tight leading-[48px]">
+                        <Text className="text-[40px] font-serif text-[#291E14] font-bold tracking-tight leading-[48px]">
                             {tr({ mn: 'Үйлчлүүлэгчдийн үг', en: 'Echoes of Peace' })}
                         </Text>
                     </View>
 
                     <View className="gap-8">
                         {COMMENTS.map((c, i) => (
-                            <View key={i} className="bg-white/5 p-8 rounded-[32px] border border-white/10 shadow-xl" style={{ shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 }}>
+                            <View key={i} className="bg-white/60 p-8 rounded-[32px] border border-white/80 shadow-lg backdrop-blur-xl" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.1, shadowRadius: 15, elevation: 8 }}>
                                 <View className="flex-row mb-8">
-                                    <Quote size={32} color="#D4AF37" style={{ opacity: 0.3 }} />
+                                    <Quote size={32} color="#D4AF37" style={{ opacity: 0.5 }} />
                                 </View>
-                                <Text className="text-slate-300 italic leading-9 text-lg opacity-90 font-serif mb-10">"{c.text}"</Text>
+                                <Text className="text-[#544636] italic leading-9 text-lg font-serif mb-10">"{c.text}"</Text>
 
-                                <View className="flex-row items-center border-t border-white/5 pt-6">
+                                <View className="flex-row items-center border-t border-[#E8E0D5] pt-6">
                                     <Image
                                         source={{ uri: c.avatar }}
-                                        style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#D4AF37' }}
+                                        style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: '#D4AF37' }}
                                         contentFit="cover"
                                     />
                                     <View className="ml-4 flex-1">
-                                        <Text className="font-serif font-bold text-white tracking-wide">{c.name}</Text>
+                                        <Text className="font-serif font-bold text-[#291E14] tracking-wide">{c.name}</Text>
                                         <Text className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[2px]">{c.role}</Text>
                                     </View>
-                                    <View className="flex-row gap-0.5 opacity-80">
+                                    <View className="flex-row gap-0.5">
                                         {[1, 2, 3, 4, 5].map(star => (
                                             <Star key={star} size={14} color="#D4AF37" fill="#D4AF37" />
                                         ))}

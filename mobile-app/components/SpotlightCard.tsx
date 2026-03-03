@@ -15,35 +15,35 @@ export default function SpotlightCard({ title, desc, icon: Icon, onPress }: Spot
     return (
         <Pressable
             onPress={onPress}
-            className="bg-stone-800 rounded-3xl p-6 mb-4 border border-white/5 relative overflow-hidden active:bg-stone-700/80"
+            className="bg-white/60 rounded-[32px] p-6 mb-4 border border-white/80 relative overflow-hidden active:bg-[#FDFBF7] shadow-lg backdrop-blur-2xl"
             style={Platform.select({
                 ios: {
-                    shadowColor: '#000',
+                    shadowColor: '#D4AF37',
                     shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
+                    shadowOpacity: 0.1,
+                    shadowRadius: 15,
                 },
                 android: {
-                    elevation: 4,
+                    elevation: 5,
                 },
             })}
         >
             {/* Background "Highlight" effect (simplified for mobile perf) */}
-            <View className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+            <View className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full -mr-16 -mt-16 blur-2xl" />
 
             <View className="flex-row items-start justify-between mb-4">
-                <View className="w-12 h-12 rounded-2xl bg-amber-500/10 items-center justify-center border border-amber-500/20">
-                    <Icon size={24} color="#F59E0B" />
+                <View className="w-12 h-12 rounded-2xl bg-[#FFF9E6] items-center justify-center border border-[#D4AF37]/20 shadow-sm">
+                    <Icon size={24} color="#D4AF37" />
                 </View>
             </View>
 
-            <Text className="text-xl font-bold text-stone-50 mb-2 leading-tight">
+            <Text className="text-xl font-serif font-bold text-[#291E14] mb-2 leading-tight tracking-wide">
                 {title}
             </Text>
 
-            <View className="h-[1px] w-10 bg-stone-600 mb-3 opacity-50" />
+            <View className="h-[2px] w-10 bg-[#D4AF37] mb-3 opacity-60 rounded-full" />
 
-            <Text className="text-stone-400 text-sm leading-relaxed">
+            <Text className="text-[#544636] text-[15px] leading-relaxed">
                 {desc}
             </Text>
         </Pressable>
