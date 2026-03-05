@@ -1,133 +1,78 @@
 import { Tabs } from 'expo-router';
-import { Home, Users, Scroll, Compass, User, Sparkles } from 'lucide-react-native';
-import { useIsAuthenticated } from '../../hooks/useIsAuthenticated';
+import { Home, Sparkles, User, BookOpen } from 'lucide-react-native';
 import { View, StyleSheet, Platform } from 'react-native';
 
 export default function TabLayout() {
-    const isAuthenticated = useIsAuthenticated();
-
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                sceneStyle: { backgroundColor: '#FDFBF7' }, // Cream background
-                tabBarBackground: () => <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(253, 251, 247, 0.96)' }]} />, // Luminous frosted
-                tabBarStyle: {
-                    position: 'absolute',
-                    bottom: Platform.OS === 'ios' ? 32 : 16,
-                    left: 32,
-                    right: 32,
-                    borderRadius: 9999,
-                    height: 68,
-                    paddingBottom: 0,
-                    borderTopWidth: 0,
-                    elevation: 15,
-                    shadowColor: '#D4AF37', // Golden glow
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.15,
-                    shadowRadius: 20,
-                    borderWidth: 0.5,
-                    borderColor: 'rgba(212, 175, 55, 0.3)',
-                    overflow: 'hidden',
-                },
-                tabBarActiveTintColor: '#D4AF37', // Gold
-                tabBarInactiveTintColor: '#A89F91', // Warm Grey
-                tabBarShowLabel: false,
-                tabBarItemStyle: {
-                    borderRadius: 9999,
-                    margin: 4,
-                },
+                tabBarActiveTintColor: '#E5B22D',
+                tabBarInactiveTintColor: '#888888',
+                tabBarStyle: styles.tabBar,
+                tabBarLabelStyle: styles.tabLabel,
             }}
         >
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: 'Home',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[
-                            styles.iconWrapper,
-                            focused && styles.iconWrapperActive,
-                        ]}>
-                            <Home size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="monks"
-                options={{
-                    title: 'Monks',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Users size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
+                    title: 'Нүүр',
+                    tabBarIcon: ({ color, size }) => (
+                        <Home size={size} color={color} strokeWidth={1.8} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="blog"
                 options={{
-                    title: 'Blog',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Scroll size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
+                    title: 'Блог',
+                    tabBarIcon: ({ color, size }) => (
+                        <BookOpen size={size} color={color} strokeWidth={1.8} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="about"
+                name="monks"
                 options={{
-                    title: 'About',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Compass size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="rituals"
-                options={{
-                    title: 'Rituals',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <Sparkles size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
+                    title: 'Үзмэрч',
+                    tabBarIcon: ({ color, size }) => (
+                        <Sparkles size={size} color={color} strokeWidth={1.8} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: isAuthenticated ? 'Profile' : 'Sign In',
-                    tabBarIcon: ({ color, size, focused }) => (
-                        <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
-                            <User size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-                        </View>
+                    title: 'Профайл',
+                    tabBarIcon: ({ color, size }) => (
+                        <User size={size} color={color} strokeWidth={1.8} />
                     ),
                 }}
             />
+            {/* Hidden tabs — kept for expo-router but not shown in tab bar */}
+            <Tabs.Screen name="about" options={{ href: null }} />
+            <Tabs.Screen name="rituals" options={{ href: null }} />
         </Tabs>
     );
 }
 
 const styles = StyleSheet.create({
-    iconWrapper: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        alignItems: 'center',
-        justifyContent: 'center',
+    tabBar: {
+        backgroundColor: '#FFFFFF',
+        borderTopWidth: 0,
+        height: Platform.OS === 'ios' ? 88 : 64,
+        paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+        paddingTop: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+        elevation: 8,
     },
-    iconWrapperActive: {
-        backgroundColor: 'rgba(212, 175, 55, 0.15)',
-        borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.3)',
-        shadowColor: '#D4AF37',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
-        elevation: 5,
+    tabLabel: {
+        fontSize: 11,
+        fontWeight: '600',
+        marginTop: 2,
     },
 });
+

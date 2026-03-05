@@ -215,6 +215,60 @@ export const getBlogs = async (): Promise<BlogPost[]> => {
     return response.data;
 };
 
+// POST /api/admin/content — Create blog (same as parent ContentManager)
+export const createBlog = async (data: {
+    titleMn: string;
+    titleEn: string;
+    contentMn: string;
+    contentEn: string;
+    date?: string;
+    imageUrl?: string;
+}): Promise<{ success: boolean; id: string }> => {
+    const response = await api.post('/admin/content', { ...data, type: 'blog' });
+    return response.data;
+};
+
+// PUT /api/admin/content — Update blog (same as parent ContentManager)
+export const updateBlog = async (id: string, data: {
+    titleMn?: string;
+    titleEn?: string;
+    contentMn?: string;
+    contentEn?: string;
+    date?: string;
+    imageUrl?: string;
+}): Promise<{ success: boolean }> => {
+    const response = await api.put('/admin/content', { ...data, id, type: 'blog' });
+    return response.data;
+};
+
+// DELETE /api/admin/content — Delete blog (same as parent ContentManager)
+export const deleteBlog = async (id: string): Promise<{ success: boolean }> => {
+    const response = await api.delete('/admin/content', { data: { id, type: 'blog' } });
+    return response.data;
+};
+
+// Upload image to Cloudinary from device URI
+export const uploadImageToCloudinary = async (uri: string): Promise<string> => {
+    const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    const formData = new FormData();
+    const filename = uri.split('/').pop() || 'photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+    formData.append('file', { uri, name: filename, type } as any);
+    formData.append('upload_preset', uploadPreset || 'Buddha');
+    formData.append('cloud_name', cloudName || '');
+
+    const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        { method: 'POST', body: formData }
+    );
+    const json = await res.json();
+    if (!json.secure_url) throw new Error('Image upload failed');
+    return json.secure_url;
+};
 
 // ==========================================
 // COMMENTS — Exact same as parent website

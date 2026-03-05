@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Pressable, TextInput, ActivityIndicator, Platform, TouchableOpacity, Dimensions } from 'react-native';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -60,6 +60,7 @@ export default function MonkBookingScreen() {
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [specialRequests, setSpecialRequests] = useState('');
     const [bookingSuccess, setBookingSuccess] = useState(false);
+    const [serviceAutoSelected, setServiceAutoSelected] = useState(false);
 
     const { data: monk, isLoading } = useQuery({
         queryKey: ['monk', id],
@@ -68,6 +69,14 @@ export default function MonkBookingScreen() {
             return res.data as Monk;
         },
     });
+
+    // Auto-select service when monk has only 1 service
+    useEffect(() => {
+        if (monk?.services && monk.services.length === 1 && !selectedService) {
+            setSelectedService(monk.services[0]);
+            setServiceAutoSelected(true);
+        }
+    }, [monk]);
 
     const bookingMutation = useMutation({
         mutationFn: async (bookingData: any) => {
@@ -102,8 +111,8 @@ export default function MonkBookingScreen() {
     }, []);
 
     const handleBooking = useCallback(async () => {
-        if (!selectedTime || !selectedService) {
-            alert('Please select a time slot and service');
+        if (!selectedTime) {
+            alert('Please select a time slot');
             return;
         }
 
@@ -122,7 +131,7 @@ export default function MonkBookingScreen() {
             monkId: id,
             date: selectedDate.toISOString().split('T')[0],
             time: selectedTime,
-            serviceId: selectedService._id || selectedService.id,
+            serviceId: selectedService?._id || selectedService?.id,
             userName,
             userEmail,
             userPhone,
@@ -256,8 +265,8 @@ export default function MonkBookingScreen() {
                         </View>
                     </Animated.View>
 
-                    {/* Service Selection */}
-                    {monk.services && monk.services.length > 0 && (
+                    {/* Service Selection — only show if multiple services */}
+                    {monk.services && monk.services.length > 1 && (
                         <Animated.View entering={FadeInDown.delay(200).duration(600)} className="px-6 pt-8 pb-4 border-b border-[#E8E0D5]/50">
                             <Text className="text-xs uppercase tracking-[3px] font-bold text-[#D4AF37] mb-4 ml-2">
                                 01. The Path (Service)
@@ -296,7 +305,7 @@ export default function MonkBookingScreen() {
                     {/* Date Selection */}
                     <Animated.View entering={FadeInDown.delay(300).duration(600)} className="px-6 py-8 border-b border-[#E8E0D5]/50">
                         <Text className="text-xs uppercase tracking-[3px] font-bold text-[#D4AF37] mb-4 ml-2">
-                            02. The Alignment (Date)
+                            {serviceAutoSelected ? '01' : '02'}. The Alignment (Date)
                         </Text>
                         <Pressable
                             onPress={() => setShowDatePicker(true)}
@@ -327,7 +336,7 @@ export default function MonkBookingScreen() {
                     {/* Time Slot Selection */}
                     <Animated.View entering={FadeInDown.delay(400).duration(600)} className="px-6 py-8 border-b border-[#E8E0D5]/50">
                         <Text className="text-xs uppercase tracking-[3px] font-bold text-[#D4AF37] mb-4 ml-2">
-                            03. The Moment (Time)
+                            {serviceAutoSelected ? '02' : '03'}. The Moment (Time)
                         </Text>
                         <View className="flex-row flex-wrap gap-3">
                             {TIME_SLOTS.map((time) => (
@@ -354,7 +363,7 @@ export default function MonkBookingScreen() {
                     {/* Special Requests */}
                     <Animated.View entering={FadeInDown.delay(500).duration(600)} className="px-6 py-8">
                         <Text className="text-xs uppercase tracking-[3px] font-bold text-[#D4AF37] mb-4 ml-2">
-                            04. The Intention (Notes)
+                            {serviceAutoSelected ? '03' : '04'}. The Intention (Notes)
                         </Text>
                         <TextInput
                             value={specialRequests}
@@ -375,14 +384,14 @@ export default function MonkBookingScreen() {
                     <TouchableOpacity
                         activeOpacity={0.9}
                         onPress={handleBooking}
-                        disabled={!selectedTime || !selectedService || bookingMutation.isPending}
-                        className={`rounded-[24px] py-5 flex-row justify-center items-center shadow-lg border ${selectedTime && selectedService && !bookingMutation.isPending
+                        disabled={!selectedTime || bookingMutation.isPending}
+                        className={`rounded-[24px] py-5 flex-row justify-center items-center shadow-lg border ${selectedTime && !bookingMutation.isPending
                             ? 'bg-[#D4AF37] border-[#D4AF37]'
                             : 'bg-[#E8E0D5] border-[#E8E0D5] shadow-none'
                             }`}
-                        style={selectedTime && selectedService && !bookingMutation.isPending ? { shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.3 } : {}}
+                        style={selectedTime && !bookingMutation.isPending ? { shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.3 } : {}}
                     >
-                        <Text className={`text-center font-bold tracking-widest text-sm uppercase ${selectedTime && selectedService && !bookingMutation.isPending ? 'text-[#FDFBF7]' : 'text-[#A89F91]'}`}>
+                        <Text className={`text-center font-bold tracking-widest text-sm uppercase ${selectedTime && !bookingMutation.isPending ? 'text-[#FDFBF7]' : 'text-[#A89F91]'}`}>
                             {bookingMutation.isPending ? 'Securing Sanctuary...' : 'Confirm Ceremony'}
                         </Text>
                     </TouchableOpacity>

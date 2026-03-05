@@ -1,22 +1,41 @@
-import { View, Text, Pressable, ScrollView, RefreshControl } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+    ScrollView,
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
-import { Image } from 'expo-image';
-import { Settings, LogOut, ChevronRight, User as UserIcon, Calendar, Heart, Sparkles, Moon, Edit3, Globe, Phone, Mail, Cake, TrendingUp, CheckCircle } from 'lucide-react-native';
-import { ScreenWrapper } from '../../components/ui/ScreenWrapper';
-import { Button } from '../../components/ui/Button';
+import { useQuery } from '@tanstack/react-query';
+import {
+    Sparkles,
+    ShoppingBag,
+    Bell,
+    BookOpen,
+    CreditCard,
+    Settings,
+    LogOut,
+    ChevronRight,
+} from 'lucide-react-native';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
 import { useIsAuthenticated } from '../../hooks/useIsAuthenticated';
-import { useEffect, useState } from 'react';
-import { ZodiacDisplay, getZodiacByKey } from '../../components/profile/ZodiacYearPicker';
-import { useTranslation } from 'react-i18next';
-import { changeLanguage, supportedLanguages } from '../../lib/i18n';
-import * as Haptics from 'expo-haptics';
-import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
-import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+
+const MENU_ITEMS = [
+    { icon: ShoppingBag, label: 'Миний захиалгууд', route: '/my-bookings', color: '#333333' },
+    { icon: Bell, label: 'Мэдэгдэл', route: null, color: '#333333' },
+    { icon: BookOpen, label: 'Блог', route: '/(tabs)/blog', color: '#333333' },
+    { icon: CreditCard, label: 'Төлбөр', route: null, color: '#333333' },
+    { icon: Settings, label: 'Тохиргоо', route: '/settings', color: '#333333' },
+    { icon: LogOut, label: 'Гарах', route: 'logout', color: '#EF4444' },
+];
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -26,51 +45,19 @@ export default function ProfileScreen() {
     const { isCustomAuth, customUser, logout: customLogout } = useAuthStore();
     const isAuthenticated = useIsAuthenticated();
     const [refreshing, setRefreshing] = useState(false);
-    const { i18n } = useTranslation();
-    const lang = (i18n.language === 'mn' ? 'mn' : 'en') as 'mn' | 'en';
 
-    const isMonk = dbUser?.role === 'monk';
-
-    // Fetch bookings for stats (like parent dashboard)
     const { data: bookings } = useQuery({
         queryKey: ['profile-bookings', dbUser?._id],
         queryFn: async () => {
             if (!dbUser?._id) return [];
-            const param = isMonk ? `monkId=${dbUser._id}` : `userId=${dbUser._id}`;
-            const res = await api.get(`/bookings?${param}`);
+            const res = await api.get(`/bookings?userId=${dbUser._id}`);
             return res.data;
         },
         enabled: isAuthenticated && !!dbUser?._id,
     });
 
-    const acceptedCount = bookings?.filter((b: any) => ['confirmed', 'completed'].includes(b.status)).length || 0;
-    const isSpecial = (dbUser as any)?.isSpecial === true;
-    const rate = isSpecial ? 88800 : 40000;
-    const totalEarnings = acceptedCount * rate;
-
-    // Scroll Animation Value for Parallax
-    const scrollY = useSharedValue(0);
-
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            scrollY.value = event.contentOffset.y;
-        },
-    });
-
-    const headerAnimatedStyle = useAnimatedStyle(() => {
-        // When pulling down (negative scrollY), scale up and translate down slightly
-        // When scrolling up (positive scrollY), just return to normal 
-        const scale = interpolate(scrollY.value, [-100, 0, 100], [1.15, 1, 0.95], 'clamp');
-        const translateY = interpolate(scrollY.value, [-100, 0, 100], [-20, 0, 0], 'clamp');
-        return {
-            transform: [{ scale }, { translateY }],
-        };
-    });
-
     useEffect(() => {
-        if (isAuthenticated) {
-            fetchProfile();
-        }
+        if (isAuthenticated) fetchProfile();
     }, [isAuthenticated]);
 
     const onRefresh = async () => {
@@ -79,279 +66,238 @@ export default function ProfileScreen() {
         setRefreshing(false);
     };
 
-    const getName = () => {
-        const name = (dbUser as any)?.name;
-        if (name && typeof name === 'object') {
-            return name[lang] || name.en || name.mn || '';
-        }
-        const first = dbUser?.firstName || customUser?.firstName || clerkUser?.firstName || '';
-        const last = dbUser?.lastName || customUser?.lastName || clerkUser?.lastName || '';
-        return `${first} ${last}`.trim();
-    };
+    const totalBookings = bookings?.length || 0;
+    const completedBookings = bookings?.filter((b: any) =>
+        ['completed', 'confirmed'].includes(b.status)
+    ).length || 0;
+    const uniqueMonks = bookings
+        ? new Set(bookings.map((b: any) => b.monkId)).size
+        : 0;
 
-    const getTitle = () => {
-        const title = (dbUser as any)?.title;
-        if (title && typeof title === 'object') {
-            return title[lang] || title.en || title.mn || '';
-        }
-        return '';
-    };
-
-    const getPhone = () => dbUser?.phone || customUser?.phone || '';
-    const getEmail = () => dbUser?.email || customUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || '';
-
-    const formatDate = (dateStr: string) => {
-        try {
-            const d = new Date(dateStr);
-            return d.toLocaleDateString(lang === 'mn' ? 'mn-MN' : 'en-US', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
-        } catch { return dateStr; }
-    };
+    const displayName =
+        dbUser?.firstName || customUser?.firstName || clerkUser?.firstName || 'Зочин';
+    const email =
+        dbUser?.email || customUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || '';
+    const avatarUri =
+        (dbUser as any)?.image || dbUser?.avatar || clerkUser?.imageUrl || 'https://i.pravatar.cc/150?u=self';
 
     if (!isAuthenticated) {
         return (
-            <ScreenWrapper className="justify-center items-center px-6">
-                <View className="w-24 h-24 bg-earth-200 rounded-full items-center justify-center mb-6">
-                    <UserIcon size={48} color="#78716C" />
-                </View>
-                <Text className="text-3xl font-serif text-monk-primary font-bold mb-2">
-                    Welcome
-                </Text>
-                <Text className="text-monk-text text-center mb-8">
-                    Sign in to book sessions, manage your bookings, and more
-                </Text>
-
-                <Button
-                    title="Sign In"
-                    onPress={() => router.push('/(auth)/sign-in')}
-                    className="w-full mb-4"
-                />
-
-                <Button
-                    title="Create Account"
-                    variant="outline"
-                    onPress={() => router.push('/(auth)/sign-up')}
-                    className="w-full"
-                />
-            </ScreenWrapper>
+            <View style={styles.container}>
+                <SafeAreaView style={[styles.flex, styles.centerContent]} edges={['top']}>
+                    <View style={styles.guestAvatar}>
+                        <Text style={styles.guestAvatarText}>👤</Text>
+                    </View>
+                    <Text style={styles.guestTitle}>Нэвтрэх</Text>
+                    <Text style={styles.guestSubtitle}>
+                        Цаг захиалах, түүхээ харахын тулд нэвтэрнэ үү
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.signInButton}
+                        activeOpacity={0.8}
+                        onPress={() => router.push('/(auth)/sign-in')}
+                    >
+                        <Text style={styles.signInButtonText}>Нэвтрэх</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.signUpButton}
+                        activeOpacity={0.8}
+                        onPress={() => router.push('/(auth)/sign-up')}
+                    >
+                        <Text style={styles.signUpButtonText}>Бүртгүүлэх</Text>
+                    </TouchableOpacity>
+                </SafeAreaView>
+            </View>
         );
     }
 
+    const handleMenuPress = async (route: string | null) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (route === 'logout') {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            if (isCustomAuth) await customLogout();
+            if (isSignedIn) await signOut();
+            router.replace('/(auth)/sign-in');
+            return;
+        }
+        if (route) router.push(route as any);
+    };
+
     return (
-        <ScreenWrapper className="bg-[#FDFBF7]">
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <Animated.ScrollView
-                    className="flex-1"
-                    contentContainerStyle={{ paddingBottom: 120 }}
+        <View style={styles.container}>
+            <SafeAreaView style={styles.flex} edges={['top']}>
+                <ScrollView
+                    style={styles.flex}
+                    contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
-                    onScroll={scrollHandler}
-                    scrollEventThrottle={16}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing || isLoading} onRefresh={onRefresh} tintColor="#D4AF37" progressViewOffset={40} />
+                        <RefreshControl
+                            refreshing={refreshing || isLoading}
+                            onRefresh={onRefresh}
+                            tintColor="#E5B22D"
+                            colors={['#E5B22D']}
+                        />
                     }
                 >
-                    {/* Immersive Profile Header Card with Parallax */}
-                    <Animated.View style={[headerAnimatedStyle, { shadowColor: '#D4AF37', shadowRadius: 20, shadowOpacity: 0.1 }]} className="mx-4 mt-4 rounded-[40px] overflow-hidden bg-white/60 border border-white/80 p-6 shadow-lg backdrop-blur-2xl">
-                        <View className="absolute top-0 right-0 w-48 h-48 bg-[#D4AF37]/10 rounded-full blur-[40px] -mr-16 -mt-16" />
-                        <View className="absolute bottom-0 left-0 w-48 h-48 bg-[#FFF9E6]/80 rounded-full blur-[40px] -ml-20 -mb-20" />
-
-                        <View className="items-center z-10">
-                            <View className="relative shadow-xl rounded-full" style={{ shadowColor: '#D4AF37', shadowRadius: 25, shadowOpacity: 0.2 }}>
-                                <Image
-                                    source={{ uri: (dbUser as any)?.image || dbUser?.avatar || clerkUser?.imageUrl || 'https://via.placeholder.com/150' }}
-                                    style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#D4AF37' }}
-                                    contentFit="cover"
-                                    transition={500}
-                                />
-                                {isMonk && (
-                                    <View className="absolute bottom-0 right-0 bg-[#D4AF37] p-1.5 rounded-full border-2 border-white">
-                                        <Sparkles size={14} color="#FDFBF7" />
-                                    </View>
-                                )}
-                            </View>
-
-                            <Text className="text-3xl font-serif font-bold text-[#291E14] mt-5 tracking-tight shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.1, shadowRadius: 5 }}>
-                                {getName() || 'Seeker'}
-                            </Text>
-
-                            <View className={`mt-3 px-5 py-1.5 rounded-full border ${isMonk ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50' : 'bg-white/60 border-[#E8E0D5]'}`}>
-                                <Text className={`text-xs font-bold uppercase tracking-widest ${isMonk ? 'text-[#D4AF37]' : 'text-[#786851]'}`}>
-                                    {isMonk ? (getTitle() || (lang === 'mn' ? 'Лам' : 'Monk')) : (lang === 'mn' ? 'Эрхэм сүсэгтэн' : 'Seeker')}
-                                </Text>
-                            </View>
-
-                            {/* Contact Info */}
-                            <View className="mt-5 w-full flex-row justify-center items-center flex-wrap gap-x-4 gap-y-2">
-                                {getPhone() ? (
-                                    <View className="flex-row items-center">
-                                        <Phone size={12} color="#A89F91" />
-                                        <Text className="text-[#786851] ml-1.5 text-xs tracking-wider">{getPhone()}</Text>
-                                    </View>
-                                ) : null}
-                                {dbUser?.dateOfBirth ? (
-                                    <View className="flex-row items-center">
-                                        <Cake size={12} color="#A89F91" />
-                                        <Text className="text-[#786851] ml-1.5 text-xs tracking-wider">{formatDate(dbUser.dateOfBirth as string)}</Text>
-                                    </View>
-                                ) : null}
-                            </View>
-
-                            {/* Zodiac */}
-                            {dbUser?.zodiacYear && (
-                                <View className="flex-row items-center mt-3 bg-white/60 px-4 py-2 rounded-2xl border border-white/80 shadow-sm" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05 }}>
-                                    <ZodiacDisplay zodiacKey={dbUser.zodiacYear} size="small" />
-                                    <Text className="text-[#544636] ml-2 font-medium tracking-widest uppercase text-[10px]">
-                                        {getZodiacByKey(dbUser.zodiacYear)?.mn || getZodiacByKey(dbUser.zodiacYear)?.en}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {/* Edit Profile Button */}
-                            <Pressable
-                                onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    router.push('/edit-profile');
-                                }}
-                                className="mt-6 flex-row items-center justify-center bg-[#D4AF37] px-6 py-3 rounded-full w-full active:opacity-80 border-t border-white/30 shadow-lg"
-                                style={{ shadowColor: '#D4AF37', shadowRadius: 15, shadowOpacity: 0.3 }}
-                            >
-                                <Edit3 size={16} color="#FDFBF7" />
-                                <Text className="text-[#FDFBF7] font-bold tracking-widest uppercase text-xs ml-2">
-                                    {lang === 'mn' ? 'Профайл засах' : 'Edit Profile'}
-                                </Text>
-                            </Pressable>
+                    {/* ===== AVATAR SECTION ===== */}
+                    <View style={styles.avatarSection}>
+                        <View style={styles.avatarBorder}>
+                            <Image
+                                source={{ uri: avatarUri }}
+                                style={styles.avatarImage}
+                                contentFit="cover"
+                            />
                         </View>
-                    </Animated.View>
+                        <Text style={styles.profileName}>{displayName}</Text>
+                        <Text style={styles.profileEmail}>{email}</Text>
 
-                    {/* Stats Dashboard */}
-                    {dbUser && (
-                        <View className="mx-4 mt-4 flex-row justify-between gap-3">
-                            {isMonk ? (
-                                <>
-                                    <StatItem
-                                        icon={<TrendingUp size={18} color="#D4AF37" />}
-                                        value={`${totalEarnings.toLocaleString()}₮`}
-                                        label={lang === 'mn' ? 'Орлого' : 'Earnings'}
-                                    />
-                                    <StatItem
-                                        icon={<CheckCircle size={18} color="#D4AF37" />}
-                                        value={String(acceptedCount)}
-                                        label={lang === 'mn' ? 'Захиалга' : 'Bookings'}
-                                    />
-                                    <StatItem
-                                        icon={<Sparkles size={18} color="#D4AF37" />}
-                                        value={String(dbUser.karma || 0)}
-                                        label="Karma"
-                                    />
-                                </>
-                            ) : (
-                                <>
-                                    <StatItem
-                                        icon={<Sparkles size={18} color="#D4AF37" />}
-                                        value={String(dbUser.karma || 0)}
-                                        label="Karma"
-                                    />
-                                    <StatItem
-                                        icon={<Moon size={18} color="#291E14" />}
-                                        value={String(dbUser.meditationDays || 0)}
-                                        label={lang === 'mn' ? 'Хоног' : 'Days'}
-                                    />
-                                    <StatItem
-                                        icon={<Heart size={18} color="#291E14" />}
-                                        value={String(dbUser.totalMerits || 0)}
-                                        label={lang === 'mn' ? 'Буян' : 'Merits'}
-                                    />
-                                </>
-                            )}
-                        </View>
-                    )}
-
-                    {/* Navigation Menu */}
-                    <View className="mt-8 px-4">
-                        <Text className="text-[10px] font-bold tracking-[3px] text-[#A89F91] uppercase px-2 mb-3">
-                            {lang === 'mn' ? 'Миний бүртгэл' : 'Account Management'}
-                        </Text>
-                        <View className="bg-white/80 rounded-3xl border border-white/60 overflow-hidden shadow-sm backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
-                            <MenuItem icon={<Calendar size={18} color="#291E14" />} title={lang === 'mn' ? 'Миний захиалгууд' : 'My Bookings'} onPress={() => router.push('/my-bookings')} isFirst />
-                            <MenuItem icon={<Heart size={18} color="#291E14" />} title={lang === 'mn' ? 'Дуртай' : 'Favorites'} onPress={() => router.push('/favorites')} />
-                            <MenuItem icon={<Settings size={18} color="#291E14" />} title={lang === 'mn' ? 'Тохиргоо' : 'Settings'} onPress={() => router.push('/settings')} isLast />
+                        <View style={styles.premiumBadge}>
+                            <Sparkles size={14} color="#E5B22D" />
+                            <Text style={styles.premiumText}>Premium гишүүн</Text>
                         </View>
                     </View>
 
-                    {/* Language Settings */}
-                    <View className="mt-8 px-4">
-                        <Text className="text-[10px] font-bold tracking-[3px] text-[#A89F91] uppercase px-2 mb-3">
-                            {lang === 'mn' ? 'Хэл' : 'Language'}
-                        </Text>
-                        <View className="bg-white/80 rounded-3xl p-2 border border-white/60 shadow-sm flex-row backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
-                            {supportedLanguages.map((l: any) => (
-                                <Pressable
-                                    key={l.code}
-                                    onPress={() => {
-                                        Haptics.selectionAsync();
-                                        changeLanguage(l.code);
-                                    }}
-                                    className={`flex-1 py-4 rounded-2xl items-center ${i18n.language === l.code ? 'bg-[#FDFBF7] shadow-sm border-b-2 border-[#D4AF37]' : 'bg-transparent'}`}
+                    {/* ===== STATS CARD ===== */}
+                    <View style={styles.statsCard}>
+                        <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{totalBookings}</Text>
+                            <Text style={styles.statLabel}>Захиалга</Text>
+                        </View>
+                        <View style={styles.statDivider} />
+                        <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{completedBookings}</Text>
+                            <Text style={styles.statLabel}>Дууссан</Text>
+                        </View>
+                        <View style={styles.statDivider} />
+                        <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{uniqueMonks}</Text>
+                            <Text style={styles.statLabel}>Үзмэрч</Text>
+                        </View>
+                    </View>
+
+                    {/* ===== MENU OPTIONS ===== */}
+                    <View style={styles.menuCard}>
+                        {MENU_ITEMS.map((item, index) => {
+                            const Icon = item.icon;
+                            const isLast = index === MENU_ITEMS.length - 1;
+                            const isLogout = item.label === 'Гарах';
+
+                            return (
+                                <TouchableOpacity
+                                    key={item.label}
+                                    style={[
+                                        styles.menuItem,
+                                        !isLast && styles.menuItemBorder,
+                                    ]}
+                                    activeOpacity={0.6}
+                                    onPress={() => handleMenuPress(item.route)}
                                 >
-                                    <Text className={`font-bold tracking-widest uppercase text-[11px] ${i18n.language === l.code ? 'text-[#D4AF37]' : 'text-[#786851]'}`}>
-                                        {l.nativeName}
+                                    <Icon size={20} color={item.color} strokeWidth={1.8} />
+                                    <Text style={[
+                                        styles.menuLabel,
+                                        isLogout && styles.menuLabelLogout,
+                                    ]}>
+                                        {item.label}
                                     </Text>
-                                </Pressable>
-                            ))}
-                        </View>
+                                    <ChevronRight size={18} color="#CCCCCC" strokeWidth={1.5} />
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
-
-                    {/* Sign Out */}
-                    <View className="mt-10 px-4">
-                        <Pressable
-                            onPress={async () => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                                if (isCustomAuth) await customLogout();
-                                if (isSignedIn) await signOut();
-                                router.replace('/(auth)/sign-in');
-                            }}
-                            className="flex-row items-center justify-center bg-white rounded-full py-4 px-6 border border-red-100 shadow-md active:opacity-70"
-                        >
-                            <LogOut size={18} color="#EF4444" />
-                            <Text className="text-red-500 font-bold tracking-widest uppercase text-xs ml-3">
-                                {lang === 'mn' ? 'Гарах' : 'Sign Out'}
-                            </Text>
-                        </Pressable>
-                    </View>
-
-                </Animated.ScrollView>
+                </ScrollView>
             </SafeAreaView>
-        </ScreenWrapper>
-    );
-}
-
-function StatItem({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
-    return (
-        <View className="flex-1 items-center bg-white/80 p-4 rounded-3xl shadow-sm border border-white/60 backdrop-blur-md" style={{ shadowColor: '#D4AF37', shadowOpacity: 0.05, shadowRadius: 10 }}>
-            <View className="w-10 h-10 rounded-full bg-[#FFF9E6] items-center justify-center mb-2 border border-[#D4AF37]/10">
-                {icon}
-            </View>
-            <Text className="text-xl font-serif font-bold text-[#291E14] tracking-tight">{value}</Text>
-            <Text className="text-[9px] text-[#A89F91] uppercase tracking-[2px] mt-1 font-bold">{label}</Text>
         </View>
     );
 }
 
-function MenuItem({ icon, title, onPress, isFirst, isLast }: { icon: React.ReactNode, title: string, onPress: () => void, isFirst?: boolean, isLast?: boolean }) {
-    return (
-        <Pressable
-            onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onPress();
-            }}
-            className={`flex-row items-center bg-transparent px-5 py-5 active:bg-[#FDFBF7]/80 ${!isLast ? 'border-b border-[#E8E0D5]/50' : ''}`}
-        >
-            <View className="w-8 h-8 rounded-full bg-[#FFF9E6] items-center justify-center mr-4 border border-[#D4AF37]/10">
-                {icon}
-            </View>
-            <Text className="text-[#291E14] font-medium text-sm flex-1 tracking-wide">{title}</Text>
-            <ChevronRight size={18} color="#A89F91" opacity={0.5} />
-        </Pressable>
-    );
-}
+const CARD_SHADOW = {
+    shadowColor: '#000' as const,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+};
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#FFFDF4' },
+    flex: { flex: 1 },
+    scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
+    centerContent: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+
+    // Guest state
+    guestAvatar: {
+        width: 80, height: 80, borderRadius: 40,
+        backgroundColor: '#F0F0F0', alignItems: 'center',
+        justifyContent: 'center', marginBottom: 20,
+    },
+    guestAvatarText: { fontSize: 36 },
+    guestTitle: {
+        fontSize: 24, fontWeight: '700', color: '#333333', marginBottom: 8,
+    },
+    guestSubtitle: {
+        fontSize: 14, color: '#888888', textAlign: 'center',
+        marginBottom: 28, lineHeight: 22,
+    },
+    signInButton: {
+        backgroundColor: '#E5B22D', borderRadius: 20,
+        paddingVertical: 16, width: '100%',
+        alignItems: 'center', marginBottom: 12,
+    },
+    signInButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+    signUpButton: {
+        backgroundColor: '#FFFFFF', borderRadius: 20,
+        paddingVertical: 16, width: '100%',
+        alignItems: 'center', borderWidth: 1.5, borderColor: '#E5B22D',
+    },
+    signUpButtonText: { color: '#E5B22D', fontWeight: '700', fontSize: 16 },
+
+    // Avatar section
+    avatarSection: { alignItems: 'center', paddingTop: 32, marginBottom: 28 },
+    avatarBorder: {
+        width: 104, height: 104, borderRadius: 52,
+        borderWidth: 3, borderColor: '#E5B22D',
+        padding: 3, marginBottom: 16,
+    },
+    avatarImage: { width: '100%', height: '100%', borderRadius: 48 },
+    profileName: {
+        fontSize: 24, fontWeight: '700', color: '#333333', marginBottom: 4,
+    },
+    profileEmail: { fontSize: 14, color: '#888888', marginBottom: 16 },
+
+    premiumBadge: {
+        flexDirection: 'row', alignItems: 'center',
+        borderWidth: 1.5, borderColor: '#E5B22D',
+        borderRadius: 30, paddingHorizontal: 16, paddingVertical: 8, gap: 8,
+    },
+    premiumText: { fontSize: 13, fontWeight: '600', color: '#E5B22D' },
+
+    // Stats
+    statsCard: {
+        flexDirection: 'row', backgroundColor: '#FFFFFF',
+        borderRadius: 20, padding: 20,
+        marginBottom: 20, alignItems: 'center',
+        ...CARD_SHADOW,
+    },
+    statItem: { flex: 1, alignItems: 'center' },
+    statNumber: {
+        fontSize: 24, fontWeight: '800', color: '#E5B22D', marginBottom: 4,
+    },
+    statLabel: { fontSize: 12, color: '#888888', fontWeight: '500' },
+    statDivider: { width: 1, height: 36, backgroundColor: '#F0F0F0' },
+
+    // Menu
+    menuCard: {
+        backgroundColor: '#FFFFFF', borderRadius: 20,
+        overflow: 'hidden', ...CARD_SHADOW,
+    },
+    menuItem: {
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 20, paddingVertical: 18,
+    },
+    menuItemBorder: { borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+    menuLabel: {
+        flex: 1, fontSize: 15, fontWeight: '500',
+        color: '#333333', marginLeft: 16,
+    },
+    menuLabelLogout: { color: '#EF4444' },
+});
