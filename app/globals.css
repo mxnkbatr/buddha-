@@ -1,32 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  /* Core Palette - Zen/Simple */
+  /* Core Palette - Divine Radiance (Bright) */
   --color-primary: #D97706;
   /* Amber 600 - Warm spiritual gold */
   --color-primary-light: #FEF3C7;
   /* Amber 100 - Soft highlight */
-  --color-secondary: #78716C;
-  /* Stone 500 - Earthy balance */
+  --color-secondary: #B45309;
+  /* Amber 700 - Deep accent */
 
-  /* Backgrounds */
-  --color-background: #FAFAF9;
-  /* Stone 50 - Warm white/paper */
+  /* Backgrounds (Bright & Warm) */
+  --color-background: #FDFBF7;
+  /* Warm cream/ivory */
   --color-surface: #FFFFFF;
   /* Pure white for cards */
-  --color-surface-alt: #F5F5F4;
-  /* Stone 100 - Alternate sections */
+  --color-surface-alt: #F8F5EE;
+  /* Slightly darker cream for sections */
 
-  /* Text */
-  --color-text-main: #292524;
-  /* Stone 800 - Soft Black */
-  --color-text-muted: #57534E;
-  /* Stone 600 - Readable grey */
-  --color-text-inverse: #FFFFFF;
+  /* Text (High contrast on light backgrounds) */
+  --color-text-main: #291E14;
+  /* Deep warm brown/slate */
+  --color-text-muted: #786851;
+  /* Medium warm grey */
+  --color-text-inverse: #FDFBF7;
+  /* Cream */
 
   /* UI Accents */
-  --color-border: #E7E5E4;
-  /* Stone 200 */
+  --color-border: #E8E0D5;
+  /* Soft warm border */
   --radius-lg: 1.5rem;
   /* Rounder corners for friendliness */
   --radius-md: 1rem;
@@ -89,21 +90,24 @@ body {
   overflow-x: hidden;
 }
 
-/* Zen Card Utility */
+/* Zen Card Utility (Bright & Warm) */
 .zen-card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px -3px rgba(217, 119, 6, 0.08);
+  /* Soft warm shadow */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .zen-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border-color: rgba(217, 119, 6, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.12);
+  /* Larger warm shadow */
 }
 
-/* Zen Button Utility */
+/* Zen Button Utility (Bright Warm) */
 .zen-button {
   display: inline-flex;
   align-items: center;
@@ -111,29 +115,33 @@ body {
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
   font-weight: 700;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .zen-button-primary {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
-  box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.2);
+  box-shadow: 0 4px 10px -1px rgba(217, 119, 6, 0.25);
+  /* Warm shadow */
 }
 
 .zen-button-primary:hover {
   filter: brightness(110%);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px -2px rgba(217, 119, 6, 0.4);
 }
 
 .zen-button-secondary {
   background-color: var(--color-surface);
   color: var(--color-text-main);
   border: 1px solid var(--color-border);
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.02);
 }
 
 .zen-button-secondary:hover {
   background-color: var(--color-surface-alt);
+  border-color: rgba(217, 119, 6, 0.3);
 }
 
 /* Safari Performance Optimizations */
