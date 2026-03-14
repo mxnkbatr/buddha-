@@ -11,7 +11,6 @@ import {
     Sparkles, Star, User, ArrowRight, Hourglass, Shield, Info, ChevronDown, Phone
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import OverlayNavbar from "../../../components/Navbar";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { Monk } from "@/database/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -363,7 +362,6 @@ export default function RitualBookingPage() {
 
     return (
         <div className={`min-h-screen font-ethereal relative overflow-x-hidden ${theme.bg} transition-colors duration-700`}>
-            <OverlayNavbar />
             <CosmicBackground isNight={isNight} />
 
             <main className="relative z-10 container mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-24">

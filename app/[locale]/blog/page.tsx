@@ -1,6 +1,5 @@
 import React, { cache } from "react";
 import { connectToDatabase } from "@/database/db";
-import OverlayNavbar from "@/app/components/Navbar";
 import BlogListClient from "../../components/BlogListClient";
 
 // --- DATA FETCHING (SERVER SIDE + CACHED) ---
@@ -34,9 +33,6 @@ export default async function BlogPage() {
     const posts = await getBlogs();
 
     return (
-        <>
-            <OverlayNavbar />
-            <BlogListClient initialPosts={posts} />
-        </>
+        <BlogListClient initialPosts={posts} />
     );
 }

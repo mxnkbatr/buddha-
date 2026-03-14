@@ -18,7 +18,11 @@ const DivineButton = dynamic(() => import("../components/DivineButton")); // Usi
 const getMonks = cache(async () => {
   try {
     const { db } = await connectToDatabase();
-    const monks = await db.collection("users").find({ role: "monk" }).toArray() as unknown as Monk[];
+    // Only fetch monks meant for the homepage
+    const monks = await db.collection("users").find({ 
+      role: "monk", 
+      showOnHomepage: true 
+    }).toArray() as unknown as Monk[];
 
     // Serialize for client component
     const serialized = monks.map(monk => ({
@@ -26,8 +30,16 @@ const getMonks = cache(async () => {
       _id: monk._id?.toString() ?? ""
     }));
 
-    // Sort: Special monks first
+    // Sort: Priority by monkNumber, then isSpecial
     return serialized.sort((a, b) => {
+      // If monkNumber exists, use it for explicit ordering
+      if (a.monkNumber !== undefined && b.monkNumber !== undefined) {
+        return a.monkNumber - b.monkNumber;
+      }
+      if (a.monkNumber !== undefined) return -1;
+      if (b.monkNumber !== undefined) return 1;
+
+      // Fallback to isSpecial
       if (a.isSpecial && !b.isSpecial) return -1;
       if (!a.isSpecial && b.isSpecial) return 1;
       return 0;
@@ -41,7 +53,7 @@ const getMonks = cache(async () => {
 export default async function Home() {
   const allMonks = await getMonks();
 
-  // Show only first 5 monks on home page
+  // Show only featured monks on home page (up to 5)
   const featuredMonks = allMonks.slice(0, 5);
   const isDark = false
   return (

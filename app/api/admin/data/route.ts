@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
-import { currentUser } from "@clerk/nextjs/server"; // Server-side auth check
+import { getAdminUserFromRequest } from "@/lib/admin-utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
-    const user = await currentUser();
+    const adminUser = await getAdminUserFromRequest(request);
 
     // SERVER-SIDE SECURITY CHECK
-    if (!user || user.publicMetadata.role !== 'admin') {
+    if (!adminUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
@@ -19,13 +19,43 @@ export async function GET(request: Request) {
     const users = await db.collection("users").find({}).toArray();
 
     // 2. Fetch All Bookings
-    const bookings = await db.collection("bookings")
+    const rawBookings = await db.collection("bookings")
       .find({})
       .sort({ createdAt: -1 })
       .toArray();
 
     // 3. Fetch Standard Services
     const standardServices = await db.collection("services").find({}).toArray();
+
+    // Map bookings to include monkName and serviceName
+    const bookings = rawBookings.map((b: any) => {
+      let monkName = b.monkName || null;
+      if (!monkName && b.monkId) {
+        const monk = users.find((u: any) => u._id.toString() === b.monkId);
+        if (monk) monkName = monk.name;
+      }
+
+      let serviceName = b.serviceName || null;
+      if (!serviceName && b.serviceId) {
+        // Try standard services first
+        const sSvc = standardServices.find((s: any) => s._id.toString() === b.serviceId || s.id === b.serviceId);
+        if (sSvc) {
+          serviceName = sSvc.name || sSvc.title;
+        } else if (monkName) {
+          // If it's a monk-specific service, try to find it in the monk's services array
+          const monk = users.find((u: any) => u._id.toString() === b.monkId);
+          const mSvc = monk?.services?.find((s: any) => s.id === b.serviceId || s._id === b.serviceId);
+          if (mSvc) serviceName = mSvc.name || mSvc.title;
+        }
+      }
+
+      return {
+        ...b,
+        monkName,
+        serviceName
+      };
+    });
+
 
     // 4. Extract Monk Services (for approval)
     // We use a Map to deduplicate services by their ID

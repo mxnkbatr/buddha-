@@ -50,6 +50,9 @@ const getMonksHandler = asyncHandler(async (request: Request) => {
             karma: 1,
             totalMerits: 1,
             earnings: 1,
+            showOnHomepage: 1,
+            monkNumber: 1,
+            video: 1,
             // bio: 0, // Exclude large bio from list if possible, or keep if small
             // schedule: 0, // Exclude full schedule from list
           }

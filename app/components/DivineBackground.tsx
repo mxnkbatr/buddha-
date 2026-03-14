@@ -1,9 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 export default function DivineBackground() {
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Rotating 'God Rays'
     const rays = Array.from({ length: 12 });
 
@@ -27,8 +33,8 @@ export default function DivineBackground() {
                 ))}
             </motion.div>
 
-            {/* Floating Particles (Dust/Stars) */}
-            {Array.from({ length: 20 }).map((_, i) => (
+            {/* Floating Particles (Dust/Stars) - Only render on client to avoid hydration mismatch */}
+            {mounted && Array.from({ length: 20 }).map((_, i) => (
                 <motion.div
                     key={i}
                     initial={{
@@ -55,3 +61,4 @@ export default function DivineBackground() {
         </div>
     );
 }
+

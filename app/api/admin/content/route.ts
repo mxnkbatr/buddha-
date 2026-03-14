@@ -1,31 +1,17 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { connectToDatabase } from "@/database/db";
-import { ObjectId } from "mongodb"; // Ensure ObjectId is imported
+import { getAdminUserFromRequest } from "@/lib/admin-utils";
 
-async function checkPermission() {
-    const user = await currentUser();
-    if (!user) throw new Error("Unauthorized");
-
-    // Allow Admins OR Special Monks
-    const { db } = await connectToDatabase();
-    const dbUser = await db.collection("users").findOne({ clerkId: user.id });
-
-    if (!dbUser) throw new Error("User not found");
-
-    const isSpecialMonk = dbUser.role === 'monk' && dbUser.isSpecial === true;
-    const isAdmin = dbUser.role === 'admin';
-
-    if (!isSpecialMonk && !isAdmin) {
-        throw new Error("Unauthorized: Special Monk status required");
+async function checkPermission(request?: Request) {
+    const adminUserResult = await getAdminUserFromRequest(request);
+    if (adminUserResult && adminUserResult.user) {
+        return { user: adminUserResult.user, db: adminUserResult.db };
     }
-
-    return { user: dbUser, db };
+    throw new Error("Unauthorized");
 }
 
 export async function POST(req: Request) {
     try {
-        const { user, db } = await checkPermission();
+        const { user, db } = await checkPermission(req);
         const body = await req.json();
         const { type, ...data } = body;
 
@@ -71,7 +57,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     try {
-        const { user, db } = await checkPermission();
+        const { user, db } = await checkPermission(req);
         const body = await req.json();
         const { id, type, ...data } = body;
 
@@ -122,7 +108,7 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
     try {
-        const { user, db } = await checkPermission();
+        const { user, db } = await checkPermission(req);
         const { id, type } = await req.json();
 
         // Map type to collection name

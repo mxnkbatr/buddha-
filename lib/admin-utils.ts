@@ -1,5 +1,87 @@
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
+import { currentUser, verifyToken } from "@clerk/nextjs/server";
+import { jwtVerify } from "jose";
+
+/**
+ * Enhanced Admin Authenticator supporting Clerk Cookie, Custom JWT (Bearer), and Clerk Token (Bearer).
+ */
+export async function getAdminUserFromRequest(request?: Request) {
+  const { db } = await connectToDatabase();
+
+  // 1. Try Clerk session (browser cookie)
+  try {
+    const clerkUser = await currentUser();
+    if (clerkUser) {
+      const dbUser = await db.collection("users").findOne({
+        $or: [
+          { clerkId: clerkUser.id },
+          { email: clerkUser.emailAddresses?.[0]?.emailAddress }
+        ]
+      });
+      if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
+        return { user: dbUser, db, isClerk: true };
+      }
+    }
+  } catch (e) { /* Clerk not available */ }
+
+  // 2. Try Bearer token (mobile)
+  const authHeader = request?.headers.get("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+  if (bearerToken) {
+    const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+
+    // 2a. Try Jose (Custom JWT)
+    try {
+      const { payload } = await jwtVerify(bearerToken, new TextEncoder().encode(JWT_SECRET));
+      const dbUser = await db.collection("users").findOne({ _id: new ObjectId(payload.sub as string) });
+      if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
+        return { user: dbUser, db, isClerk: false };
+      }
+    } catch (e) {
+      // 2b. Try Clerk VerifyToken
+      try {
+        const payload = await verifyToken(bearerToken, {
+          secretKey: process.env.CLERK_SECRET_KEY,
+        });
+        if (payload && payload.sub) {
+          const dbUser = await db.collection("users").findOne({ clerkId: payload.sub });
+          if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
+            return { user: dbUser, db, isClerk: true };
+          }
+        }
+      } catch (clerkErr) {
+        /* Invalid Clerk token */
+      }
+    }
+  }
+
+  // 3. Fallback: Try userId query parameter (mobile app sends this)
+  if (request) {
+    try {
+      const url = new URL(request.url);
+      const userId = url.searchParams.get("userId");
+      if (userId) {
+        // Verify the userId corresponds to an admin user in DB
+        let dbUser = null;
+        try {
+          dbUser = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+        } catch {
+          // userId might not be a valid ObjectId, try as clerkId
+          dbUser = await db.collection("users").findOne({ clerkId: userId });
+        }
+        if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
+          return { user: dbUser, db, isClerk: false };
+        }
+      }
+    } catch (e) {
+      console.error("userId query param fallback failed:", e);
+    }
+  }
+
+  return null;
+}
 
 /**
  * Utility functions for admin operations with rollback capabilities
@@ -95,7 +177,7 @@ export async function executeAdminOperation(
 
       // Check if operation was successful
       if ((op.operation === 'update' && result.matchedCount === 0) ||
-          (op.operation === 'delete' && result.deletedCount === 0)) {
+        (op.operation === 'delete' && result.deletedCount === 0)) {
         throw new Error(`Operation failed: ${op.operation} on ${op.collection} matched no documents`);
       }
     }

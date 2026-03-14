@@ -12,7 +12,6 @@ import {
     ArrowLeft, Calendar, Clock, CheckCircle2, Loader2, Sparkles,
     ArrowRight, Stars, User, Mail, PenTool, Info, Shield, Hourglass, CreditCard, ChevronDown, LayoutGrid, Phone
 } from "lucide-react";
-import OverlayNavbar from "../../../components/Navbar";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { Monk } from "@/database/types";
 import { useTheme } from "next-themes";
@@ -356,7 +355,6 @@ export default function MonkProfileClient() {
 
     return (
         <div className={`min-h-screen font-ethereal relative overflow-x-hidden ${isNight ? 'bg-[#020617]' : 'bg-[#FDFBF7]'}`}>
-            <OverlayNavbar />
             <CosmicBackground isNight={isNight} />
 
             <main className="relative z-10 container mx-auto px-6 pt-24 md:pt-32 pb-24">

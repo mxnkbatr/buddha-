@@ -104,7 +104,13 @@ export default function MajesticTarotSection() {
     async function fetchMonks() {
       try {
         const res = await fetch('/api/monks');
-        const data: Monk[] = await res.json();
+        const allMonks: Monk[] = await res.json();
+        
+        // --- FILTER FOR HOMEPAGE ONLY ---
+        // If the admin selected any, show only those.
+        // Otherwise, fall back to top 3 by monkNumber for initial setup.
+        const selectedMonks = allMonks.filter(m => m.showOnHomepage === true);
+        const data = selectedMonks.length > 0 ? selectedMonks : allMonks;
 
         let processedMonks: MonkData[] = [];
 

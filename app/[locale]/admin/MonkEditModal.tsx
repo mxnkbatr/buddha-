@@ -170,6 +170,20 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
                   </div>
                 </div>
 
+                <div className="col-span-full flex items-center gap-3 p-4 rounded-xl border border-blue-500/20 bg-blue-500/5">
+                  <input
+                    type="checkbox"
+                    id="showOnHomepage"
+                    checked={formData.showOnHomepage || false}
+                    onChange={(e) => handleChange("showOnHomepage", e.target.checked)}
+                    className="w-5 h-5 accent-blue-500"
+                  />
+                  <div>
+                    <label htmlFor="showOnHomepage" className="font-bold text-sm text-blue-800 dark:text-blue-200 cursor-pointer select-none">Нүүр хуудсанд харуулах (Show on Homepage)</label>
+                    <p className="text-xs opacity-60">Идэвхжүүлвэл нүүр хуудсан дээрх лам нарын хэсэгт харагдана.</p>
+                  </div>
+                </div>
+
                 <div className="col-span-full">
                   <InputGroup label="Утас (Phone)" value={formData.phone} onChange={(v: string) => handleChange("phone", v)} />
                 </div>

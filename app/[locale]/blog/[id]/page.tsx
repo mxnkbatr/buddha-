@@ -3,7 +3,6 @@ import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User, Clock, Sparkles, BookOpen, Feather } from "lucide-react";
-import OverlayNavbar from "@/app/components/Navbar";
 
 // Force dynamic rendering since we are fetching data based on params that change
 export const dynamic = 'force-dynamic';
@@ -77,8 +76,6 @@ export default async function BlogDetailPage(props: { params: Promise<{ id: stri
                 {/* Grain Texture */}
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
             </div>
-
-            <OverlayNavbar />
 
             <main className="pt-32 pb-20 relative z-10">
                 <article className="max-w-4xl mx-auto px-6">

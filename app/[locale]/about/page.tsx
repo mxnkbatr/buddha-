@@ -15,7 +15,6 @@ import {
   ArrowRight,
   Orbit
 } from "lucide-react";
-import OverlayNavbar from "../../components/Navbar";
 import { useLanguage } from "../../contexts/LanguageContext";
 import OptimizedVideo from "../../components/OptimizedVideo";
 
@@ -133,7 +132,6 @@ export default function AboutPage() {
       ref={containerRef}
       className={`relative min-h-screen ${theme.bg} ${theme.text} transition-colors duration-1000 overflow-x-hidden font-sans`}
     >
-      <OverlayNavbar />
       <GrainOverlay />
 
       {/* Top Scroll Indicator */}

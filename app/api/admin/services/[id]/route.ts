@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
-import { auth } from "@clerk/nextjs/server";
 import { logSuccess, logFailure, createOperationContext } from "@/lib/admin-logger";
-import { validateServiceData, checkDataConsistency } from "@/lib/admin-utils";
+import { validateServiceData, checkDataConsistency, getAdminUserFromRequest } from "@/lib/admin-utils";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-// HELPER: Check Admin
-async function isUserAdmin() {
-  const { userId } = await auth();
-  if (!userId) return false;
-  // In a real app, verify role against DB or Clerk metadata
-  // For now, assuming middleware or other checks handled it, 
-  // but explicitly we should check.
-  // Since we don't have the user object here easily without fetching, 
-  // we'll assume the caller (Admin Page) is secure, but normally we'd verify.
-  return true;
-}
 
 export async function DELETE(request: Request, props: Props) {
   try {
@@ -27,7 +14,8 @@ export async function DELETE(request: Request, props: Props) {
     const { id } = params;
 
     // 1. Check Admin Auth
-    if (!await isUserAdmin()) {
+    const adminUserResult = await getAdminUserFromRequest(request);
+    if (!adminUserResult) {
       return NextResponse.json({
         success: false,
         message: "Unauthorized - Admin access required",
@@ -192,10 +180,11 @@ export async function PATCH(request: Request, props: Props) {
     }
 
     // 2. Check Admin Auth
-    user = await auth();
-    if (!await isUserAdmin()) {
+    const adminUserResult = await getAdminUserFromRequest(request);
+    user = adminUserResult?.user;
+    if (!adminUserResult) {
       logFailure(
-        createOperationContext("Service Management", user?.userId || undefined, id, "service"),
+        createOperationContext("Service Management", user?.clerkId || undefined, id, "service"),
         `Unauthorized ${action} attempt`,
         "INSUFFICIENT_PERMISSIONS"
       );
@@ -207,7 +196,7 @@ export async function PATCH(request: Request, props: Props) {
     }
 
     // Create operation context for logging
-    operationContext = createOperationContext("Service Management", user?.userId || undefined, id, "service");
+    operationContext = createOperationContext("Service Management", user?.clerkId || undefined, id, "service");
 
     const newStatus = action === 'approve' ? 'active' : 'rejected';
 
@@ -256,7 +245,7 @@ export async function PATCH(request: Request, props: Props) {
           modifiedCount: monkServiceResult.modifiedCount
         };
       }
-      } catch (monkUpdateError: any) {
+    } catch (monkUpdateError: any) {
       console.error("Monk service update failed:", monkUpdateError);
       return NextResponse.json({
         success: false,
@@ -331,22 +320,22 @@ export async function PATCH(request: Request, props: Props) {
       }
     });
 
-    } catch (error: any) {
-      console.error("Service Approval Error:", error);
-      if (operationContext) {
-        logFailure(
-          operationContext,
-          `${action || 'unknown'} service`,
-          error.message
-        );
-      }
-      return NextResponse.json({
-        success: false,
-        message: "Internal server error during service approval",
-        error: "INTERNAL_SERVER_ERROR",
-        details: error.message
-      }, { status: 500 });
+  } catch (error: any) {
+    console.error("Service Approval Error:", error);
+    if (operationContext) {
+      logFailure(
+        operationContext,
+        `${action || 'unknown'} service`,
+        error.message
+      );
     }
+    return NextResponse.json({
+      success: false,
+      message: "Internal server error during service approval",
+      error: "INTERNAL_SERVER_ERROR",
+      details: error.message
+    }, { status: 500 });
+  }
 }
 
 export async function PUT(request: Request, props: Props) {
@@ -356,8 +345,9 @@ export async function PUT(request: Request, props: Props) {
 
   try {
     // 1. Check Admin Auth
-    user = await auth();
-    if (!await isUserAdmin()) {
+    const adminUserResult = await getAdminUserFromRequest(request);
+    user = adminUserResult?.user;
+    if (!adminUserResult) {
       return NextResponse.json({
         success: false,
         message: "Unauthorized - Admin access required",
@@ -392,7 +382,7 @@ export async function PUT(request: Request, props: Props) {
     const validation = validateServiceData(body);
     if (!validation.valid) {
       logFailure(
-        createOperationContext("Service Management", user?.userId, id, "service"),
+        createOperationContext("Service Management", user?.clerkId, id, "service"),
         "update service validation failed",
         validation.errors.join(", ")
       );
@@ -410,7 +400,7 @@ export async function PUT(request: Request, props: Props) {
       console.warn("Data consistency warnings:", consistency.warnings);
       // Log warnings but don't block the operation
       logSuccess(
-        createOperationContext("Service Management", user?.userId, id, "service"),
+        createOperationContext("Service Management", user?.clerkId, id, "service"),
         "update service consistency check",
         { warnings: consistency.warnings }
       );
@@ -455,7 +445,7 @@ export async function PUT(request: Request, props: Props) {
       standardServiceResult = await db.collection("services").updateOne(serviceQuery, {
         $set: updateData
       });
-      } catch (standardUpdateError: any) {
+    } catch (standardUpdateError: any) {
       console.error("Standard service update failed:", standardUpdateError);
       return NextResponse.json({
         success: false,
@@ -482,7 +472,7 @@ export async function PUT(request: Request, props: Props) {
         { "services.id": id },
         { $set: monkUpdateFields }
       );
-      } catch (monkUpdateError: any) {
+    } catch (monkUpdateError: any) {
       console.error("Monk service update failed:", monkUpdateError);
       return NextResponse.json({
         success: false,

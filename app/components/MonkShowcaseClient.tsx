@@ -11,10 +11,11 @@ import {
     AnimatePresence,
     useReducedMotion
 } from "framer-motion";
-import { ArrowUpRight, Sparkles, Calendar } from "lucide-react";
+import { ArrowUpRight, Sparkles, Calendar, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { useLanguage } from "../contexts/LanguageContext";
 import { Monk } from "@/database/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- VISUAL EFFECTS ---
 interface Particle { id: number; x: number; duration: number; delay: number; left: number; }
@@ -213,11 +214,26 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
                             </div>
                             <div className="flex justify-center mb-4"><div className={`h-[3px] w-20 rounded-full ${isDark ? 'bg-cyan-400' : 'bg-amber-600'}`} /></div>
                             <p className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${isDark ? "text-cyan-100" : "text-amber-900"}`}>{monk.title?.[lang] || "Master of Fate"}</p>
-                            <div className={`pointer-events-auto inline-flex items-center gap-4 px-8 py-4 rounded-2xl shadow-2xl relative overflow-hidden ${isDark ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white" : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"}`}>
-                                <motion.div animate={{ x: ["-100%", "200%"] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
-                                <span className="block text-[10px] font-black uppercase tracking-widest opacity-90 relative z-10">{t({ mn: "Цаг Захиалах", en: "Book Session" })}</span>
-                                <div className="h-6 w-[1px] bg-white/30 relative z-10" />
-                                <ArrowUpRight size={20} strokeWidth={2.5} className="relative z-10" />
+                            <div className="flex flex-col gap-3">
+                                <Link 
+                                    href={`/booking/${monk._id}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`pointer-events-auto inline-flex items-center justify-center gap-4 px-8 py-3.5 rounded-2xl shadow-2xl relative overflow-hidden transition-transform active:scale-95 ${isDark ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white" : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"}`}
+                                >
+                                    <motion.div animate={{ x: ["-100%", "200%"] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
+                                    <span className="block text-[10px] font-black uppercase tracking-widest opacity-90 relative z-10">{t({ mn: "Цаг Захиалах", en: "Book Session" })}</span>
+                                    <div className="h-6 w-[1px] bg-white/30 relative z-10" />
+                                    <ArrowUpRight size={20} strokeWidth={2.5} className="relative z-10" />
+                                </Link>
+
+                                <Link 
+                                    href={`/messenger?monkId=${monk._id}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`pointer-events-auto inline-flex items-center justify-center gap-4 px-8 py-3 rounded-2xl border backdrop-blur-xl transition-all active:scale-95 ${isDark ? "bg-white/5 border-cyan-500/30 text-cyan-200" : "bg-white/40 border-amber-900/10 text-amber-900"}`}
+                                >
+                                    <MessageCircle size={18} className={isDark ? "text-cyan-400" : "text-amber-600"} />
+                                    <span className="block text-[10px] font-black uppercase tracking-widest opacity-90">{t({ mn: "Чатлах", en: "Chat" })}</span>
+                                </Link>
                             </div>
                         </div>
                     </div>

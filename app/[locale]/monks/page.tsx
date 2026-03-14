@@ -2,7 +2,6 @@ import React, { cache } from "react";
 import { connectToDatabase } from "@/database/db";
 import { Monk } from "@/database/types";
 import MonkShowcaseClient from "../../components/MonkShowcaseClient";
-import OverlayNavbar from "../../components/Navbar";
 
 // --- DATA FETCHING (SERVER SIDE + CACHED) ---
 const getMonks = cache(async () => {
@@ -32,9 +31,6 @@ export default async function DivineTarotShowcase() {
   const monks = await getMonks();
 
   return (
-    <>
-      <OverlayNavbar />
-      <MonkShowcaseClient initialMonks={monks} />
-    </>
+    <MonkShowcaseClient initialMonks={monks} />
   );
 }

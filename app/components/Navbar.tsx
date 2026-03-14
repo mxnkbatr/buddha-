@@ -13,7 +13,8 @@ import {
   LogIn,
   UserCircle,
   LogOut,
-  Feather
+  Feather,
+  MessageSquare
 } from "lucide-react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -28,6 +29,7 @@ const CONTENT = {
   login: { mn: "Нэвтрэх", en: "Sign In" },
   register: { mn: "Бүртгүүлэх", en: "Register" },
   dashboard: { mn: "Самбар", en: "Panel" },
+  messenger: { mn: "Мессенжер", en: "Messenger" },
 };
 
 export default function OverlayNavbar() {
@@ -42,12 +44,7 @@ export default function OverlayNavbar() {
 
   useEffect(() => setMounted(true), []);
 
-  // Throttle scroll updates to 60fps (16ms) to reduce layout thrashing
-  const scrollThrottleRef = useRef<number>(0);
   useMotionValueEvent(scrollY, "change", (latest) => {
-    const now = Date.now();
-    if (now - scrollThrottleRef.current < 16) return;
-    scrollThrottleRef.current = now;
     setIsScrolled(latest > 20);
   });
 
@@ -73,6 +70,7 @@ export default function OverlayNavbar() {
     { name: { mn: "Нүүр", en: "Home" }, href: "/" },
     { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
     { name: { mn: "Блог", en: "Blog" }, href: "/blog" },
+    { name: { mn: "Мессенжер", en: "Messenger" }, href: "/messenger", auth: true },
     { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
   ];
 
@@ -80,9 +78,15 @@ export default function OverlayNavbar() {
     { id: "home", icon: Home, href: "/", label: { mn: "Нүүр", en: "Home" } },
     { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
     { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog" } },
-    { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" } },
+    { id: "messenger", icon: MessageSquare, href: "/messenger", label: { mn: "Мессенжер", en: "Messenger" }, auth: true },
+    { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" }, auth: true },
     { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
   ];
+
+  const getIsActive = (href: string) => {
+    const itemPath = href === '/' ? `/${lang}` : `/${lang}${href}`;
+    return pathname === itemPath || (href !== '/' && pathname.startsWith(itemPath));
+  };
 
   const LocalizedLink = ({ href, children, ...props }: any) => {
     const path = href === '/' ? `/${lang}` : `/${lang}${href}`;
@@ -134,9 +138,8 @@ export default function OverlayNavbar() {
           </LocalizedLink>
 
           <div className="flex items-center gap-1 bg-surface-alt/50 p-1 rounded-full border border-white/50">
-            {desktopNav.map((item) => {
-              const itemPath = item.href === '/' ? `/${lang}` : `/${lang}${item.href}`;
-              const isActive = pathname === itemPath || (item.href !== '/' && pathname.startsWith(itemPath));
+            {desktopNav.filter(item => !item.auth || user).map((item) => {
+              const isActive = getIsActive(item.href);
               return (
                 <LocalizedLink
                   key={item.href}
@@ -222,10 +225,9 @@ export default function OverlayNavbar() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none"
           style={{ paddingBottom: safeArea.bottom > 0 ? safeArea.bottom + 8 : 24 }}
         >
-          <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[360px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl">
-            {mobileNav.filter(item => user ? true : item.id !== 'dashboard').map((item) => {
-              const itemPath = item.href === '/' ? `/${lang}` : `/${lang}${item.href}`;
-              const isActive = pathname === itemPath || (item.href !== '/' && pathname.startsWith(itemPath));
+          <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[400px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl overflow-x-auto scrollbar-hide">
+            {mobileNav.filter(item => !item.auth || user).map((item) => {
+              const isActive = getIsActive(item.href);
 
               const handleTap = async () => {
                 if (isNative) {
@@ -237,7 +239,7 @@ export default function OverlayNavbar() {
                 <LocalizedLink
                   key={item.id}
                   href={item.href}
-                  className="flex-1 flex flex-col items-center justify-center py-3 relative group"
+                  className="flex-1 flex flex-col items-center justify-center py-3 relative group min-w-[60px]"
                   onClick={handleTap}
                 >
                   {isActive && (
@@ -247,9 +249,7 @@ export default function OverlayNavbar() {
                     />
                   )}
                   <div className={`transition-all duration-300 ${isActive ? "text-primary scale-110" : "text-text-muted scale-100"}`}>
-                    {user && item.id === 'dashboard' ? <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} /> :
-                      !user && item.id === 'dashboard' ? <LogIn size={22} /> :
-                        <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />}
+                    <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                 </LocalizedLink>
               );

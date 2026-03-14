@@ -10,7 +10,6 @@ import {
   Loader2, UserCog, ScrollText, TrendingUp, Check, X,
   FileText, Clock, Edit, Plus, RefreshCw, LogOut, Eye
 } from "lucide-react";
-import OverlayNavbar from "../../components/Navbar";
 import { useTheme } from "next-themes";
 import BookingDetailModal from "./BookingDetailModal";
 import MonkEditModal from "./MonkEditModal";
@@ -403,8 +402,6 @@ export default function AdminDashboard() {
 
   return (
     <div className={`min-h-screen font-sans ${isDark ? "bg-[#05051a] text-white" : "bg-[#FDFBF7] text-[#451a03]"}`}>
-      <OverlayNavbar />
-
       <main className="container mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-20">
 
         {/* HEADER */}
@@ -663,8 +660,9 @@ export default function AdminDashboard() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-black text-sm truncate">{u.name?.mn || u.name?.en || u.phone || "Нэргүй"}</h4>
-                        {u.monkStatus === 'active' && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Лам</span>}
+                        {(u.role === 'monk' || u.monkStatus === 'active') && <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Лам</span>}
                         {u.role === 'admin' && <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Админ</span>}
+                        {u.showOnHomepage && <span className="bg-blue-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-1"><LayoutDashboard size={8} /> Нүүр</span>}
                       </div>
                       <p className="text-xs opacity-50 truncate">{u.email || u.phone}</p>
                       <p className="text-[10px] opacity-30 mt-1">Бүртгүүлсэн: {new Date(u.createdAt).toLocaleDateString()}</p>

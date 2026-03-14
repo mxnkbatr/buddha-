@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { Resend } from "resend";
-import { executeAdminOperation, validateAdminAccess, validateUserData, checkDataConsistency } from "@/lib/admin-utils";
-import { currentUser } from "@clerk/nextjs/server";
+import { executeAdminOperation, validateUserData, checkDataConsistency, getAdminUserFromRequest } from "@/lib/admin-utils";
 import { logSuccess, logFailure, createOperationContext } from "@/lib/admin-logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -83,11 +82,14 @@ export async function PATCH(request: Request, props: Props) {
             }, { status: 404 });
         }
 
-        // 5. Check admin access
-        const user = await currentUser();
-        if (!user || !await validateAdminAccess(user.id)) {
+        // 5. Check admin access (Clerk OR Bearer JWT for mobile)
+        const adminUserResult = await getAdminUserFromRequest(request);
+        const adminId = adminUserResult?.user ? adminUserResult.user._id.toString() : null;
+
+        const user = adminUserResult?.user || { id: adminId };
+        if (!adminId) {
             logFailure(
-                createOperationContext("Application Processing", user?.id, id, "application"),
+                createOperationContext("Application Processing", undefined, id, "application"),
                 `Unauthorized ${action} attempt`,
                 "INSUFFICIENT_PERMISSIONS"
             );
@@ -101,7 +103,7 @@ export async function PATCH(request: Request, props: Props) {
         // 6. Validate applicant state
         if (applicant.role === 'monk' && applicant.monkStatus === 'approved') {
             logFailure(
-                createOperationContext("Application Processing", user.id, id, "application"),
+                createOperationContext("Application Processing", adminId || undefined, id, "application"),
                 "approve already approved applicant",
                 "ALREADY_APPROVED"
             );
@@ -123,7 +125,7 @@ export async function PATCH(request: Request, props: Props) {
         const applicantValidation = validateUserData(applicant);
         if (!applicantValidation.valid) {
             logFailure(
-                createOperationContext("Application Processing", user.id, id, "application"),
+                createOperationContext("Application Processing", adminId || undefined, id, "application"),
                 "approve applicant with invalid data",
                 applicantValidation.errors.join(", ")
             );
@@ -138,7 +140,7 @@ export async function PATCH(request: Request, props: Props) {
         if (action === 'approve') {
             // --- A. Database Updates with Transaction-like Behavior ---
 
-            const operationContext = createOperationContext("Application Processing", user.id, id, "application");
+            const operationContext = createOperationContext("Application Processing", adminId || undefined, id, "application");
 
             // 8. Fetch all services from the services collection
             let allServices;
@@ -339,7 +341,7 @@ export async function PATCH(request: Request, props: Props) {
         } else if (action === 'reject') {
             // --- Handle Rejection with Transaction-like Behavior ---
 
-            const operationContext = createOperationContext("Application Processing", user.id, id, "application");
+            const operationContext = createOperationContext("Application Processing", adminId || undefined, id, "application");
 
             // 6. Execute monk rejection as a transactional operation
             const rejectionResult = await executeAdminOperation(

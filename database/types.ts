@@ -54,6 +54,7 @@ export interface Monk {
     de?: string;
   };
   monkNumber?: number; // Order/Display number
+  showOnHomepage?: boolean; // Admin-controlled: Display on homepage
 
   // New Fields
   phone?: string;

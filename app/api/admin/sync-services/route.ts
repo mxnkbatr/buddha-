@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
-import { currentUser } from "@clerk/nextjs/server";
+import { getAdminUserFromRequest } from "@/lib/admin-utils";
 
 /**
  * Admin-only endpoint to sync all services to ALL monks
@@ -8,10 +8,10 @@ import { currentUser } from "@clerk/nextjs/server";
  */
 export async function POST(request: Request) {
     try {
-        const user = await currentUser();
+        const adminUserResult = await getAdminUserFromRequest(request);
 
         // Admin check
-        if (!user || user.publicMetadata.role !== "admin") {
+        if (!adminUserResult) {
             return NextResponse.json({
                 success: false,
                 error: "Unauthorized",
@@ -19,7 +19,10 @@ export async function POST(request: Request) {
             }, { status: 403 });
         }
 
-        const { db } = await connectToDatabase();
+        const db = adminUserResult.db;
+
+
+
 
         // 1. Fetch all services from the services collection
         const allServices = await db.collection("services").find({}).toArray();

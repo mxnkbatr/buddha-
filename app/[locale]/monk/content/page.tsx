@@ -3,7 +3,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/database/db";
 import ContentManager from "@/app/components/ContentManager";
-import OverlayNavbar from "@/app/components/Navbar";
 import { ShieldAlert } from "lucide-react";
 
 export default async function MonkContentPage() {
@@ -46,8 +45,6 @@ export default async function MonkContentPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 font-sans">
-            <OverlayNavbar />
-
             <main className="container mx-auto px-4 pt-32 pb-20">
                 <header className="mb-10">
                     <h1 className="text-3xl font-black font-serif text-stone-800">Monk's Blog Manager</h1>

@@ -24,7 +24,6 @@ import {
   Eye
 } from "lucide-react";
 import GoldenNirvanaFooter from "../../components/Footer";
-import OverlayNavbar from "../../components/Navbar";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "next-themes";
 
@@ -95,8 +94,6 @@ export default function MissionPage() {
 
   return (
     <>
-      <OverlayNavbar />
-      
       <main 
         ref={containerRef}
         onMouseMove={(e) => { mouseX.set(e.clientX); mouseY.set(e.clientY); }}
