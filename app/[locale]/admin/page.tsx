@@ -32,6 +32,7 @@ interface User {
   image?: string;
   role?: string;
   monkStatus?: string;
+  showOnHomepage?: boolean;
   createdAt: string | Date;
   // properties used in applications view
   title?: LocalizedString;

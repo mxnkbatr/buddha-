@@ -53,7 +53,7 @@ async function getAuthenticatedUser(request: Request) {
   }
 }
 
-export async function GET(request: Request, { params }: { params: { monkId: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ monkId: string }> }) {
   try {
     const auth = await getAuthenticatedUser(request);
     if (!auth) {
@@ -61,7 +61,7 @@ export async function GET(request: Request, { params }: { params: { monkId: stri
     }
     
     const { user, db } = auth;
-    const monkId = params.monkId;
+    const { monkId } = await params;
     const currentUserId = user._id.toString();
     
     // Determine the participants
@@ -88,7 +88,7 @@ export async function GET(request: Request, { params }: { params: { monkId: stri
   }
 }
 
-export async function POST(request: Request, { params }: { params: { monkId: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ monkId: string }> }) {
   try {
     const auth = await getAuthenticatedUser(request);
     if (!auth) {
@@ -96,7 +96,8 @@ export async function POST(request: Request, { params }: { params: { monkId: str
     }
     
     const { user, db } = auth;
-    const receiverId = params.monkId; // Can be a client ID if a monk is sending it
+    const { monkId } = await params;
+    const receiverId = monkId; // Can be a client ID if a monk is sending it
     const senderId = user._id.toString();
     
     const body = await request.json();
