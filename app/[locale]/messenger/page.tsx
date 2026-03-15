@@ -66,6 +66,12 @@ export default function MessengerPage() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/${language}/sign-in`);
+    }
+  }, [authLoading, user, router, language]);
+
   // Fetch Conversations
   const fetchConversations = async () => {
     try {
@@ -237,15 +243,7 @@ export default function MessengerPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfbf7] p-6 text-center">
-        <h2 className="text-2xl font-serif font-bold text-amber-900 mb-4">Нэвтрэх шаардлагатай</h2>
-        <p className="text-amber-800/60 mb-8 max-w-xs">Чатлахын тулд та өөрийн бүртгэлээр нэвтэрнэ үү.</p>
-        <Link href="/sign-in" className="px-8 py-3 bg-amber-600 text-white rounded-2xl font-bold shadow-xl">
-          Нэвтрэх
-        </Link>
-      </div>
-    );
+    return null; // Redirecting via useEffect
   }
 
   return (

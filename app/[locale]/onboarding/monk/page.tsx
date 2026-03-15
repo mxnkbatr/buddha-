@@ -39,6 +39,12 @@ export default function MonkOnboarding() {
   const [uploadingImage, setUploadingImage] = useState(false); 
   const [isSuccess, setIsSuccess] = useState(false);
 
+  React.useEffect(() => {
+    if (user === null) {
+      router.push(`/${language}/sign-in`);
+    }
+  }, [user, router, language]);
+
   // --- TRANSLATION DICTIONARY ---
   const TEXT = {
     en: {

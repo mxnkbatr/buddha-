@@ -138,7 +138,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isLoaded) {
-      if (!user || !isAdmin) { router.push("/"); return; }
+      if (!user) { router.push("/sign-in"); return; }
+      if (!isAdmin) { router.push("/"); return; }
       fetchAdminData();
     }
   }, [isLoaded, user, isAdmin, router]);
