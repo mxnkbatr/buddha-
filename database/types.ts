@@ -59,6 +59,7 @@ export interface Monk {
   // New Fields
   phone?: string;
   isSpecial?: boolean; // Admin-controlled special status
+  isBadMonk?: boolean; // Admin-controlled: forced schedule restriction
   yearsOfExperience: number;
   education: {
     mn: string;

@@ -187,6 +187,20 @@ export default function MonkEditModal({ monk, isOpen, onClose, onSave }: MonkEdi
                 <div className="col-span-full">
                   <InputGroup label="Утас (Phone)" value={formData.phone} onChange={(v: string) => handleChange("phone", v)} />
                 </div>
+
+                <div className="col-span-full flex items-center gap-3 p-4 rounded-xl border border-red-500/20 bg-red-500/5">
+                  <input
+                    type="checkbox"
+                    id="isBadMonk"
+                    checked={formData.isBadMonk || false}
+                    onChange={(e) => handleChange("isBadMonk", e.target.checked)}
+                    className="w-5 h-5 accent-red-500"
+                  />
+                  <div>
+                    <label htmlFor="isBadMonk" className="font-bold text-sm text-red-800 dark:text-red-200 cursor-pointer select-none">Муу Лам (Bad Monk - Forced Schedule)</label>
+                    <p className="text-xs opacity-60">Идэвхжүүлвэл сарын 20-нд автомат хязгаарлалт тооцоолно. 50% өдрүүд бүрэн хаагдах, үлдсэн өдрүүдэд 80% цагийг хаана.</p>
+                  </div>
+                </div>
               </div>
             )}
 

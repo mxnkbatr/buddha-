@@ -149,6 +149,7 @@ export default function AdminDashboard() {
   // 0. Create Service
   const [editingService, setEditingService] = useState<any>(null); // New state for editing service
   const [syncingServices, setSyncingServices] = useState(false);
+  const [generatingBadMonk, setGeneratingBadMonk] = useState(false);
 
   // 0. Create/Edit Service Helper
   const handleSaveService = async (serviceData: any, id?: string) => {
@@ -507,6 +508,40 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               )}
+
+              {/* Bad Monk Schedule Generator */}
+              <div className="col-span-full bg-orange-500/10 border border-orange-500/20 p-5 md:p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
+                  <div className="p-4 bg-orange-600 text-white rounded-2xl shadow-lg shadow-orange-900/20"><ShieldAlert size={28} /></div>
+                  <div>
+                    <h3 className="font-black text-lg">Муу Лам - Хуваарь Үүсгэх</h3>
+                    <p className="opacity-70 text-sm">Сарын 20-нд муу лам нарын хязгаарлалтын хуваарийг автоматаар үүсгэнэ. 50% өдрүүд хаагдах, үлдсэн өдрүүдэд 80% цагийг хаана.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    setGeneratingBadMonk(true);
+                    try {
+                      const res = await fetch('/api/admin/bad-monk-schedule', { method: 'POST' });
+                      const result = await res.json();
+                      if (res.ok && result.success) {
+                        alert(`Амжилттай: ${result.message}\n\n${result.results?.map((r: any) => `${r.name}: ${r.totalSlots} цаг хаагдсан`).join('\n') || ''}`);
+                        await fetchAdminData();
+                      } else {
+                        alert(`Алдаа: ${result.message}`);
+                      }
+                    } catch (error) {
+                      alert('Хуваарь үүсгэх явцад алдаа гарлаа');
+                    } finally {
+                      setGeneratingBadMonk(false);
+                    }
+                  }}
+                  disabled={generatingBadMonk}
+                  className="w-full md:w-auto bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  {generatingBadMonk ? <><Loader2 size={16} className="animate-spin" /> Үүсгэж байна...</> : <><RefreshCw size={16} /> Хуваарь Үүсгэх</>}
+                </button>
+              </div>
             </motion.div>
           )}
 
