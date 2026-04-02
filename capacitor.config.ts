@@ -5,15 +5,12 @@ const config: CapacitorConfig = {
   appName: 'Gevabal',
   webDir: 'out',
 
-  // For production builds: Use bundled assets (no server.url)
-  // For development: Uncomment server.url to point to localhost:3000
-  // Server block removed to ensure local amen assets are loaded
-  // server: {
-  //   url: 'https://gevabal.mn',
-  //   cleartext: false,
-  //   androidScheme: 'https',
-  //   iosScheme: 'https',
-  // },
+  server: {
+    url: 'https://gevabal.mn',
+    cleartext: false,
+    androidScheme: 'https',
+    iosScheme: 'https',
+  },
 
   // iOS-specific optimizations
   ios: {

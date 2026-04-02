@@ -11,20 +11,25 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-surface border-t border-border pt-20 pb-10">
-      <div className="container mx-auto px-6 max-w-7xl">
+    <footer className="bg-hero-bg border-t border-white/5 pt-32 pb-12 relative overflow-hidden">
+      {/* Background Texture Overlay */}
+      <div className="absolute inset-0 opacity-5 bg-[url('/noise.svg')]" />
+      
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
           {/* Brand */}
-          <div className="md:col-span-1 space-y-6">
-            <Link href="/" className="flex items-center gap-3">
-              <Image src="/logo.webp" alt="Gevabal" width={48} height={48} className="rounded-full" />
-              <div>
-                <h3 className="font-serif font-bold text-xl text-text-main">Gevabal</h3>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Sanctuary</span>
+          <div className="md:col-span-1 space-y-8">
+            <Link href="/" className="flex items-center gap-4 group">
+              <div className="relative w-14 h-14 p-1 bg-white/5 rounded-full border border-white/10 group-hover:border-gold/30 transition-colors">
+                <Image src="/logo.webp" alt="Gevabal" width={56} height={56} className="rounded-full" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="font-serif font-black text-2xl text-white tracking-tight leading-none italic">Gevabal</h3>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold mt-1.5 opacity-80">Sanctuary</span>
               </div>
             </Link>
-            <p className="text-text-muted text-sm leading-relaxed">
+            <p className="text-secondary opacity-60 leading-relaxed text-sm font-sans italic">
               {t({ 
                 mn: "Уламжлалт засал ном, зурхай, зөвлөгөөг орчин үеийн технологийн тусламжтайгаар танд хүргэнэ.",
                 en: "Connecting you with spiritual guidance and traditional rituals through modern technology."
@@ -34,59 +39,87 @@ export default function Footer() {
 
           {/* Links 1 */}
           <div>
-            <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-text-main">
-              {t({ mn: "Цэс", en: "Menu" })}
+            <h4 className="text-label text-gold/60 mb-10">
+              {t({ mn: "Цэс", en: "Navigation" })}
             </h4>
-            <ul className="space-y-4 text-sm text-text-muted">
-              <li><Link href="/" className="hover:text-primary transition-colors">{t({ mn: "Нүүр", en: "Home" })}</Link></li>
-              <li><Link href="/monks" className="hover:text-primary transition-colors">{t({ mn: "Үзмэрчид", en: "Masters" })}</Link></li>
-              <li><Link href="/services" className="hover:text-primary transition-colors">{t({ mn: "Үйлчилгээ", en: "Services" })}</Link></li>
-              <li><Link href="/blog" className="hover:text-primary transition-colors">{t({ mn: "Блог", en: "Blog" })}</Link></li>
+            <ul className="space-y-5">
+              {[
+                { mn: "Нүүр", en: "Home", href: "/" },
+                { mn: "Үзмэрчид", en: "Masters", href: "/monks" },
+                { mn: "Үйлчилгээ", en: "Rituals", href: "/services" },
+                { mn: "Блог", en: "Journal", href: "/blog" }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-sm font-black uppercase tracking-widest text-white/40 hover:text-gold transition-colors block">
+                    {t(link)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Links 2 */}
           <div>
-            <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-text-main">
-              {t({ mn: "Тусламж", en: "Support" })}
+            <h4 className="text-label text-gold/60 mb-10">
+              {t({ mn: "Тусламж", en: "Protocol" })}
             </h4>
-             <ul className="space-y-4 text-sm text-text-muted">
-              <li><Link href="/about" className="hover:text-primary transition-colors">{t({ mn: "Бидний тухай", en: "About Us" })}</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">{t({ mn: "Хэрэглэх заавар", en: "Guide" })}</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">{t({ mn: "Үйлчилгээний нөхцөл", en: "Terms" })}</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">{t({ mn: "Нууцлалын бодлого", en: "Privacy" })}</Link></li>
+             <ul className="space-y-5">
+               {[
+                { mn: "Бидний тухай", en: "Ancestry", href: "/about" },
+                { mn: "Хэрэглэх заавар", en: "Manual", href: "#" },
+                { mn: "Үйлчилгээний нөхцөл", en: "Codex", href: "#" },
+                { mn: "Нууцлалын бодлого", en: "Sanctity", href: "#" }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-sm font-black uppercase tracking-widest text-white/40 hover:text-gold transition-colors block">
+                    {t(link)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-             <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-text-main">
-              {t({ mn: "Холбоо барих", en: "Contact" })}
+             <h4 className="text-label text-gold/60 mb-10">
+              {t({ mn: "Холбоо барих", en: "Ascent" })}
             </h4>
-            <div className="space-y-4 text-sm text-text-muted">
-              <div className="flex items-start gap-3">
-                <MapPin size={18} className="text-primary mt-0.5" />
-                <span>Ulaanbaatar, Mongolia</span>
+            <div className="space-y-6">
+              <div className="flex items-start gap-4 group">
+                <div className="p-2 rounded-xl bg-white/5 text-gold group-hover:bg-gold/10 transition-colors">
+                  <MapPin size={18} />
+                </div>
+                <span className="text-secondary opacity-60 text-sm">Ulaanbaatar, Mongolia</span>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone size={18} className="text-primary" />
-                <span>+976 99537748</span>
-                <span>+976 95614004</span>
+              <div className="flex items-start gap-4 group">
+                <div className="p-2 rounded-xl bg-white/5 text-gold group-hover:bg-gold/10 transition-colors">
+                  <Phone size={18} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-secondary opacity-60 text-sm">+976 9953 7748</span>
+                  <span className="text-secondary opacity-60 text-sm">+976 9561 4004</span>
+                </div>
               </div>
               
-              <div className="flex gap-4 mt-6">
-                <a href="#" className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><Facebook size={18} /></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><Instagram size={18} /></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><Youtube size={18} /></a>
+              <div className="flex gap-4 mt-10">
+                {[Facebook, Instagram, Youtube].map((Icon, i) => (
+                  <a key={i} href="#" className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 border border-white/5 hover:border-gold/30 hover:text-gold hover:bg-gold/5 transition-all duration-500">
+                    <Icon size={20} />
+                  </a>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-text-muted font-bold uppercase tracking-widest">
-            © {year} Gevabal.
+        <div className="border-t border-white/5 pt-12 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">
+            © {year} Gevabal Sanctuary. All rights reserved.
           </p>
+          <div className="flex gap-8">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/40">Pure Intention</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/40">Ancient Wisdom</span>
+          </div>
         </div>
 
       </div>

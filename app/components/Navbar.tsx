@@ -71,7 +71,6 @@ export default function OverlayNavbar() {
     { name: { mn: "Үзмэрч", en: "Exhibitor" }, href: "/monks" },
     { name: { mn: "Блог", en: "Blog" }, href: "/blog" },
     { name: { mn: "Мессенжер", en: "Messenger" }, href: "/messenger", auth: true },
-    { name: { mn: "Бидний тухай", en: "About Us" }, href: "/about" },
   ];
 
   const mobileNav = [
@@ -80,7 +79,6 @@ export default function OverlayNavbar() {
     { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog" } },
     { id: "messenger", icon: MessageSquare, href: "/messenger", label: { mn: "Мессенжер", en: "Messenger" }, auth: true },
     { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" }, auth: true },
-    { id: "about", icon: Compass, href: "/about", label: { mn: "Тухай", en: "About" } },
   ];
 
   const getIsActive = (href: string) => {
@@ -95,22 +93,22 @@ export default function OverlayNavbar() {
 
   const Logo = ({ className = "" }) => (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative w-10 h-10 shrink-0 overflow-hidden rounded-full border-2 border-primary/20 bg-surface p-0.5 shadow-sm">
+      <div className="relative w-12 h-12 shrink-0 overflow-hidden rounded-full border border-border bg-white p-1 shadow-card">
         <Image
           src="/logo.webp"
           alt="Logo"
-          width={44}
-          height={44}
+          width={48}
+          height={48}
           className="w-full h-full object-cover rounded-full"
           priority
         />
       </div>
       <div className="flex flex-col justify-center">
-        <span className="font-serif font-bold text-xl text-text-main leading-none tracking-tight">
+        <span className="font-serif font-black text-xl text-ink leading-none tracking-tight">
           {CONTENT.logo[lang]}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/80 leading-tight mt-0.5">
-          Sanctuary
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 leading-tight mt-1">
+          {lang === 'mn' ? 'Ариун' : 'Sanctuary'}
         </span>
       </div>
     </div>
@@ -129,28 +127,28 @@ export default function OverlayNavbar() {
         <nav className={`
           pointer-events-auto flex items-center justify-between transition-all duration-500 rounded-full border backdrop-blur-md
           ${isScrolled || isAuthPage
-            ? "w-[85%] py-2.5 px-6 bg-surface/90 border-border shadow-lg shadow-black/5"
-            : "w-[90%] py-4 px-8 bg-surface/70 border-white/50 shadow-sm"}
+            ? "w-[85%] py-2.5 px-6 bg-white/95 border-border shadow-lg shadow-black/5"
+            : "w-[90%] py-4 px-8 bg-cream/70 border-white/50 shadow-sm"}
         `}>
 
           <LocalizedLink href="/" className="hover:opacity-80 transition-opacity">
             <Logo />
           </LocalizedLink>
 
-          <div className="flex items-center gap-1 bg-surface-alt/50 p-1 rounded-full border border-white/50">
+          <div className="flex items-center gap-1 bg-stone/50 p-1.5 rounded-full border border-border/40">
             {desktopNav.filter(item => !item.auth || user).map((item) => {
               const isActive = getIsActive(item.href);
               return (
                 <LocalizedLink
                   key={item.href}
                   href={item.href}
-                  className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all relative
-                    ${isActive ? "text-white shadow-md" : "text-text-muted hover:bg-white/80 hover:text-primary"}`}
+                  className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative
+                    ${isActive ? "text-white" : "text-earth hover:bg-white/80 hover:text-gold"}`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="deskNavHighlight"
-                      className="absolute inset-0 bg-primary rounded-full -z-10"
+                      className="absolute inset-0 bg-gold rounded-full -z-10 shadow-gold"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -161,16 +159,9 @@ export default function OverlayNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={toggleLanguage}
-              className="w-9 h-9 rounded-full flex items-center justify-center border border-border bg-white text-text-muted hover:border-primary hover:text-primary transition-colors"
-            >
-              <span className="text-[10px] font-black">{lang.toUpperCase()}</span>
-            </button>
-
             {user ? (
               <div className="flex items-center gap-3 pl-3 border-l border-border">
-                <LocalizedLink href="/dashboard" className="text-xs font-bold uppercase text-text-main hover:text-primary transition-colors">
+                <LocalizedLink href="/dashboard" className="text-xs font-black uppercase tracking-widest text-ink hover:text-gold transition-colors">
                   {CONTENT.dashboard[lang]}
                 </LocalizedLink>
                 <div className="scale-100 hover:scale-105 transition-transform">
@@ -179,7 +170,7 @@ export default function OverlayNavbar() {
               </div>
             ) : (
               <LocalizedLink href="/sign-in">
-                <button className="zen-button zen-button-primary text-xs py-2 px-6 uppercase tracking-widest shadow-lg shadow-primary/20">
+                <button className="cta-button text-xs py-2.5 px-6 uppercase tracking-[0.2em]">
                   {CONTENT.login[lang]}
                 </button>
               </LocalizedLink>
@@ -188,30 +179,23 @@ export default function OverlayNavbar() {
         </nav>
       </motion.header>
 
-      {/* --- MOBILE TOP BAR --- */}
+      {/* --- MOBILE TOP HEADER (iOS Status Bar Optimized) --- */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-50 px-4 flex justify-between items-center bg-surface/80 backdrop-blur-md border-b border-border"
-        style={{
-          paddingTop: safeArea.top > 0 ? safeArea.top + 8 : 12,
-          paddingBottom: 12,
-          paddingLeft: safeArea.left > 0 ? safeArea.left + 16 : 16,
-          paddingRight: safeArea.right > 0 ? safeArea.right + 16 : 16,
-        }}
+        className="md:hidden mobile-header"
+        style={{ paddingTop: `max(${safeArea.top}px, 44px)` }}
       >
         <LocalizedLink href="/" aria-label="Home">
           <Logo className="scale-90 origin-left" />
         </LocalizedLink>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleLanguage}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-alt text-text-muted"
-          >
-            <span className="text-[9px] font-black">{lang.toUpperCase()}</span>
-          </button>
-          {user ? <UserButton /> : (
+        <div className="header-actions">
+          {user ? (
+            <div className="scale-90 origin-right transition-transform hover:scale-100">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          ) : (
             <LocalizedLink href="/sign-in">
-              <button className="bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-bold uppercase">
+              <button className="bg-gold text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
                 {CONTENT.login[lang]}
               </button>
             </LocalizedLink>
@@ -219,43 +203,41 @@ export default function OverlayNavbar() {
         </div>
       </div>
 
-      {/* --- MOBILE BOTTOM DOCK --- */}
+      {/* --- MOBILE BOTTOM TAB BAR (iOS Native Feel) --- */}
       {!isAuthPage && (
-        <div
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none"
-          style={{ paddingBottom: safeArea.bottom > 0 ? safeArea.bottom + 8 : 24 }}
+        <nav
+          className="md:hidden mobile-tab-bar"
+          style={{ paddingBottom: `max(${safeArea.bottom}px, 16px)` }}
         >
-          <nav className="pointer-events-auto flex items-center justify-between w-full max-w-[400px] p-1.5 rounded-3xl bg-surface/90 border border-white/50 shadow-xl backdrop-blur-xl overflow-x-auto scrollbar-hide">
-            {mobileNav.filter(item => !item.auth || user).map((item) => {
-              const isActive = getIsActive(item.href);
+          {mobileNav.filter(item => !item.auth || user).map((item) => {
+            const isActive = getIsActive(item.href);
 
-              const handleTap = async () => {
-                if (isNative) {
-                  await hapticsLight();
-                }
-              };
+            const handleTap = async () => {
+              if (isNative) {
+                await hapticsLight();
+              }
+            };
 
-              return (
-                <LocalizedLink
-                  key={item.id}
-                  href={item.href}
-                  className="flex-1 flex flex-col items-center justify-center py-3 relative group min-w-[60px]"
-                  onClick={handleTap}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="mobileActivePill"
-                      className="absolute inset-0 bg-primary/10 rounded-2xl -z-10"
-                    />
-                  )}
-                  <div className={`transition-all duration-300 ${isActive ? "text-primary scale-110" : "text-text-muted scale-100"}`}>
-                    <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                  </div>
-                </LocalizedLink>
-              );
-            })}
-          </nav>
-        </div>
+            const validLang = lang as 'mn' | 'en';
+
+            return (
+              <LocalizedLink 
+                key={item.id}
+                href={item.href} 
+                className="tab-item"
+                onClick={handleTap}
+              >
+                <div className={`tab-icon-wrap ${isActive ? 'active' : ''}`}>
+                  <item.icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                </div>
+                <span className={`tab-label ${isActive ? 'active' : ''}`}>
+                  {item.label[validLang]}
+                </span>
+                {isActive && <div className="tab-active-dot" />}
+              </LocalizedLink>
+            );
+          })}
+        </nav>
       )}
     </>
   );

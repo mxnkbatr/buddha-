@@ -3,75 +3,21 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, useMotionTemplate, useMotionValue, AnimatePresence } from "framer-motion";
-import { ClerkLoaded, ClerkLoading, useSignUp } from "@clerk/nextjs";
-import {
-  Flower, UserPlus, Loader2, ShieldCheck, User, ScrollText, Sparkles, Orbit, Phone, KeyRound, Mail
+import { motion, AnimatePresence } from "framer-motion";
+import { ClerkLoaded, useSignUp } from "@clerk/nextjs";
+import { 
+  Loader2, ShieldCheck, User, ScrollText, Phone, KeyRound 
 } from "lucide-react";
+
+import DivineBackground from "../../components/DivineBackground";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-
-// ========================================== 
-// 1. VISUAL EFFECTS COMPONENTS
-// ========================================== 
-
-// Removed Nebulas visual effect for clarity
-
-// High-End Role Card with "Liquid" Selection
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const RoleSelector = ({ role, setRole, content }: any) => (
-  <div className="grid grid-cols-2 gap-4 mb-8">
-    {(["client", "monk"] as const).map((r) => {
-      const isActive = role === r;
-      return (
-        <motion.button
-          key={r}
-          onClick={() => setRole(r)}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          type="button"
-          className={`relative flex flex-col items-center justify-center py-6 rounded-[2rem] border overflow-hidden transition-all duration-300 ${isActive
-            ? "border-amber-500 shadow-[0_10px_30px_-10px_rgba(245,158,11,0.4)]"
-            : "border-transparent bg-white/40 hover:bg-white/60"
-            }`}
-        >
-          {/* Active Liquid Background */}
-          <AnimatePresence>
-            {isActive && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gradient-to-br from-amber-100 to-white z-0"
-              />
-            )}
-          </AnimatePresence>
-
-          <div className={`relative z-10 flex flex-col items-center gap-3 ${isActive ? "text-amber-800" : "text-stone-500"}`}>
-            {r === "client" ? (
-              <div className={`p-3 rounded-full ${isActive ? 'bg-amber-500 text-white' : 'bg-stone-200'}`}>
-                <User size={20} />
-              </div>
-            ) : (
-              <div className={`p-3 rounded-full ${isActive ? 'bg-amber-500 text-white' : 'bg-stone-200'}`}>
-                <ScrollText size={20} />
-              </div>
-            )}
-            <span className="text-xs font-black uppercase tracking-widest">{content[`role${r.charAt(0).toUpperCase() + r.slice(1)}`]}</span>
-          </div>
-        </motion.button>
-      );
-    })}
-  </div>
-);
-
-// ========================================== 
-// 2. MAIN PAGE
-// ========================================== 
 
 export default function SignUpPage() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const { isLoaded, signUp, setActive } = useSignUp();
-  const { user, login, loading: authLoading } = useAuth(); // Custom login from AuthContext
+  const { user, login, loading: authLoading } = useAuth();
 
   const [role, setRole] = useState<"client" | "monk">("client");
 
@@ -85,38 +31,16 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Auto-redirect if already logged in
   React.useEffect(() => {
     if (!authLoading && user) {
       router.push(`/${language}/dashboard`);
     }
   }, [user, authLoading, router, language]);
 
-  // Mouse Torch Effect
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const torchBg = useMotionTemplate`radial-gradient(500px circle at ${mouseX}px ${mouseY}px, rgba(251, 191, 36, 0.08), transparent 80%)`;
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const { clientX, clientY } = e;
-    mouseX.set(clientX);
-    mouseY.set(clientY);
-  };
-
   const formatPhoneNumber = (phone: string) => {
-    // Basic cleanup
     const clean = phone.replace(/\s+/g, '');
-
-    // If user types just 8 digits (Mongolian standard), add +976
-    if (/^\d{8}$/.test(clean)) {
-      return `+976${clean}`;
-    }
-    // If it doesn't start with +, add it (assuming they typed a country code or we need to enforce one)
-    // But safely, let's assume if it's not +976 and not 8 digits, they better type +Code
-    if (!clean.startsWith('+')) {
-      // Default to Mongolia if ambiguous or just prepend +
-      return `+${clean}`;
-    }
+    if (/^\d{8}$/.test(clean)) return `+976${clean}`;
+    if (!clean.startsWith('+')) return `+${clean}`;
     return clean;
   };
 
@@ -130,8 +54,6 @@ export default function SignUpPage() {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
       if (role === 'client') {
-        // --- CUSTOM DB FLOW FOR CLIENTS ---
-        // Bypass Clerk completely to avoid "phone_number is not a valid parameter" error if setting is off
         const res = await fetch("/api/auth/client-signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -143,17 +65,11 @@ export default function SignUpPage() {
         });
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Registration failed");
 
-        if (!res.ok) {
-          throw new Error(data.message || "Registration failed");
-        }
-
-        // Auto-login after registration
         await login({ identifier: formattedPhone, password });
         router.push(`/${language}/dashboard`);
-
       } else {
-        // --- CLERK FLOW FOR MONKS ---
         if (!pendingVerification) {
           const signUpParams: any = {
             phoneNumber: formattedPhone,
@@ -171,15 +87,11 @@ export default function SignUpPage() {
             await setActive({ session: completeSignUp.createdSessionId });
             router.push(`/${language}/onboarding/monk`);
           } else {
-            console.log(JSON.stringify(completeSignUp, null, 2));
             throw new Error("Verification failed. Please check the code.");
           }
         }
       }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("Sign Up Error:", err);
       const msg = err.errors ? err.errors[0].longMessage : err.message;
       setError(msg);
     } finally {
@@ -201,153 +113,149 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FFFBEB] font-sans flex flex-col justify-center pt-32 pb-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
-        <h2 className="text-3xl font-extrabold text-stone-900 font-serif">
-          {content.welcome}
-        </h2>
-        <p className="mt-2 text-sm text-stone-600">
-          {content.instruction}
-        </p>
-      </div>
+    <div className="min-h-screen w-full relative">
+      <DivineBackground />
+      
+      <main className="relative z-10 flex flex-col justify-center items-center px-6 py-20 min-h-screen">
+        <div className="w-full max-w-2xl">
+          
+          <div className="text-center mb-10">
+            <motion.div 
+               initial={{ opacity: 0, y: -20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="inline-flex p-4 rounded-3xl bg-white shadow-modal border border-border mb-6"
+            >
+              <User size={32} className="text-gold" />
+            </motion.div>
+            <h2 className="text-display mb-2">{content.welcome}</h2>
+            <p className="text-secondary">{content.instruction}</p>
+          </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
-        <div className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-stone-100">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="monastery-card p-8 md:p-12 bg-white/95 backdrop-blur-xl"
+          >
+            {/* Role Selector */}
+            {!pendingVerification && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <button
+                  onClick={() => setRole('client')}
+                  className={`p-6 rounded-[2rem] border-2 text-left transition-design relative group ${role === 'client' ? 'border-gold bg-gold/5' : 'border-border bg-white hover:border-gold/30'}`}
+                >
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${role === 'client' ? 'bg-gold text-white shadow-gold' : 'bg-stone/10 text-earth/40 group-hover:bg-gold/10'}`}>
+                    <User size={20} />
+                  </div>
+                  <div className="text-h2 text-ink mb-1">{content.roleClient}</div>
+                  <div className="text-secondary text-[11px] leading-tight">{content.roleClientDesc}</div>
+                  {role === 'client' && <div className="absolute top-4 right-4 text-gold"><ShieldCheck size={20} /></div>}
+                </button>
 
-          {/* Simple Role Selector */}
-          {!pendingVerification && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <button
-                onClick={() => setRole('client')}
-                className={`p-4 rounded-xl border-2 text-left transition-all relative ${role === 'client' ? 'border-amber-500 bg-amber-50' : 'border-stone-100 hover:border-amber-200'}`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-3 ${role === 'client' ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}>
-                  <User size={16} />
-                </div>
-                <div className="font-bold text-stone-900">{content.roleClient}</div>
-                <div className="text-xs text-stone-500 mt-1">{content.roleClientDesc}</div>
-                {role === 'client' && <div className="absolute top-3 right-3 text-amber-500"><ShieldCheck size={16} /></div>}
-              </button>
+                <button
+                  onClick={() => setRole('monk')}
+                  className={`p-6 rounded-[2rem] border-2 text-left transition-design relative group ${role === 'monk' ? 'border-gold bg-gold/5' : 'border-border bg-white hover:border-gold/30'}`}
+                >
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${role === 'monk' ? 'bg-gold text-white shadow-gold' : 'bg-stone/10 text-earth/40 group-hover:bg-gold/10'}`}>
+                    <ScrollText size={20} />
+                  </div>
+                  <div className="text-h2 text-ink mb-1">{content.roleMonk}</div>
+                  <div className="text-secondary text-[11px] leading-tight">{content.roleMonkDesc}</div>
+                  {role === 'monk' && <div className="absolute top-4 right-4 text-gold"><ShieldCheck size={20} /></div>}
+                </button>
+              </div>
+            )}
 
-              <button
-                onClick={() => setRole('monk')}
-                className={`p-4 rounded-xl border-2 text-left transition-all relative ${role === 'monk' ? 'border-amber-500 bg-amber-50' : 'border-stone-100 hover:border-amber-200'}`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-3 ${role === 'monk' ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}>
-                  <ScrollText size={16} />
-                </div>
-                <div className="font-bold text-stone-900">{content.roleMonk}</div>
-                <div className="text-xs text-stone-500 mt-1">{content.roleMonkDesc}</div>
-                {role === 'monk' && <div className="absolute top-3 right-3 text-amber-500"><ShieldCheck size={16} /></div>}
-              </button>
-            </div>
-          )}
+            <ClerkLoaded>
+              <form onSubmit={handleSignUp} className="space-y-8">
 
-          <ClerkLoaded>
-            <form onSubmit={handleSignUp} className="space-y-6">
-
-              {!pendingVerification && (
-                <>
-                  <div>
-                    <label className="block text-sm font-bold text-stone-700 mb-1">
-                      {t({ mn: "Утасны дугаар", en: "Phone Number" })}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Phone className="text-stone-400" size={16} />
+                {!pendingVerification && (
+                  <>
+                    <div className="space-y-2">
+                       <label className="text-label text-earth/60 ml-4">
+                        {t({ mn: "Утасны дугаар", en: "Phone Number" })}
+                      </label>
+                      <div className="relative">
+                        <Phone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold" />
+                        <input
+                          type="tel"
+                          placeholder="99XX XXXX"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          className="w-full pl-14 pr-6 py-4 rounded-2xl border border-border bg-stone/5 focus:border-gold outline-none transition-design font-black text-ink text-sm"
+                          required
+                          disabled={loading}
+                        />
                       </div>
-                      <input
-                        type="tel"
-                        placeholder="99112233"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="appearance-none block w-full pl-10 px-3 py-3 border border-stone-300 rounded-lg shadow-sm placeholder-stone-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
-                        required
-                      />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-bold text-stone-700 mb-1">
-                      {t({ mn: "Нууц үг", en: "Password" })}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <KeyRound className="text-stone-400" size={16} />
+                    <div className="space-y-2">
+                       <label className="text-label text-earth/60 ml-4">
+                        {t({ mn: "Нууц үг", en: "Password" })}
+                      </label>
+                      <div className="relative">
+                        <KeyRound size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold" />
+                        <input
+                          type="password"
+                          placeholder="••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pl-14 pr-6 py-4 rounded-2xl border border-border bg-stone/5 focus:border-gold outline-none transition-design font-black text-ink text-sm"
+                          required
+                          disabled={loading}
+                        />
                       </div>
-                      <input
-                        type="password"
-                        placeholder="••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="appearance-none block w-full pl-10 px-3 py-3 border border-stone-300 rounded-lg shadow-sm placeholder-stone-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
-                        required
-                      />
                     </div>
+                  </>
+                )}
+
+                {pendingVerification && (
+                  <div className="bg-gold/5 p-8 rounded-[2rem] border border-gold/10 text-center">
+                    <p className="text-label text-gold mb-6">{t({ mn: "Таны утсанд ирсэн кодыг оруулна уу", en: "Verification Code" })}</p>
+                    <input
+                      type="text"
+                      placeholder="••••••"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="w-full text-center tracking-[0.5em] py-4 bg-white border border-gold/20 rounded-2xl focus:border-gold outline-none text-2xl font-black text-ink"
+                      autoFocus
+                      required
+                    />
                   </div>
-                </>
-              )}
+                )}
 
-              {pendingVerification && (
-                <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 text-center animate-in fade-in zoom-in duration-300">
-                  <p className="text-sm text-stone-600 mb-4">{t({ mn: "Таны утсанд ирсэн кодыг оруулна уу", en: "Enter code sent to your phone" })}</p>
-                  <input
-                    type="text"
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="block w-full text-center tracking-[1em] px-3 py-4 border border-stone-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500 text-lg font-bold"
-                    autoFocus
-                    required
-                  />
-                </div>
-              )}
+                {error && (
+                  <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="p-4 rounded-2xl bg-error/5 border border-error/10 text-error text-[10px] font-black uppercase tracking-widest text-center">
+                    {error}
+                  </motion.div>
+                )}
 
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="flex">
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-stone-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500 disabled:opacity-50 transition-all uppercase tracking-widest"
+                  className="cta-button w-full h-16 shadow-gold group"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : (pendingVerification ? content.verifyBtn : content.registerBtn)}
+                  {loading ? <Loader2 className="animate-spin" size={24} /> : (
+                    <span className="text-sm uppercase tracking-[0.2em]">
+                      {pendingVerification ? content.verifyBtn : content.registerBtn}
+                    </span>
+                  )}
                 </button>
-              </div>
-            </form>
+              </form>
 
-            {!pendingVerification && (
-              <div className="mt-8">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-stone-200" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-stone-500">{content.haveAccount}</span>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <Link
-                    href="/sign-in"
-                    className="w-full flex justify-center py-3 px-4 border border-stone-300 rounded-xl shadow-sm bg-white text-sm font-bold text-stone-700 hover:bg-stone-50"
-                  >
-                    {content.loginBtn}
+              {!pendingVerification && (
+                <div className="mt-12 text-center pt-8 border-t border-border">
+                  <p className="text-label text-earth/40 mb-4">{content.haveAccount}</p>
+                  <Link href="/sign-in">
+                    <button className="text-sm font-black text-ink hover:text-gold uppercase tracking-[0.2em] transition-colors">
+                      {content.loginBtn}
+                    </button>
                   </Link>
                 </div>
-              </div>
-            )}
-          </ClerkLoaded>
+              )}
+            </ClerkLoaded>
+          </motion.div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

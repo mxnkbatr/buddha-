@@ -11,6 +11,13 @@ const isPublicRoute = createRouteMatcher([
   // Add other public routes if needed
 ]);
 
+const isProtectedRoute = createRouteMatcher([
+  '/:locale/dashboard(.*)',
+  '/:locale/admin(.*)',
+  '/:locale/messenger(.*)',
+  '/:locale/booking(.*)',
+]);
+
 // CORS headers for mobile app access
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,7 +55,10 @@ export default clerkMiddleware(async (auth, req) => {
   );
 
   if (pathnameHasLocale) {
-    // Let Clerk handle authentication for locale routes
+    // Protect routes that require auth
+    if (isProtectedRoute(req)) {
+      await auth.protect();
+    }
     return;
   }
 

@@ -9,7 +9,8 @@ import {
     Loader2, Save, Ban, CheckCircle, Edit, ImageIcon, Upload, MessageCircle, ShieldCheck, UserCircle,
     LogOut,
     Calendar,
-    TrendingUp
+    TrendingUp,
+    Phone
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import LiveRitualRoom from "../../components/LiveRitualRoom";
@@ -634,97 +635,96 @@ export default function DashboardPage() {
 
     return (
         <>
-            <main className="min-h-screen bg-[#FFFBEB] pt-32 pb-20 font-sans px-6">
+            <main className="min-h-screen bg-cream pt-28 pb-20 px-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(217,119,6,0.03)_0%,_transparent_50%)] pointer-events-none" />
 
                 {/* HERO SECTION */}
-                <section className="container mx-auto mb-12">
-                    <div className="bg-[#451a03] rounded-[3rem] p-8 md:p-12 text-[#FFFBEB] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="flex items-center gap-8">
-                            <div className="scale-[2] origin-center relative">
-                                {user?.authType === 'clerk' ? (
-                                    <UserButton />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold overflow-hidden border-2 border-[#FDE68A]">
-                                        {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : user?.firstName?.[0]}
-                                    </div>
-                                )}
+                <section className="container mx-auto mb-10 relative z-10">
+                    <div className="bg-hero-bg rounded-[2.5rem] p-8 md:p-12 text-white shadow-modal flex flex-col lg:flex-row items-center justify-between gap-10 border border-white/5 relative overflow-hidden">
+                        <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
+                        
+                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left w-full lg:w-auto">
+                            <div className="relative group">
+                                <div className="absolute -inset-1 bg-gold/30 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                                <div className="relative">
+                                    {user?.authType === 'clerk' ? (
+                                        <div className="scale-[1.8] origin-center"><UserButton /></div>
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-full bg-gold/10 text-gold flex items-center justify-center font-black overflow-hidden border-2 border-gold/20 shadow-lg">
+                                            {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <span className="text-2xl">{user?.firstName?.[0]}</span>}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
-                                <h1 className="text-3xl md:text-5xl font-serif font-bold">
+                                <h1 className="text-h1 md:text-4xl font-serif font-black text-white mb-2">
                                     {profile?.name?.[langKey] || user?.fullName || user?.firstName || user?.phone || "Seeker"}
                                 </h1>
-                                <p className="text-[#FDE68A]/80 uppercase tracking-widest mt-2">{isMonk ? profile?.title?.[langKey] : TEXT.clientRole}</p>
+                                <p className="text-label text-gold/80 tracking-[0.3em]">{isMonk ? profile?.title?.[langKey] : TEXT.clientRole}</p>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 items-center justify-center">
+                        <div className="relative z-10 flex flex-wrap gap-4 items-center justify-center lg:justify-end">
                             {user?.role === 'admin' && (
-                                <a href="/admin" className="bg-stone-900 text-white px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-black border border-white/10 transition-all flex items-center gap-2">
-                                    <ShieldCheck size={18} /> Admin
-                                </a>
+                                <Link href="/admin" className="px-6 py-3.5 rounded-full bg-white/10 text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all flex items-center gap-2">
+                                    <ShieldCheck size={16} /> Admin Panel
+                                </Link>
                             )}
 
-                            <button onClick={() => { setEditForm(profile || {}); setIsEditProfileModalOpen(true); }} className="bg-white/10 text-white px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-white/20 flex items-center gap-3 border border-white/20 backdrop-blur-sm transition-all">
-                                <Edit size={18} /> {TEXT.editProfile}
+                            <button onClick={() => { setEditForm(profile || {}); setIsEditProfileModalOpen(true); }} className="px-6 py-3.5 rounded-full bg-white/10 text-white font-black text-[10px] uppercase tracking-widest hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all flex items-center gap-2">
+                                <Edit size={16} /> {TEXT.editProfile}
                             </button>
 
-                            {/* SIGN OUT BUTTON */}
                             <button
                                 onClick={handleSignOut}
                                 disabled={isSigningOut}
-                                className="bg-red-500/10 text-red-400 px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-red-500 hover:text-white flex items-center gap-3 border border-red-500/20 transition-all disabled:opacity-50"
+                                className="px-6 py-3.5 rounded-full bg-red-500/10 text-red-400 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white border border-red-500/20 backdrop-blur-md transition-all flex items-center gap-2 disabled:opacity-50"
                             >
-                                {isSigningOut ? (
-                                    <Loader2 className="animate-spin" size={18} />
-                                ) : (
-                                    <LogOut size={18} />
-                                )}
+                                {isSigningOut ? <Loader2 className="animate-spin" size={16} /> : <LogOut size={16} />}
                                 {isSigningOut ? TEXT.signingOut : TEXT.signOut}
                             </button>
 
                             {isMonk && (
-                                <a href="/monk/content" className="bg-[#D97706]/10 text-[#D97706] px-6 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#D97706] hover:text-white border border-[#D97706]/20 transition-all flex items-center gap-2">
-                                    <ScrollText size={18} /> Manage Content
-                                </a>
+                                <Link href="/monk/content" className="px-6 py-3.5 rounded-full bg-gold/10 text-gold font-black text-[10px] uppercase tracking-widest hover:bg-gold hover:text-white border border-gold/20 backdrop-blur-md transition-all flex items-center gap-2">
+                                    <ScrollText size={16} /> Content
+                                </Link>
                             )}
 
                             {!isMonk && (
-                                <Link href="/monks">
-                                    <button onClick={() => setIsBookingModalOpen(true)} className="bg-[#D97706] text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-[#B45309] shadow-lg flex items-center gap-3">
-                                        <Plus size={18} /> {TEXT.bookBtn}
-                                    </button>
+                                <Link href="/monks" className="cta-button h-14 px-8 shadow-gold">
+                                    <Plus size={18} className="mr-2" /> {TEXT.bookBtn}
                                 </Link>
                             )}
                         </div>
                     </div>
                 </section>
 
-                <section className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <section className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
                     <div className="lg:col-span-2 space-y-8">
                         {isMonk && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
-                                    <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-600">
-                                        <TrendingUp size={32} />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="monastery-card p-8 flex items-center gap-6 bg-white group hover:border-gold/30 transition-colors">
+                                    <div className="w-16 h-16 rounded-2xl bg-gold/5 flex items-center justify-center text-gold group-hover:bg-gold/10 transition-colors">
+                                        <TrendingUp size={30} />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{TEXT.earnings}</p>
-                                        <h3 className="text-3xl font-serif font-bold text-[#451a03]">{totalEarnings.toLocaleString()}₮</h3>
+                                        <p className="text-label text-earth/60 mb-2">{TEXT.earnings}</p>
+                                        <h3 className="text-price text-2xl text-ink font-black">{totalEarnings.toLocaleString()}₮</h3>
                                     </div>
                                 </div>
-                                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
-                                    <div className="w-16 h-16 rounded-3xl bg-green-500/10 flex items-center justify-center text-green-600">
-                                        <CheckCircle size={32} />
+                                <div className="monastery-card p-8 flex items-center gap-6 bg-white group hover:border-gold/30 transition-colors">
+                                    <div className="w-16 h-16 rounded-2xl bg-gold/5 flex items-center justify-center text-gold group-hover:bg-gold/10 transition-colors">
+                                        <CheckCircle size={30} />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{TEXT.acceptedBookings}</p>
-                                        <h3 className="text-3xl font-serif font-bold text-[#451a03]">{acceptedCount}</h3>
+                                        <p className="text-label text-earth/60 mb-2">{TEXT.acceptedBookings}</p>
+                                        <h3 className="text-h2 text-2xl text-ink font-black">{acceptedCount}</h3>
                                     </div>
                                 </div>
                                 {profile?.isSpecial !== true && (
-                                    <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white flex items-center gap-6">
-                                        <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center text-blue-600">
-                                            <ShieldCheck size={32} />
+                                    <div className="monastery-card p-8 flex items-center gap-6 bg-white group hover:border-gold/30 transition-colors">
+                                        <div className="w-16 h-16 rounded-2xl bg-gold/5 flex items-center justify-center text-gold group-hover:bg-gold/10 transition-colors">
+                                            <ShieldCheck size={30} />
                                         </div>
                                         <div>
                                             <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{language === 'mn' ? "Тусгай сан" : "Special Fund"}</p>
@@ -736,29 +736,30 @@ export default function DashboardPage() {
                         )}
 
                         {isMonk && (
-                            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
-                                <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-2xl font-serif font-bold text-[#451a03] flex items-center gap-3"><Clock className="text-[#D97706]" /> {TEXT.availability}</h2>
-                                    <button onClick={saveScheduleSettings} disabled={isSaving} className="flex items-center gap-2 bg-[#D97706] text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-amber-500/20 transition-transform active:scale-95">
-                                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {TEXT.updateBtn}
+                            <div className="monastery-card p-10 bg-white/80 backdrop-blur-md">
+                                <div className="flex justify-between items-center mb-10 border-b border-border pb-6">
+                                    <h2 className="text-display flex items-center gap-4"><Clock className="text-gold" /> {TEXT.availability}</h2>
+                                    <button onClick={saveScheduleSettings} disabled={isSaving} className="cta-button h-12 px-6 shadow-gold group">
+                                        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} className="mr-2" />} 
+                                        <span className="text-xs uppercase tracking-widest">{TEXT.updateBtn}</span>
                                     </button>
                                 </div>
 
                                 {/* STEP 1: WEEKLY HOURS */}
-                                <div className="mb-12">
-                                    <div className="mb-6">
-                                        <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-2">
-                                            <span className="w-6 h-6 rounded-full bg-[#D97706] text-white flex items-center justify-center text-[10px]">1</span>
-                                            {TEXT.step1}
-                                        </h3>
-                                        <p className="text-[10px] text-stone-400 mt-1 ml-8">{TEXT.step1Desc}</p>
+                                <div className="mb-14">
+                                    <div className="mb-8 flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center text-xs font-black shadow-gold">1</div>
+                                        <div>
+                                            <h3 className="text-h2 text-ink">{TEXT.step1}</h3>
+                                            <p className="text-label text-earth/50 lowercase mt-0.5">{TEXT.step1Desc}</p>
+                                        </div>
                                     </div>
                                     <div className="space-y-6">
                                         {DAYS_EN.map((day, idx) => {
                                             const config = schedule.find(s => s.day === day) || { day, start: "00:00", end: "24:00", active: false, slots: [] };
                                             return (
-                                                <div key={day} className={`p-6 rounded-3xl border transition-all ${config.active ? 'bg-white border-[#D97706]/20' : 'bg-stone-50 border-stone-100 opacity-60'}`}>
-                                                    <div className="flex items-center gap-4 mb-4">
+                                                <div key={day} className={`p-6 rounded-[2rem] border transition-design ${config.active ? 'bg-stone/20 border-gold/10' : 'bg-transparent border-border opacity-40'}`}>
+                                                    <div className="flex items-center gap-4 mb-5">
                                                         <input
                                                             type="checkbox"
                                                             checked={config.active}
@@ -775,9 +776,9 @@ export default function DashboardPage() {
                                                                 }
                                                                 setSchedule(newSchedule);
                                                             }}
-                                                            className="w-6 h-6 rounded-lg accent-[#D97706] cursor-pointer"
+                                                            className="w-6 h-6 rounded-lg accent-gold cursor-pointer"
                                                         />
-                                                        <span className="font-bold text-[#451a03] text-lg">{DAYS_MN[idx]}</span>
+                                                        <span className="text-h2 text-ink">{DAYS_MN[idx]}</span>
                                                     </div>
 
                                                     {config.active && (
@@ -788,9 +789,9 @@ export default function DashboardPage() {
                                                                     <button
                                                                         key={time}
                                                                         onClick={() => toggleWeeklySlot(day, time)}
-                                                                        className={`py-2 px-1 rounded-xl border font-bold text-[10px] transition-all ${isAvailable
-                                                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                                                            : 'bg-red-50 border-red-100 text-red-400 line-through opacity-50'
+                                                                        className={`py-2 px-1 rounded-xl border font-black text-[10px] transition-design ${isAvailable
+                                                                            ? 'bg-gold border-gold text-white shadow-sm'
+                                                                            : 'bg-white border-border text-earth/40 line-through'
                                                                             }`}
                                                                     >
                                                                         {time}
@@ -807,29 +808,30 @@ export default function DashboardPage() {
 
                                 {/* STEP 2: EXCEPTIONS */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-sm font-black uppercase tracking-widest text-stone-400 flex items-center gap-2">
-                                            <span className="w-6 h-6 rounded-full bg-[#D97706] text-white flex items-center justify-center text-[10px]">2</span>
-                                            {TEXT.step2}
-                                        </h3>
+                                    <div className="mb-8 flex items-center gap-4">
+                                        <div className="w-8 h-8 rounded-full bg-gold text-white flex items-center justify-center text-xs font-black shadow-gold">2</div>
+                                        <div>
+                                            <h3 className="text-h2 text-ink">{TEXT.step2}</h3>
+                                            <p className="text-label text-earth/50 lowercase mt-0.5">{TEXT.step2Desc}</p>
+                                        </div>
                                     </div>
-                                    <div className="bg-stone-50 rounded-[2rem] p-6 border border-stone-100">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                            <div>
-                                                <p className="text-xs text-stone-500 mb-2">{TEXT.step2Desc}</p>
+                                    <div className="bg-stone/30 rounded-[2.5rem] p-8 border border-border">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                                            <div className="relative group">
+                                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gold group-focus-within:scale-110 transition-transform" size={18} />
                                                 <input
                                                     type="date"
                                                     value={selectedBlockDate}
                                                     min={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => setSelectedBlockDate(e.target.value)}
-                                                    className="p-3 rounded-xl border border-stone-200 bg-white font-bold text-sm outline-none focus:border-[#D97706]"
+                                                    className="pl-12 pr-6 py-3.5 rounded-2xl border border-border bg-white font-black text-xs outline-none focus:border-gold transition-design"
                                                 />
                                             </div>
                                             <button
                                                 onClick={toggleBlockWholeDay}
-                                                className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${dailySlotsForBlocking.every(time => blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
-                                                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                                                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                className={`px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-design border ${dailySlotsForBlocking.every(time => blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
+                                                    ? 'bg-white border-gold text-gold hover:bg-gold/5'
+                                                    : 'bg-gold border-gold text-white shadow-gold hover:brightness-110'
                                                     }`}
                                             >
                                                 {dailySlotsForBlocking.every(time => blockedSlots.some(b => b.date === selectedBlockDate && b.time === time))
@@ -837,16 +839,16 @@ export default function DashboardPage() {
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5">
                                             {dailySlotsForBlocking.map((time) => {
                                                 const isBlocked = blockedSlots.some(b => b.date === selectedBlockDate && b.time === time);
                                                 return (
                                                     <button
                                                         key={time}
                                                         onClick={() => toggleBlockSlot(time)}
-                                                        className={`py-2 px-1 rounded-xl border font-bold text-[10px] transition-all ${isBlocked
-                                                            ? 'bg-red-50 border-red-200 text-red-600'
-                                                            : 'bg-white border-stone-200 text-stone-600 hover:border-[#D97706]/40'
+                                                        className={`py-2.5 px-1 rounded-xl border font-black text-[10px] transition-design ${isBlocked
+                                                            ? 'bg-red-50 border-red-200 text-red-600 shadow-sm'
+                                                            : 'bg-white border-border text-ink hover:border-gold/30'
                                                             }`}
                                                     >
                                                         <div className="flex items-center justify-between px-1">
@@ -862,35 +864,35 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-white">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-serif font-bold text-[#451a03] flex items-center gap-3">
-                                    <History className="text-[#78350F]" /> {isMonk ? TEXT.ritualsClient : TEXT.ritualsMy}
+                        <div className="monastery-card p-10 bg-white/90 backdrop-blur-md">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6 border-b border-border pb-6">
+                                <h2 className="text-display flex items-center gap-4">
+                                    <History className="text-gold" /> {isMonk ? TEXT.ritualsClient : TEXT.ritualsMy}
                                 </h2>
-                                <div className="flex bg-stone-100 p-1 rounded-xl">
+                                <div className="flex bg-stone/30 p-1.5 rounded-2xl border border-border/50">
                                     <button
                                         onClick={() => setActiveBookingTab('upcoming')}
-                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeBookingTab === 'upcoming' ? 'bg-white shadow text-[#451a03]' : 'text-stone-400 hover:text-stone-600'}`}
+                                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-design ${activeBookingTab === 'upcoming' ? 'bg-gold text-white shadow-gold' : 'text-earth/60 hover:text-earth'}`}
                                     >
                                         Upcoming
                                     </button>
                                     <button
                                         onClick={() => setActiveBookingTab('history')}
-                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${activeBookingTab === 'history' ? 'bg-white shadow text-[#451a03]' : 'text-stone-400 hover:text-stone-600'}`}
+                                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-design ${activeBookingTab === 'history' ? 'bg-gold text-white shadow-gold' : 'text-earth/60 hover:text-earth'}`}
                                     >
                                         History
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {activeBookingTab === 'upcoming' ? (
                                     upcomingBookings.length > 0 ? upcomingBookings.map((b) => {
                                         const availability = checkRitualAvailability(b);
                                         const isJoiningThis = joiningRoomId === b._id;
 
                                         return (
-                                            <div key={b._id} className="p-4 md:p-5 rounded-2xl border border-stone-100 flex flex-col md:flex-row md:justify-between md:items-center bg-stone-50/50 gap-4 transition-all hover:border-[#D97706]/20">
+                                            <div key={b._id} className="p-6 rounded-[2rem] border border-border flex flex-col lg:flex-row lg:justify-between lg:items-center bg-stone/10 gap-6 transition-design hover:bg-stone/20 hover:border-gold/20 group">
                                                 <div
                                                     className={`flex-1 ${!isMonk ? "cursor-pointer" : ""}`}
                                                     onClick={() => {
@@ -899,15 +901,16 @@ export default function DashboardPage() {
                                                         }
                                                     }}
                                                 >
-                                                    <h4 className={`font-bold text-[#451a03] text-sm md:text-base ${!isMonk ? "hover:text-[#D97706] transition-colors" : ""}`}>
-                                                        {isMonk ? b.clientName : (allMonks.find(m => m._id === b.monkId)?.name?.[langKey] || b.serviceName?.en || "Monk")}
-                                                    </h4>
-                                                    {isMonk && <span className="text-[10px] text-stone-400 uppercase font-black tracking-wider block mb-1">{b.serviceName?.en || "Service"}</span>}
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-[10px] md:text-xs text-stone-500 bg-white px-2 py-0.5 rounded-full border border-stone-100">{b.date} • {b.time}</span>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className="text-label text-gold">{b.serviceName?.en || "Service"}</span>
+                                                        <div className="h-1 w-1 rounded-full bg-border" />
+                                                        <span className="text-[10px] font-black text-earth/40 uppercase tracking-widest">{b.date} • {b.time}</span>
                                                     </div>
+                                                    <h4 className={`text-h2 text-ink ${!isMonk ? "group-hover:text-gold transition-colors" : ""}`}>
+                                                        {isMonk ? b.clientName : (allMonks.find(m => m._id === b.monkId)?.name?.[langKey] || "Monk")}
+                                                    </h4>
                                                 </div>
-                                                <div className="flex items-center md:items-end gap-2 shrink-0">
+                                                <div className="flex flex-wrap lg:flex-nowrap items-center gap-3">
                                                     {b.status === 'confirmed' ? (
                                                         <>
                                                             <button
@@ -925,12 +928,11 @@ export default function DashboardPage() {
                                                                         }
                                                                     }
                                                                 }}
-                                                                className="w-full md:w-auto px-4 py-2.5 bg-stone-100 text-stone-600 rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-stone-200 transition-transform active:scale-95"
+                                                                className="flex-1 lg:flex-none px-6 py-3 bg-white text-ink border border-border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-stone/20 transition-design"
                                                             >
-                                                                <MessageCircle size={14} /> {TEXT.chat}
+                                                                <MessageCircle size={16} className="text-gold" /> {TEXT.chat}
                                                             </button>
 
-                                                            {/* START OF VIDEO BUTTON LOGIC */}
                                                             {isMonk && (
                                                                 <button
                                                                     onClick={async () => {
@@ -944,7 +946,7 @@ export default function DashboardPage() {
                                                                             if (res.ok) window.location.reload();
                                                                         } catch (e) { console.error(e); }
                                                                     }}
-                                                                    className="w-full md:w-auto px-4 py-2.5 bg-stone-800 text-white rounded-xl text-[10px] md:text-xs font-black uppercase hover:bg-black transition-transform active:scale-95"
+                                                                    className="flex-1 lg:flex-none px-6 py-3 bg-ink text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-125 transition-design"
                                                                 >
                                                                     Complete
                                                                 </button>
@@ -956,42 +958,45 @@ export default function DashboardPage() {
                                                                         joinVideoCall(b);
                                                                     }}
                                                                     disabled={isJoiningThis}
-                                                                    className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-green-500/10 hover:bg-green-700 transition-transform active:scale-95 disabled:opacity-70"
+                                                                    className="flex-1 lg:flex-none px-6 py-3 bg-live text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-live/20 hover:brightness-110 transition-design disabled:opacity-70"
                                                                 >
-                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={14} /> : <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                                                                    <Video size={14} /> Join Video Call
+                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={16} /> : <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />}
+                                                                    <Video size={16} /> Join Video
                                                                 </button>
                                                             ) : availability.isOpen ? (
                                                                 <button
                                                                     onClick={() => {
                                                                         setActiveBookingForRoom(b);
-                                                                        joinVideoCall(b); // CALLS FUNCTION NOW
+                                                                        joinVideoCall(b);
                                                                     }}
                                                                     disabled={isJoiningThis}
-                                                                    className="w-full md:w-auto px-4 py-2.5 bg-[#D97706] text-white rounded-xl text-[10px] md:text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 hover:bg-[#B45309] transition-transform active:scale-95 disabled:opacity-70"
+                                                                    className="flex-1 lg:flex-none px-6 py-3 bg-gold text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-gold hover:brightness-110 transition-design disabled:opacity-70"
                                                                 >
-                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={14} /> : <Video size={14} />}
+                                                                    {isJoiningThis ? <Loader2 className="animate-spin" size={16} /> : <Video size={16} />}
                                                                     {TEXT.enterRoom}
                                                                 </button>
                                                             ) : (
-                                                                <div className="w-full md:w-auto flex items-center justify-end">
-                                                                    <span className="px-3 py-1.5 rounded-full text-[10px] font-black uppercase bg-stone-100 text-stone-400 border border-stone-200">
+                                                                <div className="flex-1 lg:flex-none px-4 py-2 rounded-full border border-border bg-stone/10">
+                                                                    <span className="text-[9px] font-black uppercase text-earth/50">
                                                                         {availability.message}
                                                                     </span>
                                                                 </div>
                                                             )}
-                                                            {/* END OF VIDEO BUTTON LOGIC */}
                                                         </>
-                                                    ) : <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border ${b.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-stone-100 text-stone-500 border-stone-200'}`}>
+                                                    ) : <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${b.status === 'pending' ? 'bg-gold/5 text-gold border-gold/10' : 'bg-stone/10 text-earth border-border'}`}>
                                                         {b.status === 'pending' ? TEXT.pending : b.status}
                                                     </span>}
                                                 </div>
                                             </div>
                                         );
-                                    }) : <p className="text-stone-400 italic text-center py-6">No upcoming rituals.</p>
+                                    }) : (
+                                        <div className="text-center py-20 border-2 border-dashed border-border rounded-[2.5rem] opacity-40">
+                                            <p className="text-h2 font-serif italic text-earth">No scheduled rituals found.</p>
+                                        </div>
+                                    )
                                 ) : (
                                     historyBookings.length > 0 ? historyBookings.map((b) => (
-                                        <div key={b._id} className="p-4 md:p-5 rounded-2xl border border-stone-100 flex flex-col md:flex-row md:justify-between md:items-center bg-stone-50/20 gap-4 opacity-70 hover:opacity-100 transition-all">
+                                        <div key={b._id} className="p-6 rounded-[2rem] border border-border flex flex-col lg:flex-row lg:justify-between lg:items-center bg-stone/5 gap-6 opacity-60 hover:opacity-100 transition-design">
                                             <div
                                                 className={`flex-1 ${!isMonk ? "cursor-pointer" : ""}`}
                                                 onClick={() => {
@@ -1000,14 +1005,16 @@ export default function DashboardPage() {
                                                     }
                                                 }}
                                             >
-                                                <h4 className={`font-bold text-[#451a03] text-sm md:text-base line-through opacity-60 ${!isMonk ? "hover:text-[#D97706] transition-colors" : ""}`}>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="text-label text-earth/40">{b.serviceName?.en || "Service"}</span>
+                                                    <div className="h-1 w-1 rounded-full bg-border" />
+                                                    <span className="text-[10px] font-black text-earth/20 uppercase tracking-widest">{b.date} • {b.time}</span>
+                                                </div>
+                                                <h4 className="text-h2 text-ink line-through opacity-50">
                                                     {isMonk ? b.clientName : (allMonks.find(m => m._id === b.monkId)?.name?.[langKey] || "Monk")}
                                                 </h4>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] md:text-xs text-stone-400 bg-transparent px-0 py-0">{b.date} • {b.time}</span>
-                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-3">
                                                 {isMonk && b.status === 'completed' && (
                                                     <button
                                                         onClick={async () => {
@@ -1021,14 +1028,14 @@ export default function DashboardPage() {
                                                                 if (res.ok) window.location.reload();
                                                             } catch (e) { console.error(e); }
                                                         }}
-                                                        className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-amber-600 transition-colors"
+                                                        className="px-6 py-2.5 bg-gold/10 text-gold rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-white transition-design"
                                                     >
                                                         Re-open Session
                                                     </button>
                                                 )}
-                                                <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border ${b.status === 'completed' ? 'bg-green-50 text-green-600 border-green-200' :
-                                                    b.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' :
-                                                        'bg-stone-100 text-stone-500 border-stone-200'
+                                                <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${b.status === 'completed' ? 'bg-success/5 text-success border-success/10' :
+                                                    b.status === 'rejected' ? 'bg-error/5 text-error border-error/10' :
+                                                        'bg-stone/10 text-earth border-border'
                                                     }`}>
                                                     {b.status}
                                                 </span>
@@ -1041,10 +1048,18 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-[#FEF3C7] border border-[#FDE68A] p-8 rounded-[2.5rem]">
-                            <Sun className="w-16 h-16 text-[#F59E0B]/30 mb-4" />
-                            <h3 className="text-xl font-bold text-[#78350F] mb-2">{TEXT.wisdomTitle}</h3>
-                            <p className="italic text-[#78350F]/80 text-sm">"{TEXT.wisdomQuote}"</p>
+                        <div className="monastery-card p-10 bg-hero-bg text-white border-white/5 relative overflow-hidden group">
+                            <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-gold/10 rounded-full blur-3xl group-hover:bg-gold/20 transition-colors" />
+                            
+                            <Sun className="w-12 h-12 text-gold mb-6 animate-pulse" />
+                            <h3 className="text-h2 text-white/90 mb-4 tracking-wide">{TEXT.wisdomTitle}</h3>
+                            <p className="text-body italic text-white/60 leading-relaxed font-serif">"{TEXT.wisdomQuote}"</p>
+                            
+                            <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+                                <span className="text-label text-gold/60">Gevabal Daily</span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1052,11 +1067,21 @@ export default function DashboardPage() {
                 {/* CHAT MODAL */}
                 <AnimatePresence>
                     {activeChatBooking && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl w-full max-w-lg h-150 shadow-2xl overflow-hidden flex flex-col">
-                                <div className="p-4 border-b flex justify-between items-center bg-stone-50">
-                                    <h3 className="font-bold text-stone-800">{TEXT.chat}</h3>
-                                    <button onClick={() => { setActiveChatBooking(null); setChatClientInfo(null); }} className="p-2 hover:bg-stone-200 rounded-full"><X size={20} /></button>
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-md p-4">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                                animate={{ opacity: 1, scale: 1, y: 0 }} 
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+                                className="bg-white rounded-[2.5rem] w-full max-w-xl h-[80vh] shadow-modal overflow-hidden flex flex-col border border-border"
+                            >
+                                <div className="p-6 border-b border-border flex justify-between items-center bg-stone/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-xl bg-gold/10 text-gold">
+                                            <MessageCircle size={20} />
+                                        </div>
+                                        <h3 className="text-h2 text-ink">{TEXT.chat}</h3>
+                                    </div>
+                                    <button onClick={() => { setActiveChatBooking(null); setChatClientInfo(null); }} className="p-2 hover:bg-stone/50 rounded-full transition-colors text-earth"><X size={24} /></button>
                                 </div>
                                 <div className="flex-1 overflow-hidden">
                                     <ChatWindow
@@ -1087,27 +1112,55 @@ export default function DashboardPage() {
                 {/* MODALS */}
                 <AnimatePresence>
                     {isEditProfileModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-4xl p-8 w-full max-w-2xl h-[85vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-2xl font-bold font-serif text-[#451a03]">{TEXT.modalProfileTitle}</h3>
-                                    <button onClick={() => setIsEditProfileModalOpen(false)}><X size={24} /></button>
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-md p-4">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                                animate={{ opacity: 1, scale: 1, y: 0 }} 
+                                className="bg-white rounded-[3rem] p-10 w-full max-w-2xl h-[85vh] overflow-y-auto border border-border shadow-modal"
+                            >
+                                <div className="flex justify-between items-center mb-10 border-b border-border pb-6">
+                                    <h3 className="text-display text-ink">{TEXT.modalProfileTitle}</h3>
+                                    <button onClick={() => setIsEditProfileModalOpen(false)} className="p-2 hover:bg-stone/50 rounded-full transition-colors text-earth"><X size={28} /></button>
                                 </div>
-                                <div className="space-y-6">
-                                    <div className="flex flex-col items-center gap-4">
-                                        <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#FDE68A]">
-                                            <img src={editForm.image || editForm.avatar || user?.avatar} className="w-full h-full object-cover" />
-                                            <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer">
-                                                <input type="file" className="hidden" onChange={handleImageUpload} />
-                                                <Upload className="text-white" />
-                                            </label>
+                                <div className="space-y-10">
+                                    <div className="flex flex-col items-center gap-6">
+                                        <div className="relative group">
+                                            <div className="absolute -inset-2 bg-gold/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                                            <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-modal">
+                                                <img src={editForm.image || editForm.avatar || user?.avatar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                <label className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                                                    <input type="file" className="hidden" onChange={handleImageUpload} />
+                                                    <Upload className="text-white" size={32} />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {uploadingImage && <div className="flex items-center gap-2 text-label text-gold"><Loader2 className="animate-spin" size={14} /> {TEXT.uploading}</div>}
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="text-label text-earth/60 ml-4">{TEXT.labelPhone}</label>
+                                            <div className="relative">
+                                                <Phone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold" />
+                                                <input 
+                                                    className="w-full pl-14 pr-6 py-4 rounded-2xl border border-border bg-stone/10 outline-none focus:border-gold transition-design font-black text-ink text-sm" 
+                                                    placeholder="Phone" 
+                                                    value={editForm.phone || ""} 
+                                                    onChange={e => setEditForm({ ...editForm, phone: e.target.value })} 
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input className="p-3 border rounded-xl" placeholder="Phone" value={editForm.phone || ""} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
-                                    </div>
-                                    <button onClick={saveProfile} className="w-full py-4 bg-[#D97706] text-white rounded-2xl font-bold uppercase">
-                                        {isSaving ? <Loader2 className="animate-spin mx-auto" /> : TEXT.saveProfile}
+                                    <button 
+                                        onClick={saveProfile} 
+                                        disabled={isSaving}
+                                        className="cta-button w-full h-16 shadow-gold group"
+                                    >
+                                        {isSaving ? <Loader2 className="animate-spin mx-auto" /> : (
+                                            <div className="flex items-center justify-center gap-3">
+                                                <Save size={20} />
+                                                <span className="text-sm uppercase tracking-[0.2em]">{TEXT.saveProfile}</span>
+                                            </div>
+                                        )}
                                     </button>
                                 </div>
                             </motion.div>

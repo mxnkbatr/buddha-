@@ -14,10 +14,11 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children, initialLocale }: { children: ReactNode; initialLocale?: Language }) => {
-  const [language, setLanguage] = useState<Language>(initialLocale || "mn");
+  const language: Language = "mn";
+  const setLanguage = (lang: Language) => {}; // No-op to prevent language switching
 
   const t = <T,>(translations: { mn: T; en: T; }): T => {
-    return translations[language] || translations.en;
+    return translations.mn || translations.en; // Force Mongolian, fallback to EN if missing
   };
 
   return (

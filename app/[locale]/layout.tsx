@@ -66,8 +66,8 @@ export default async function RootLayout({
               <meta name="apple-mobile-web-app-capable" content="yes" />
               <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
               <meta name="mobile-web-app-capable" content="yes" />
-              {/* Theme color for Android status bar */}
-              <meta name="theme-color" content="#FAFAF9" />
+              {/* Theme color for Android status bar to match cream background */}
+              <meta name="theme-color" content="#FDFBF7" />
               {/* Preconnects */}
               <link rel="preconnect" href="https://res.cloudinary.com" />
               <link rel="dns-prefetch" href="https://res.cloudinary.com" />

@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // Static export for Capacitor (mobile builds)
-  output: process.env.CAPACITOR_BUILD === 'true' ? 'export' : undefined,
-  distDir: process.env.CAPACITOR_BUILD === 'true' ? 'out' : '.next',
+
 
   // Performance optimizations
   experimental: {
@@ -21,8 +19,6 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   skipProxyUrlNormalize: true,
   images: {
-    // Unoptimized for static export (Capacitor requirement)
-    unoptimized: process.env.CAPACITOR_BUILD === 'true',
     formats: ['image/avif', 'image/webp'],
     // Device sizes optimized for common breakpoints
     deviceSizes: [640, 750, 828, 1080, 1200],

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <access origin="*" />
+  
+  
+  <preference name="ScrollEnabled" value="true" />
+  <preference name="BackupWebStorage" value="local" />
+  <preference name="DisallowOverscroll" value="true" />
+  <preference name="EnableViewportScale" value="false" />
+  <preference name="KeyboardDisplayRequiresUserAction" value="true" />
+  <preference name="SuppressesIncrementalRendering" value="false" />
+  <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+  <preference name="WKWebViewOnly" value="true" />
+  <preference name="AllowInlineMediaPlayback" value="false" />
+</widget>

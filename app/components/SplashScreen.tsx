@@ -18,7 +18,7 @@ export default function SplashScreen() {
         const timer = setTimeout(() => {
             setIsVisible(false)
             sessionStorage.setItem('splashShown', 'true')
-        }, 800)  // Reduced from 1200ms for faster perceived load
+        }, 1200) // Slightly longer for the new premium animation
 
         return () => clearTimeout(timer)
     }, [])
@@ -30,82 +30,97 @@ export default function SplashScreen() {
                     initial={{ opacity: 1 }}
                     exit={{
                         opacity: 0,
-                        transition: { duration: 0.8, ease: 'easeInOut' }
+                        transition: { duration: 1, ease: [0.22, 1, 0.36, 1] }
                     }}
-                    className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white"
+                    className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-hero-bg overflow-hidden"
                 >
-                    <div className="relative flex flex-col items-center">
-                        {/* Logo container with subtle glow */}
+                    {/* Texture Overlay */}
+                    <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.1)_0%,_transparent_70%)]" />
+
+                    <div className="relative flex flex-col items-center z-10">
+                        {/* Logo container with Sacred Gold Glow */}
                         <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
+                            initial={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
                             animate={{
                                 scale: 1,
                                 opacity: 1,
+                                filter: 'blur(0px)',
                                 transition: {
-                                    duration: 1.2,
+                                    duration: 1.8,
                                     ease: [0.22, 1, 0.36, 1]
                                 }
                             }}
-                            className="relative w-32 h-32 md:w-40 md:h-40 mb-8"
+                            className="relative w-40 h-40 md:w-48 md:h-48 mb-12"
                         >
-                            <div className="absolute inset-x-0 inset-y-0 bg-orange-100/50 rounded-full scale-110" />
-                            <div className="relative w-full h-full">
+                            {/* Inner Sacred Glow */}
+                            <motion.div 
+                                animate={{ 
+                                    opacity: [0.2, 0.4, 0.2],
+                                    scale: [1, 1.2, 1]
+                                }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute inset-0 bg-gold/10 rounded-full blur-3xl" 
+                            />
+                            
+                            <div className="relative w-full h-full flex items-center justify-center p-6 bg-white/5 backdrop-blur-sm rounded-full border border-white/5 shadow-modal">
                                 <Image
                                     src="/logo.webp"
                                     alt="Gevabal Logo"
-                                    fill
-                                    sizes="(max-width: 768px) 110px, 140px"
-                                    className="object-contain"
+                                    width={160}
+                                    height={160}
+                                    className="object-contain brightness-110 contrast-125"
                                     priority
                                     loading="eager"
                                 />
                             </div>
                         </motion.div>
 
-                        {/* Title with elegant fade-in */}
+                        {/* Title with Traditional Mongolian Elegance */}
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{
                                 y: 0,
                                 opacity: 1,
                                 transition: {
-                                    delay: 0.5,
-                                    duration: 0.8,
-                                    ease: 'easeOut'
+                                    delay: 0.8,
+                                    duration: 1.2,
+                                    ease: [0.22, 1, 0.36, 1]
                                 }
                             }}
                             className="text-center"
                         >
-                            <h1 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 tracking-wider mb-2">
+                            <h1 className="text-4xl md:text-5xl font-serif font-black text-white tracking-[0.4em] mb-4 uppercase">
                                 GEVABAL
                             </h1>
-                            <div className="h-px w-16 bg-orange-400 mx-auto my-3" />
-                            <p className="text-sm md:text-base font-lato text-gray-500 tracking-[0.2em] uppercase">
-                                Spiritual Guidance
+                            <div className="h-[1.5px] w-16 bg-gold mx-auto mb-6 opacity-30 shadow-gold" />
+                            <p className="text-[10px] md:text-xs font-sans text-gold/40 tracking-[0.6em] uppercase font-bold">
+                                SANCTUARY OF WISDOM
                             </p>
                         </motion.div>
                     </div>
 
-                    {/* Minimalist loading indicator */}
+                    {/* Minimalist Sacral Pulse Loading */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 1, duration: 0.5 }}
-                        className="absolute bottom-12 flex space-x-2"
+                        transition={{ delay: 1.5, duration: 1 }}
+                        className="absolute bottom-20 flex space-x-4"
                     >
                         {[0, 1, 2].map((i) => (
                             <motion.div
                                 key={i}
                                 animate={{
                                     scale: [1, 1.5, 1],
-                                    opacity: [0.3, 1, 0.3],
+                                    opacity: [0.1, 0.6, 0.1],
                                 }}
                                 transition={{
-                                    duration: 1.5,
+                                    duration: 2.5,
                                     repeat: Infinity,
-                                    delay: i * 0.2,
+                                    delay: i * 0.4,
+                                    ease: "easeInOut"
                                 }}
-                                className="w-1.5 h-1.5 bg-orange-300 rounded-full"
+                                className="w-1.5 h-1.5 bg-gold rounded-full"
                             />
                         ))}
                     </motion.div>
