@@ -18,7 +18,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1 space-y-6">
             <Link href="/" className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Gevabal" width={48} height={48} className="rounded-full" />
+              <Image src="/logo.webp" alt="Gevabal" width={48} height={48} className="rounded-full" />
               <div>
                 <h3 className="font-serif font-bold text-xl text-text-main">Gevabal</h3>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Sanctuary</span>

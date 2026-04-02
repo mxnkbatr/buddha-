@@ -97,7 +97,7 @@ export default function OverlayNavbar() {
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="relative w-10 h-10 shrink-0 overflow-hidden rounded-full border-2 border-primary/20 bg-surface p-0.5 shadow-sm">
         <Image
-          src="/logo.png"
+          src="/logo.webp"
           alt="Logo"
           width={44}
           height={44}

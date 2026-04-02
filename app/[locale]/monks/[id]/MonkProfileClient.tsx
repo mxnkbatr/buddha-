@@ -28,18 +28,18 @@ const CosmicBackground = ({ isNight }: { isNight: boolean }) => (
             : "bg-[radial-gradient(ellipse_at_top,_#fffbeb_0%,_#fff7ed_100%)]"
             }`} />
 
-        {/* Slow Moving Clouds */}
+        {/* Slow Moving Clouds - Optimized */}
         <motion.div
-            animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-            transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
-            className={`absolute top-[-40%] right-[-20%] w-[80vw] h-[80vw] rounded-full blur-[40px] opacity-20 ${isNight ? "bg-indigo-900" : "bg-secondary/20"}`}
-        />
-        <motion.div
-            animate={{ rotate: -360, scale: [1, 1.2, 1] }}
+            animate={{ rotate: 360 }}
             transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-            className={`absolute bottom-[-20%] left-[-20%] w-[60vw] h-[60vw] rounded-full blur-[50px] opacity-20 ${isNight ? "bg-fuchsia-900" : "bg-primary/20"}`}
+            className={`absolute top-[-40%] right-[-20%] w-[80vw] h-[80vw] rounded-full opacity-10 ${isNight ? "bg-indigo-900" : "bg-secondary/20"} bg-gradient-radial from-current to-transparent`}
         />
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.svg')] mix-blend-overlay" />
+        <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 250, repeat: Infinity, ease: "linear" }}
+            className={`absolute bottom-[-20%] left-[-20%] w-[60vw] h-[60vw] rounded-full opacity-10 ${isNight ? "bg-fuchsia-900" : "bg-primary/20"} bg-gradient-radial from-current to-transparent`}
+        />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('/noise.svg')]" />
     </div>
 );
 

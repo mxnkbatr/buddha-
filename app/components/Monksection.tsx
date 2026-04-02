@@ -143,7 +143,7 @@ export default function MajesticTarotSection() {
             arcana: RUNES[i % RUNES.length],
             name: m.name,
             title: m.title,
-            video: m.video || "/num1.mp4"
+            video: m.video || "https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133484/video_kakyvu.mp4"
           }));
         }
 

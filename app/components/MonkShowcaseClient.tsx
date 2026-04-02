@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     motion,
     useSpring,
@@ -78,7 +79,12 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
     const shouldReduceMotion = useReducedMotion();
 
     useEffect(() => {
-        import("rust-modules").then(mod => setWasm(mod)).catch(err => console.error("WASM load failed", err));
+        import("rust-modules").then(async mod => {
+            if (mod.default) {
+                await mod.default(); // Initialize WASM
+            }
+            setWasm(mod);
+        }).catch(err => console.error("WASM load failed", err));
     }, []);
 
     const filteredMonks = useMemo<Monk[]>(() => {
@@ -143,8 +149,15 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
                     <div className="mt-12 flex justify-center">
                         <div className={`relative flex items-center gap-4 px-6 py-3 rounded-full border backdrop-blur-xl transition-all duration-300 ${isDark ? "bg-white/5 border-cyan-500/30" : "bg-white/40 border-amber-900/10"}`}>
                             <Calendar size={18} className={isDark ? "text-cyan-400" : "text-amber-600"} />
-                            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={`bg-transparent border-none outline-none text-sm font-bold uppercase tracking-wider min-w-[140px] cursor-pointer ${isDark ? "text-cyan-100 color-scheme-dark" : "text-amber-900 color-scheme-light"}`} />
-                            {!selectedDate && <span className={`absolute inset-0 left-16 flex items-center pointer-events-none text-xs font-black uppercase tracking-widest opacity-60 ${isDark ? "text-cyan-200" : "text-amber-800"}`}>{t({ mn: "Өдөр сонгох", en: "Select Date" })}</span>}
+                            <input 
+                                type={selectedDate ? "date" : "text"} 
+                                placeholder={t({ mn: "Өдөр сонгох", en: "Select Date" })}
+                                onFocus={(e) => (e.target.type = 'date')}
+                                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                                value={selectedDate} 
+                                onChange={(e) => setSelectedDate(e.target.value)} 
+                                className={`bg-transparent border-none outline-none text-sm font-bold uppercase tracking-wider min-w-[140px] cursor-pointer placeholder-${isDark ? "cyan-200" : "amber-800"}/60 ${isDark ? "text-cyan-100 color-scheme-dark" : "text-amber-900 color-scheme-light"}`} 
+                            />
                             {selectedDate && <button onClick={() => setSelectedDate("")} className={`text-[10px] font-black uppercase hover:underline ${isDark ? "text-red-400" : "text-red-600"}`}>{t({ mn: "Арилгах", en: "Clear" })}</button>}
                         </div>
                     </div>
@@ -152,7 +165,7 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 lg:gap-16 perspective-[2000px]">
                     {filteredMonks.length > 0 ? (
-                        filteredMonks.map((monk, idx) => <DivineCard key={monk._id?.toString() || idx} monk={monk} index={idx} isDark={isDark} lang={language === 'mn' ? 'mn' : 'en'} />)
+                        filteredMonks.map((monk, idx) => <DivineCard key={monk._id?.toString() || idx} monk={monk} index={idx} isDark={isDark} lang={language === 'mn' ? 'mn' : 'en'} locale={language === 'mn' ? 'mn' : 'en'} />)
                     ) : (
                         <div className="col-span-full text-center py-20 opacity-50"><p className={`text-xl font-serif ${isDark ? "text-cyan-200" : "text-amber-800"}`}>{t({ mn: "Энэ өдөр багш нар завгүй байна.", en: "No monks available on this date." })}</p></div>
                     )}
@@ -162,8 +175,9 @@ export default function MonkShowcaseClient({ initialMonks }: { initialMonks: Mon
     );
 }
 
-function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, isDark: boolean, lang: 'mn' | 'en' }) {
+function DivineCard({ monk, index, isDark, lang, locale }: { monk: Monk, index: number, isDark: boolean, lang: 'mn' | 'en', locale: string }) {
     const { t } = useLanguage();
+    const router = useRouter();
     const [isHovered, setIsHovered] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
@@ -189,16 +203,16 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
     const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
     return (
-        <Link href={`/monks/${monk._id}`}>
+        <div onClick={() => router.push(`/${locale}/monks/${monk._id}`)}>
             <motion.div ref={cardRef} initial={{ opacity: 0, y: 100 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} onMouseMove={handleMouseMove} onMouseLeave={() => { x.set(0); y.set(0); setIsHovered(false); }} onMouseEnter={() => setIsHovered(true)} className="group w-full h-[450px] md:h-[600px] cursor-none z-10 relative">
-                <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className={`relative w-full h-full rounded-[2rem] md:rounded-[2.5rem] border overflow-hidden shadow-2xl ${isDark ? "bg-[#0a0a20] border-cyan-500/30" : "bg-white border-amber-200"}`}>
+                <motion.div style={{ rotateX, rotateY }} className={`relative w-full h-full rounded-[2rem] md:rounded-[2.5rem] border overflow-hidden shadow-2xl ${isDark ? "bg-[#0a0a20] border-cyan-500/30" : "bg-white border-amber-200"}`}>
                     <motion.div style={{ x: bgX, y: bgY, scale: 1.15 }} className="absolute inset-0 z-0">
-                        <div className={`absolute inset-0 z-10 mix-blend-color transition-opacity duration-700 ${isHovered ? 'opacity-0' : 'opacity-100'} ${isDark ? 'bg-[#0a0a20]' : 'bg-[#fff7ed]'}`} />
+                        <div className={`absolute inset-0 z-10 transition-opacity duration-700 ${isHovered ? 'opacity-0' : 'opacity-30'} ${isDark ? 'bg-[#0a0a20]' : 'bg-[#fff7ed]'}`} />
                         <Image src={monk.image || "/default-monk.jpg"} alt={monk.name[lang]} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
                         <div className={`absolute inset-0 z-20 bg-gradient-to-b ${isDark ? 'from-black/60 via-transparent to-black' : 'from-white/40 via-transparent to-[#fdfbf7]'} opacity-90`} />
                     </motion.div>
-                    <NoiseOverlay />
-                    <motion.div style={{ background: glareBackground }} className="absolute inset-0 z-30 mix-blend-overlay pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 z-20 opacity-[0.03] bg-[url('/noise.svg')] pointer-events-none" />
+                    <motion.div style={{ background: glareBackground }} className="absolute inset-0 z-30 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 blend-screen" />
                     <div className="absolute inset-0 z-40 p-8 flex flex-col justify-between pointer-events-none">
                         <div className="flex justify-end absolute top-8 right-8 z-50 pointer-events-auto">
                             <div className={`flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border backdrop-blur-xl ${isDark ? "bg-cyan-950/60 border-cyan-400/40" : "bg-white/60 border-amber-200/60"}`}>
@@ -216,7 +230,7 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
                             <p className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${isDark ? "text-cyan-100" : "text-amber-900"}`}>{monk.title?.[lang] || "Master of Fate"}</p>
                             <div className="flex flex-col gap-3">
                                 <Link 
-                                    href={`/booking/${monk._id}`}
+                                    href={`/${locale}/monks/${monk._id}`}
                                     onClick={(e) => e.stopPropagation()}
                                     className={`pointer-events-auto inline-flex items-center justify-center gap-4 px-8 py-3.5 rounded-2xl shadow-2xl relative overflow-hidden transition-transform active:scale-95 ${isDark ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white" : "bg-gradient-to-r from-amber-500 to-orange-600 text-white"}`}
                                 >
@@ -225,9 +239,8 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
                                     <div className="h-6 w-[1px] bg-white/30 relative z-10" />
                                     <ArrowUpRight size={20} strokeWidth={2.5} className="relative z-10" />
                                 </Link>
-
                                 <Link 
-                                    href={`/messenger?monkId=${monk._id}`}
+                                    href={`/${locale}/messenger?monkId=${monk._id}`}
                                     onClick={(e) => e.stopPropagation()}
                                     className={`pointer-events-auto inline-flex items-center justify-center gap-4 px-8 py-3 rounded-2xl border backdrop-blur-xl transition-all active:scale-95 ${isDark ? "bg-white/5 border-cyan-500/30 text-cyan-200" : "bg-white/40 border-amber-900/10 text-amber-900"}`}
                                 >
@@ -244,6 +257,6 @@ function DivineCard({ monk, index, isDark, lang }: { monk: Monk, index: number, 
                     <div className={`absolute inset-0 w-2 h-2 m-auto rounded-full ${isDark ? "bg-cyan-400" : "bg-amber-600"}`} />
                 </motion.div>
             </motion.div>
-        </Link>
+        </div>
     );
 }

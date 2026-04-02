@@ -51,7 +51,7 @@ export default function SplashScreen() {
                             <div className="absolute inset-x-0 inset-y-0 bg-orange-100/50 rounded-full scale-110" />
                             <div className="relative w-full h-full">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo.webp"
                                     alt="Gevabal Logo"
                                     fill
                                     sizes="(max-width: 768px) 110px, 140px"

@@ -74,14 +74,16 @@ export default async function RootLayout({
               <link rel="preconnect" href="https://clerk-telemetry.com" />
               <link rel="preconnect" href="https://img.clerk.com" />
             </head>
-            <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+            <body className={`${playfair.variable} ${lato.variable} font-sans overflow-x-hidden`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
                 <CapacitorInitWrapper />
                 <SmoothScroll />
                 <Navbar />
                 <SplashScreen />
-                {children}
-                <Footer />
+                <main className="w-full relative pb-32 md:pb-0 overflow-x-hidden">
+                  {children}
+                  <Footer />
+                </main>
               </ThemeProvider>
             </body>
           </html>
