@@ -1089,6 +1089,54 @@ html.lenis body {
   50%       { box-shadow: 0 0 18px rgba(217,119,6,0.4), 0 0 36px rgba(217,119,6,0.15); }
 }
 
+/* === SELECTION & SCROLLBAR === */
+::selection {
+  background: var(--gold);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--earth);
+}
+
+/* === BANNER SHIMMER === */
+.banner-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.banner-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: banner-shimmer 3.5s infinite;
+}
+
+@keyframes banner-shimmer {
+  0%   { left: -150%; }
+  100% { left: 150%; }
+}
+
 .hs-practitioner-avatar {
   width: 56px;
   height: 56px;

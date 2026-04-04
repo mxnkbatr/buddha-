@@ -11,8 +11,8 @@ export default function Hero() {
 
   const content = {
     highlight: t({ mn: "асуудлын", en: "solutions" }),
-    btnPrimary: isSignedIn ? t({ mn: "Цаг захиалах", en: "Book Now" }) : t({ mn: "Нэвтрэх", en: "Sign In" }),
-    btnPrimaryHref: isSignedIn ? "/monks" : "/sign-in",
+    btnPrimary: isSignedIn ? t({ mn: "Багш харах", en: "Find Mentor" }) : t({ mn: "Аяллаа эхлэх", en: "Start Journey" }),
+    btnPrimaryHref: "/monks",
   };
 
   return (

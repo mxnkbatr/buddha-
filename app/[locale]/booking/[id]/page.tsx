@@ -21,9 +21,11 @@ export default function NativeBookingPage() {
     const [monk, setMonk] = useState<any>(null);
     const [service, setService] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+    const [fetchingSlots, setFetchingSlots] = useState(false);
 
     // Form states
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     
     // Submission states
@@ -33,6 +35,23 @@ export default function NativeBookingPage() {
 
     // Calendar view state
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+
+    useEffect(() => {
+        async function fetchBookings() {
+            if (!monkId || !selectedDate) return;
+            setFetchingSlots(true);
+            try {
+                const d = selectedDate.toISOString().split('T')[0];
+                const res = await fetch(`/api/bookings?monkId=${monkId}&date=${d}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBookedSlots(data.map((b: any) => b.time));
+                }
+            } catch (e) { console.error(e); }
+            finally { setFetchingSlots(false); }
+        }
+        fetchBookings();
+    }, [monkId, selectedDate]);
 
     const handleConfirm = async () => {
         if (!selectedDate || !selectedTime || !user) return;
@@ -46,7 +65,7 @@ export default function NativeBookingPage() {
                 body: JSON.stringify({
                     monkId,
                     serviceId,
-                    date: selectedDate.toISOString(),
+                    date: selectedDate.toISOString().split('T')[0],
                     time: selectedTime,
                     userId: user._id || user.id,
                     userEmail: user.email,
@@ -62,7 +81,6 @@ export default function NativeBookingPage() {
             }
             
             setSubmitted(true);
-            // Redirect after 2 seconds
             setTimeout(() => router.push(`/${lang}/profile`), 2000);
         } catch (err: any) {
             setSubmitError(err.message || t({ mn: "Захиалга хийхэд алдаа гарлаа", en: "Booking failed" }));
@@ -81,20 +99,12 @@ export default function NativeBookingPage() {
                 ]);
                 const sData = await sRes.json();
                 const mData = await mRes.json();
-                
-                // Set default price logic 
                 const finalPrice = mData.isSpecial ? 88800 : (sData.price || 45000);
-                
                 setService({ ...sData, price: finalPrice });
                 setMonk(mData);
-                
-                // Select today by default
                 setSelectedDate(new Date());
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+            } catch (err) { console.error(err); } 
+            finally { setLoading(false); }
         }
         loadData();
     }, [serviceId, monkId]);
@@ -103,7 +113,6 @@ export default function NativeBookingPage() {
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => {
         let day = new Date(year, month, 1).getDay();
-        // Adjust so Monday is 0 instead of Sunday being 0 for Mongolian calendar
         return day === 0 ? 6 : day - 1; 
     };
 
@@ -112,14 +121,9 @@ export default function NativeBookingPage() {
         const month = currentMonth.getMonth();
         const days = daysInMonth(year, month);
         const firstDay = firstDayOfMonth(year, month);
-        
         let grid = [];
-        for (let i = 0; i < firstDay; i++) {
-            grid.push(null);
-        }
-        for (let i = 1; i <= days; i++) {
-            grid.push(new Date(year, month, i));
-        }
+        for (let i = 0; i < firstDay; i++) grid.push(null);
+        for (let i = 1; i <= days; i++) grid.push(new Date(year, month, i));
         return grid;
     }, [currentMonth]);
 
@@ -128,30 +132,23 @@ export default function NativeBookingPage() {
 
     // Calculate available times from monk's schedule
     const availableTimes = useMemo(() => {
-        if (!monk?.schedule) return ["09:00", "11:00", "14:00", "16:00"];
-        
-        const today = selectedDate || new Date();
-        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const dayName = dayNames[today.getDay()];
-        
-        const daySchedule = monk.schedule.find((s: any) => 
-            s.day === dayName && s.active !== false
-        );
-        
-        if (!daySchedule) return [];
-        
-        // If specific slots are defined, use them
-        if (daySchedule.slots?.length > 0) return daySchedule.slots;
-        
-        // Otherwise generate 1-hour slots from start to end time
-        const slots: string[] = [];
-        const startH = parseInt(daySchedule.start?.split(":")[0] || "9");
-        const endH = parseInt(daySchedule.end?.split(":")[0] || "18");
-        for (let h = startH; h < endH; h++) {
-            slots.push(`${h.toString().padStart(2, "0")}:00`);
-        }
-        return slots;
-    }, [monk, selectedDate]);
+        const defaultSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
+        const baseSlots = (monk?.schedule) ? (() => {
+            const today = selectedDate || new Date();
+            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const dayName = dayNames[today.getDay()];
+            const daySchedule = monk.schedule.find((s: any) => s.day === dayName && s.active !== false);
+            if (!daySchedule) return [];
+            if (daySchedule.slots?.length > 0) return daySchedule.slots;
+            const slots: string[] = [];
+            const startH = parseInt(daySchedule.start?.split(":")[0] || "9");
+            const endH = parseInt(daySchedule.end?.split(":")[0] || "18");
+            for (let h = startH; h < endH; h++) slots.push(`${h.toString().padStart(2, "0")}:00`);
+            return slots;
+        })() : defaultSlots;
+
+        return baseSlots.filter((time: string) => !bookedSlots.includes(time));
+    }, [monk, selectedDate, bookedSlots]);
 
     if (submitted) return (
         <div className="min-h-[100svh] bg-cream flex flex-col items-center justify-center px-6 text-center animate-fade-in">
