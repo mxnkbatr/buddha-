@@ -402,9 +402,11 @@ export default function MessengerPage() {
               {[1, 2, 3].map(i => <div key={i} className={`h-12 skeleton rounded-[1.5rem] max-w-[65%] ${i % 2 === 0 ? "ml-auto" : ""}`} />)}
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center py-20 opacity-40">
-              <Sparkles size={40} className="mx-auto mb-4 text-earth" />
-              <p className="text-[14px] font-bold text-earth uppercase tracking-widest italic">
+            <div className="flex flex-col items-center justify-center py-32 px-10 text-center">
+              <div className="w-20 h-20 rounded-[2.5rem] bg-stone/20 flex items-center justify-center mb-8 shadow-sm">
+                <Sparkles size={32} className="text-gold/40" />
+              </div>
+              <p className="text-[14px] font-black text-earth/40 uppercase tracking-[0.2em] italic max-w-[200px] leading-relaxed">
                 {t({ mn: "Бодол санаагаа хуваалцаарай", en: "A heart-to-heart dialogue" })}
               </p>
             </div>
@@ -435,25 +437,29 @@ export default function MessengerPage() {
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* Modern Input Bar */}
-      <div className="px-5 bg-white/80 backdrop-blur-lg border-t border-stone/30"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 24px)", paddingTop: 16 }}>
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-stone/20 p-1.5 rounded-[2rem] border border-transparent focus-within:border-gold/10 focus-within:bg-white transition-all shadow-inner">
+      {/* PREMIUM FLOATING INPUT BAR */}
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+88px)] left-0 right-0 px-5 z-40">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-white/95 backdrop-blur-xl border border-stone/30 shadow-[0_8px_32px_rgba(120,104,81,0.12)] rounded-[2.5rem] p-1.5 flex items-center gap-2"
+        >
           <input
             type="text"
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
             placeholder={t({ mn: "Сургаал бичих...", en: "Write your thoughts..." })}
-            className="flex-1 bg-transparent py-3 px-4 text-[15px] text-ink placeholder:text-earth/40 outline-none"
+            className="flex-1 bg-transparent py-4 px-6 text-[15px] text-ink placeholder:text-earth/40 outline-none"
           />
           <button
             type="submit"
+            onClick={(e) => handleSendMessage(e as any)}
             disabled={sending || !newMessage.trim()}
-            className="w-12 h-12 rounded-full bg-gold flex items-center justify-center shrink-0 disabled:opacity-40 active:scale-90 transition-all shadow-gold cursor-pointer"
+            className="w-12 h-12 rounded-full bg-gold flex items-center justify-center shrink-0 disabled:opacity-30 active:scale-90 transition-all shadow-gold cursor-pointer"
           >
             {sending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
           </button>
-        </form>
+        </motion.div>
       </div>
     </div>
   );
