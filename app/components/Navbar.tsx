@@ -16,13 +16,17 @@ import {
   Feather,
   MessageSquare,
   Heart,
-  Bell
+  Bell,
+  X,
+  Calendar,
+  ArrowRight
 } from "lucide-react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { UserButton } from "@clerk/nextjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { usePlatform } from "@/app/capacitor/hooks/usePlatform";
 import { hapticsLight, hapticsMedium } from "@/app/capacitor/plugins/haptics";
 
@@ -115,8 +119,22 @@ export default function OverlayNavbar() {
   );
 
   const isAuthPage = ["/sign-in", "/sign-up"].some(p => pathname.includes(p));
-  const isSubPage = pathname.split('/').length > 2 && 
-                    !['dashboard', 'messenger', 'blog', 'monks'].includes(pathname.split('/')[2]);
+  const isSubPage = false; // Header visible on all pages
+
+  // --- WISHLIST & NOTIFICATIONS STATE ---
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && isWishlistOpen) {
+      fetch("/api/user/wishlist")
+        .then(res => res.json())
+        .then(data => setWishlist(data.wishlist || []))
+        .catch(console.error);
+    }
+  }, [user, isWishlistOpen]);
 
   return (
     <>
@@ -153,14 +171,100 @@ export default function OverlayNavbar() {
             })}
           </div>
 
-          <div className="flex items-center gap-4 px-2">
-            <button className="p-2 text-earth hover:text-gold transition-colors relative" aria-label="Wishlist">
-              <Heart size={20} strokeWidth={2} />
-            </button>
-            <button className="p-2 text-earth hover:text-gold transition-colors relative" aria-label="Notifications">
-              <Bell size={20} strokeWidth={2} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white shadow-sm" />
-            </button>
+          <div className="flex items-center gap-4 px-2 relative">
+            {/* --- WISHLIST --- */}
+            <div className="relative">
+              <button 
+                onClick={() => { setIsWishlistOpen(!isWishlistOpen); setIsNotifOpen(false); }}
+                className={`p-2 transition-all duration-300 rounded-full ${isWishlistOpen ? 'bg-gold/10 text-gold shadow-[0_0_15px_rgba(217,119,6,0.2)]' : 'text-earth hover:text-gold'}`}
+                aria-label="Wishlist"
+              >
+                <Heart size={20} strokeWidth={isWishlistOpen ? 2.5 : 2} fill={isWishlistOpen ? "currentColor" : "none"} />
+              </button>
+
+              {isWishlistOpen && (
+                <div className="absolute top-full right-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border border-border overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-4 border-b border-border flex justify-between items-center bg-cream/50">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-ink">Дуртай багш нар</h3>
+                    <button onClick={() => setIsWishlistOpen(false)}><X size={14} /></button>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {wishlist.length === 0 ? (
+                      <div className="p-8 text-center text-earth text-xs italic">Хоосон байна</div>
+                    ) : (
+                      wishlist.map(monk => (
+                        <LocalizedLink 
+                          key={monk._id} 
+                          href={`/monks/${monk._id}`}
+                          onClick={() => setIsWishlistOpen(false)}
+                          className="flex items-center gap-3 p-3 hover:bg-cream transition-colors border-b border-stone/50 last:border-0"
+                        >
+                          <img src={monk.image} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
+                          <div>
+                            <p className="text-xs font-bold text-ink">{monk.name?.[lang] || monk.name?.mn}</p>
+                            <p className="text-[10px] text-earth">{monk.title?.[lang] || monk.title?.mn}</p>
+                          </div>
+                          <ArrowRight size={12} className="ml-auto text-gold/50" />
+                        </LocalizedLink>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* --- NOTIFICATIONS --- */}
+            <div className="relative">
+              <button 
+                onClick={() => { setIsNotifOpen(!isNotifOpen); setIsWishlistOpen(false); }}
+                className={`p-2 transition-all duration-300 rounded-full relative ${isNotifOpen ? 'bg-gold/10 text-gold shadow-[0_0_15px_rgba(217,119,6,0.2)]' : 'text-earth hover:text-gold'}`}
+                aria-label="Notifications"
+              >
+                <Bell size={20} strokeWidth={isNotifOpen ? 2.5 : 2} fill={isNotifOpen ? "currentColor" : "none"} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-error text-[9px] font-black text-white rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotifOpen && (
+                <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-border overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-4 border-b border-border flex justify-between items-center bg-cream/50">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-ink">Мэдэгдэл</h3>
+                    <div className="flex gap-3">
+                      <button onClick={() => markAsRead(undefined, true)} className="text-[10px] font-bold text-gold hover:underline">Бүгдийг уншсан</button>
+                      <button onClick={() => setIsNotifOpen(false)}><X size={14} /></button>
+                    </div>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-10 text-center text-earth text-xs italic">Мэдэгдэл алга</div>
+                    ) : (
+                      notifications.map((notif: any) => (
+                        <div 
+                          key={notif._id?.toString()} 
+                          className={`p-4 border-b border-stone/30 last:border-0 hover:bg-cream/30 transition-colors ${!notif.read ? 'bg-gold/5' : ''}`}
+                          onClick={() => !notif.read && markAsRead(notif._id?.toString())}
+                        >
+                          <div className="flex gap-3">
+                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${notif.type === 'booking' ? 'bg-gold' : 'bg-success'}`} />
+                            <div className="flex-1">
+                              <p className="text-[11px] font-black text-ink mb-0.5">{notif.title[lang === 'mn' ? 'mn' : 'en']}</p>
+                              <p className="text-[11px] text-earth leading-relaxed">{notif.message[lang === 'mn' ? 'mn' : 'en']}</p>
+                              <p className="text-[9px] text-earth/60 mt-2 flex items-center gap-1">
+                                <Calendar size={10} /> 
+                                {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

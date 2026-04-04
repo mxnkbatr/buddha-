@@ -32,6 +32,12 @@
   --amber-luminous: #D97706;  /* Rich amber base */
   --gold-luminous: #FDE68A;   /* Bright golden light */
   --luminous-text: #1A0800;   /* Deep earthy accent */
+  
+  /* Brand Redesign Variables */
+  --brand-amber: #E89010;
+  --brand-gold-bright: #F0B429;
+  --brand-text-mid: #5A4200;
+  --brand-border-glow: rgba(240, 180, 41, 0.4);
 
   /* === SPACING (iOS Optimized) === */
   --space-xs: 4px;
@@ -726,41 +732,44 @@ html.lenis body {
   width: 100%;
   max-width: 800px;
   min-height: 200px;     /* refined height 200-220px */
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(253, 246, 227, 0.6) 100%);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
-  border-radius: 22px;
+  background-image: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)),
+    linear-gradient(135deg, var(--brand-amber), var(--brand-gold-bright));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
   margin: 0 auto;
   overflow: hidden;
-  box-shadow: 
-    0 20px 50px -12px rgba(217, 119, 6, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 1);
+  box-shadow: 0 12px 40px rgba(232, 144, 16, 0.15);
   display: flex;
   align-items: center;
-  border: 1px solid rgba(240, 180, 40, 0.4); /* Refined Glow Border */
-
+  border: 1px solid var(--brand-border-glow);
 }
 
-/* Shimmer Effect */
+/* Premium Shimmer Effect */
 .luminous-banner::after {
   content: "";
   position: absolute;
-  top: 0;
+  top: -50%;
   left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.6), transparent);
-  transform: skewX(-20deg);
-  animation: banner-shimmer 4s infinite;
-  z-index: 10;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  animation: banner-shimmer 3.5s infinite;
   pointer-events: none;
+  z-index: 2;
 }
 
 @keyframes banner-shimmer {
   0% { left: -100%; }
-  20% { left: 200%; }
-  100% { left: 200%; } /* Pauses out of frame for 80% of the time, making the flash occur periodically */
+  25% { left: 150%; }
+  100% { left: 150%; }
 }
 
 .luminous-content {
@@ -795,9 +804,10 @@ html.lenis body {
 }
 
 .luminous-title {
+  font-family: 'Georgia', serif;
   font-size: 20px;         /* refined font size for 2-3 lines */
   font-weight: 800;
-  color: var(--text-mid);  /* Using #5A4200 */
+  color: var(--brand-text-mid); 
   line-height: 1.35;
   margin: 0;
   max-width: 280px;
@@ -821,26 +831,27 @@ html.lenis body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 1.0;            /* full opacity for maximum vibrancy */
-  filter: contrast(1.25) saturate(1.4) drop-shadow(0 0 20px rgba(240, 180, 40, 0.3)); 
+  opacity: 0.3;            /* blended opacity for glass effect */
+  filter: contrast(1.1) saturate(1.2); 
   transform: translateX(5px) scale(1.08); /* slight zoom for focus */
-
-
 }
 
 .luminous-btn-sm {
-  background: var(--luminous-text);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
+  background: #000000;
+  color: var(--brand-gold-bright);
+  border: 1px solid rgba(240, 180, 41, 0.5);
+  padding: 10px 24px;
   border-radius: var(--radius-pill);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .luminous-btn-sm:active {

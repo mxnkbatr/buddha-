@@ -147,6 +147,35 @@ export async function PATCH(
           status
         });
       }
+
+      // Add In-App Notification
+      try {
+        const clientId = booking.clientId || booking.userId;
+        if (clientId) {
+          const isMN = true; // Default to MN or detect from user prefs if available
+          await db.collection("notifications").insertOne({
+            userId: clientId,
+            title: status === 'confirmed' 
+              ? { mn: "Захиалга баталгаажлаа", en: "Booking Confirmed" }
+              : { mn: "Захиалга цуцлагдлаа", en: "Booking Rejected" },
+            message: status === 'confirmed'
+              ? { 
+                  mn: `${monkName} таны ${booking.date}-ны ${booking.time} цагийн захиалгыг баталгаажууллаа.`,
+                  en: `${monkName} has confirmed your booking for ${booking.date} at ${booking.time}.`
+                }
+              : { 
+                  mn: `${monkName} таны захиалгыг цуцаллаа.`,
+                  en: `${monkName} has rejected your booking request.`
+                },
+            type: "booking",
+            read: false,
+            link: `/${isMN ? 'mn' : 'en'}/profile`,
+            createdAt: new Date()
+          });
+        }
+      } catch (err) {
+        console.error("Failed to create status notification:", err);
+      }
     }
 
     return NextResponse.json({ message: "Booking updated", success: true });

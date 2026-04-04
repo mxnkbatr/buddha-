@@ -52,7 +52,7 @@ export default function Hero() {
 
             <div className="mt-2">
               <Link href={content.btnPrimaryHref}>
-                <button className="luminous-btn-sm">НЭВТРЭХ</button>
+                <button className="luminous-btn-sm">{content.btnPrimary}</button>
               </Link>
             </div>
           </div>

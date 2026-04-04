@@ -19,6 +19,7 @@ export interface User {
   earnings?: number; // Total earnings for monks
   role: "seeker" | "monk" | "admin";
   monkStatus?: "pending" | "approved" | "rejected"; // Approval status for monks
+  wishlist?: string[]; // Array of Monk IDs
   createdAt: Date;
   updatedAt: Date;
 }
@@ -172,5 +173,16 @@ export interface Message {
   senderId: string;
   senderName: string;
   text: string;
+  createdAt: Date;
+}
+
+export interface Notification {
+  _id?: string | ObjectId;
+  userId: string;
+  title: { mn: string; en: string };
+  message: { mn: string; en: string };
+  type: "booking" | "reminder" | "system";
+  read: boolean;
+  link?: string;
   createdAt: Date;
 }

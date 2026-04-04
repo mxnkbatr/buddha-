@@ -9,6 +9,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
 import CapacitorInitWrapper from '../capacitor/CapacitorInitWrapper'
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
 
@@ -77,13 +78,15 @@ export default async function RootLayout({
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
                 <CapacitorInitWrapper />
                 <SmoothScroll />
-                <Navbar />
-                <SplashScreen />
-                <main className="w-full relative overflow-x-hidden" style={{
-                  paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)'
-                }}>
-                  {children}
-                </main>
+                <NotificationProvider>
+                  <Navbar />
+                  <SplashScreen />
+                  <main className="w-full relative overflow-x-hidden" style={{
+                    paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)'
+                  }}>
+                    {children}
+                  </main>
+                </NotificationProvider>
               </ThemeProvider>
             </body>
           </html>

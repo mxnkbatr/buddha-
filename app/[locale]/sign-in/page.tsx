@@ -24,7 +24,7 @@ export default function SignInPage() {
   const [error, setError] = useState("");
 
   React.useEffect(() => {
-    if (!authLoading && user) router.push(`/${language}/dashboard`);
+    if (!authLoading && user) router.push(`/${language}/profile`);
   }, [user, authLoading, router, language]);
 
   const formatId = (v: string) => {
@@ -54,7 +54,7 @@ export default function SignInPage() {
       // Try custom DB first
       try {
         await login({ identifier: fmtId, password });
-        router.push(`/${language}/dashboard`); return;
+        router.push(`/${language}/profile`); return;
       } catch (dbErr: any) {
         if (dbErr.message === "Invalid password") {
           setError(t({ mn: "Нууц үг буруу байна", en: "Incorrect password" }));

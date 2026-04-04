@@ -83,13 +83,6 @@ export default function DashboardPage() {
     const router = useRouter();
     const langKey = language === 'mn' ? 'mn' : 'en';
 
-    // --- REDIRECT LOGIC ---
-    useEffect(() => {
-        if (!authLoading && !user) {
-            router.push(`/${language}/sign-in`);
-        }
-    }, [authLoading, user, router, language]);
-
     // --- TRANSLATION DICTIONARY ---
     const TEXT = {
         en: {
@@ -251,8 +244,20 @@ export default function DashboardPage() {
     const [selectedBlockDate, setSelectedBlockDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [isSaving, setIsSaving] = useState(false);
 
-    // --- ROLE CHECK (Moved up for scope access) ---
+    // --- ROLE CHECK ---
     const isMonk = profile?.role === 'monk';
+
+    // --- REDIRECT LOGIC ---
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push(`/${language}/sign-in`);
+            return;
+        }
+        // Redirect non-monk users to profile
+        if (user && profile?.role === 'client') {
+            router.push(`/${language}/profile`);
+        }
+    }, [authLoading, user, profile, router, language]);
 
     // --- VIDEO CALL HANDLER (FIXED) ---
     const joinVideoCall = React.useCallback(async (booking: Booking) => {

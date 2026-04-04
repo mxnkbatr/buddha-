@@ -226,8 +226,12 @@ export default function NativeBookingPage() {
                         
                         const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
                         const isPast = date < new Date(new Date().setHours(0,0,0,0));
-                        // Dummy logic: mock available days 
-                        const hasSlot = !isPast && date.getDate() % 2 === 0;
+                        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        const dayName = dayNames[date.getDay()];
+                        const hasSlot = !isPast && monk?.schedule?.some((s: any) => 
+                          s.day === dayName && s.active !== false && 
+                          (s.slots?.length > 0 || (s.start && s.end))
+                        );
 
                         return (
                             <div key={idx} className="flex flex-col items-center justify-start h-10">

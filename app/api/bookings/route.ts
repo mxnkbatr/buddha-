@@ -298,6 +298,26 @@ export async function POST(request: Request) {
       console.error("Failed to send email:", emailError);
     }
 
+    // 6. Create In-App Notification
+    try {
+      const clientId = body.userId || authenticatedUserId;
+      if (clientId) {
+        await db.collection("notifications").insertOne({
+          userId: clientId,
+          title: { mn: "Захиалга илгээгдлээ", en: "Booking Requested" },
+          message: { 
+            mn: `${monk?.name?.mn || "Лам"}-д засал захиалах хүсэлт илгээгдлээ.`, 
+            en: `Request sent to ${monk?.name?.en || "the Monk"} for a session.` 
+          },
+          type: "booking",
+          read: false,
+          createdAt: new Date()
+        });
+      }
+    } catch (err) {
+      console.error("Failed to create notification:", err);
+    }
+
     return NextResponse.json({ success: true, id: result.insertedId });
   } catch (error: any) {
     console.error("Booking Error:", error);

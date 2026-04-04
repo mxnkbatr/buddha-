@@ -4,6 +4,9 @@ import React from "react";
 import Image from "next/image";
 import { Monk } from "@/database/types";
 import { useLanguage } from "../contexts/LanguageContext";
+import { Heart } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 
 interface MonkCardProps {
     monk: Monk;
@@ -12,9 +15,36 @@ interface MonkCardProps {
 
 export default function MonkCard({ monk, onClick }: MonkCardProps) {
     const { t, language: lang } = useLanguage();
+    const { user } = useAuth();
     const validLang = (['mn', 'en'].includes(lang) ? lang : 'mn') as 'mn' | 'en';
     
-    // Fallbacks
+    const [isLiked, setIsLiked] = useState(false);
+    const monkId = monk._id?.toString();
+
+    useEffect(() => {
+        if (user?.wishlist && monkId) {
+            setIsLiked(user.wishlist.includes(monkId));
+        }
+    }, [user, monkId]);
+
+    const toggleWishlist = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user) return alert("Please sign in to save practitioners");
+        
+        const prev = isLiked;
+        setIsLiked(!prev); // Optimistic update
+
+        try {
+            const res = await fetch("/api/user/wishlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ monkId }),
+            });
+            if (!res.ok) setIsLiked(prev); 
+        } catch (err) {
+            setIsLiked(prev);
+        }
+    };
     const name = monk.name?.[validLang] || monk.name?.mn || monk.name?.en || "Unknown";
     const title = monk.title?.[validLang] || monk.title?.mn || monk.title?.en || "Үзмэрч";
     const years = monk.yearsOfExperience || 10;
@@ -30,8 +60,7 @@ export default function MonkCard({ monk, onClick }: MonkCardProps) {
 
     return (
         <div className="hs-practitioner-card cursor-pointer mb-3" onClick={onClick}>
-            {/* AuraOrb Avatar */}
-            <div className="hs-aura-orb">
+            <div className="hs-aura-orb relative">
                 <div className={`hs-aura-ring ${isOnline ? "online" : ""}`} />
                 <img 
                     src={monk.image || "/default-monk.jpg"} 
@@ -41,6 +70,14 @@ export default function MonkCard({ monk, onClick }: MonkCardProps) {
                 {isOnline && (
                     <span className="hs-online-dot" />
                 )}
+                
+                {/* Heart Toggle */}
+                <button 
+                    onClick={toggleWishlist}
+                    className={`absolute -top-1 -right-1 p-2 rounded-full transition-all duration-300 z-10 ${isLiked ? 'text-gold scale-110 drop-shadow-[0_0_8px_rgba(217,119,6,0.4)]' : 'text-white/80 hover:text-white'}`}
+                >
+                    <Heart size={18} fill={isLiked ? "currentColor" : "rgba(0,0,0,0.2)"} strokeWidth={2.5} />
+                </button>
             </div>
 
             {/* Info */}
