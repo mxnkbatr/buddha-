@@ -1177,3 +1177,147 @@ html.lenis body {
   padding: 7px 14px !important;
   font-size: 10px !important;
 }
+
+/* === NATIVE APP SCROLL === */
+html {
+  scroll-behavior: smooth;
+}
+body {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* === PAGE SAFE AREA === */
+.page-safe-top {
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + var(--header-height-mobile, 84px)), 90px);
+}
+.page-safe-bottom {
+  padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 76px), 90px);
+}
+
+/* === NATIVE PRESS === */
+.press-effect {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.press-effect:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+/* === SCROLL HIDE === */
+.scroll-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-hide::-webkit-scrollbar { display: none; }
+
+/* === STATUS BADGE === */
+.status-pending  { background: rgba(245,158,11,0.1); color: #92400E; }
+.status-confirmed { background: rgba(16,185,129,0.1); color: #065F46; }
+.status-completed { background: rgba(107,114,128,0.1); color: #374151; }
+.status-cancelled { background: rgba(239,68,68,0.1); color: #7F1D1D; }
+.status-rejected  { background: rgba(239,68,68,0.1); color: #7F1D1D; }
+
+/* === SECTION LABEL === */
+.section-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+/* === CARD VARIANTS === */
+.card-white {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.card-stone {
+  background: var(--stone);
+  border-radius: var(--radius-lg);
+}
+
+/* === FLOATING HEADER (iOS blur style) === */
+.ios-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(253, 251, 247, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(28, 20, 16, 0.06);
+}
+
+/* === PILL TABS === */
+.pill-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.pill-tab {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+}
+.pill-tab.active { background: var(--ink); color: #fff; }
+.pill-tab.inactive { background: var(--stone); color: var(--earth); }
+
+/* === MESSAGE BUBBLES === */
+.bubble-mine {
+  background: var(--gold);
+  color: #fff;
+  border-radius: 20px 20px 5px 20px;
+  padding: 10px 16px;
+  max-width: 75%;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.bubble-other {
+  background: var(--stone);
+  color: var(--ink);
+  border-radius: 20px 20px 20px 5px;
+  padding: 10px 16px;
+  max-width: 75%;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* === BOOKING STATUS CHIP === */
+.booking-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* === SHIMMER SKELETON === */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--stone) 25%, var(--border) 50%, var(--stone) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* === AURA PULSE (online indicator) === */
+@keyframes aura-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(217,119,6,0.2), 0 0 20px rgba(217,119,6,0.08); }
+  50%       { box-shadow: 0 0 18px rgba(217,119,6,0.4), 0 0 36px rgba(217,119,6,0.15); }
+}
