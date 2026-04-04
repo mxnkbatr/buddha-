@@ -2,9 +2,8 @@
 
 import { useEffect } from 'react';
 import { usePlatform } from '@/app/capacitor/hooks/usePlatform';
-import { initializeStatusBar } from '@/app/capacitor/plugins/statusBar';
 import { App } from '@capacitor/app';
-import { SplashScreen } from '@capacitor/splash-screen';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 /**
  * Initialize Capacitor plugins and platform-specific behavior.
@@ -17,11 +16,17 @@ export default function CapacitorInit() {
         if (!isNative) return;
 
         const initialize = async () => {
-            // Initialize status bar
-            await initializeStatusBar(false); // false = light theme
+            try {
+                // StatusBar: style LIGHT, overlaysWebView: true, backgroundColor transparent
+                await StatusBar.setOverlaysWebView({ overlay: true });
+                await StatusBar.setStyle({ style: Style.Light });
+                await StatusBar.setBackgroundColor({ color: '#00000000' });
+            } catch (e) {
+                console.warn('StatusBar initialization failed:', e);
+            }
 
-            // Hide splash screen after initialization
-            await SplashScreen.hide();
+            // Note: Native SplashScreen hiding is now managed by SplashScreen.tsx 
+            // internally. We removed it here to coordinate with the Web splash.
 
             // Handle back button on Android
             App.addListener('backButton', ({ canGoBack }) => {
@@ -32,10 +37,12 @@ export default function CapacitorInit() {
                 }
             });
 
-            // Handle app state changes
+            // Handle app state changes (token refresh when foregrounded)
             App.addListener('appStateChange', ({ isActive }) => {
-                console.log('App state changed. isActive:', isActive);
-                // You can add logic here for when app goes to background/foreground
+                if (isActive) {
+                    console.log('App is foregrounded - triggering token refresh logic');
+                    // Add actual token refresh logic here via AuthContext if needed
+                }
             });
 
             // Add CSS variables for safe area insets
