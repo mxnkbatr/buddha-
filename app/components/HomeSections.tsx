@@ -147,9 +147,6 @@ export default function HomeSections({ locale, blogs, monks = [] }: { locale: st
             )})}
         </div>
       </section>
-
-      {/* --- BOT NAVIGATION SPACER --- */}
-      <div className="h-24 md:hidden" />
     </div>
   );
 }

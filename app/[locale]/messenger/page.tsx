@@ -395,7 +395,10 @@ export default function MessengerPage() {
       </header>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto px-5 pt-6 space-y-4"
+        style={{ paddingBottom: "calc(var(--tab-bar-height, 83px) + var(--sab, 0px) + 100px)" }}
+      >
         <AnimatePresence>
           {messagesLoading ? (
             <div className="space-y-4">
@@ -438,7 +441,10 @@ export default function MessengerPage() {
       </div>
 
       {/* PREMIUM FLOATING INPUT BAR */}
-      <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+88px)] left-0 right-0 px-5 z-40">
+      <div 
+        className="fixed left-0 right-0 px-5 z-40"
+        style={{ bottom: "calc(var(--tab-bar-height, 83px) + var(--sab, 0px) + 12px)" }}
+      >
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -448,7 +454,8 @@ export default function MessengerPage() {
             type="text"
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
-            placeholder={t({ mn: "Сургаал бичих...", en: "Write your thoughts..." })}
+            onKeyDown={e => e.key === "Enter" && handleSendMessage(e as any)}
+            placeholder={t({ mn: "Зурвас бичих...", en: "Write your thoughts..." })}
             className="flex-1 bg-transparent py-4 px-6 text-[15px] text-ink placeholder:text-earth/40 outline-none"
           />
           <button

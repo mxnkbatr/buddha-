@@ -235,8 +235,8 @@ export default function MonkProfileClient() {
 
             {/* ── STICKY ACTIONS ── */}
             <div
-                className="fixed left-0 right-0 bottom-0 px-6 bg-white/80 backdrop-blur-3xl border-t border-stone/30 z-40 flex items-center gap-4"
-                style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 20px)", paddingTop: 16 }}
+                className="fixed left-0 right-0 px-6 bg-white/90 backdrop-blur-3xl border-t border-stone/30 z-40 flex items-center gap-4 pb-5 pt-4"
+                style={{ bottom: "calc(var(--tab-bar-height, 83px) + var(--sab, 0px))" }}
             >
                 {/* Chat FAB */}
                 <button 

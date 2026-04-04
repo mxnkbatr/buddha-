@@ -362,7 +362,10 @@ export default function NativeBookingPage() {
             </div>
 
             {/* ── STICKY CHECKOUT ── */}
-            <div className="fixed bottom-0 left-0 w-full px-6 pt-4 pb-[max(env(safe-area-inset-bottom, 0px), 24px)] bg-white/100 backdrop-blur-3xl border-t border-stone/30 z-50">
+            <div 
+                className="fixed left-0 w-full px-6 pt-4 pb-5 bg-white/100 backdrop-blur-3xl border-t border-stone/30 z-50"
+                style={{ bottom: "calc(var(--tab-bar-height, 83px) + var(--sab, 0px))" }}
+            >
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={handleConfirm}
