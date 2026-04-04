@@ -119,7 +119,8 @@ export default function OverlayNavbar() {
   );
 
   const isAuthPage = ["/sign-in", "/sign-up"].some(p => pathname.includes(p));
-  const isSubPage = false; // Header visible on all pages
+  const isSubPage = false;
+
 
   // --- WISHLIST & NOTIFICATIONS STATE ---
   const { notifications, unreadCount, markAsRead } = useNotifications();
