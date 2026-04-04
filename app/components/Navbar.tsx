@@ -172,7 +172,7 @@ export default function OverlayNavbar() {
           <div className="flex items-center gap-4 px-2 relative">
             {/* --- WISHLIST --- */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => { setIsWishlistOpen(!isWishlistOpen); setIsNotifOpen(false); }}
                 className={`p-2 transition-all duration-300 rounded-full ${isWishlistOpen ? 'bg-gold/10 text-gold shadow-[0_0_15px_rgba(217,119,6,0.2)]' : 'text-earth hover:text-gold'}`}
                 aria-label="Wishlist"
@@ -191,8 +191,8 @@ export default function OverlayNavbar() {
                       <div className="p-8 text-center text-earth text-xs italic">Хоосон байна</div>
                     ) : (
                       wishlist.map(monk => (
-                        <LocalizedLink 
-                          key={monk._id} 
+                        <LocalizedLink
+                          key={monk._id}
                           href={`/monks/${monk._id}`}
                           onClick={() => setIsWishlistOpen(false)}
                           className="flex items-center gap-3 p-3 hover:bg-cream transition-colors border-b border-stone/50 last:border-0"
@@ -213,7 +213,7 @@ export default function OverlayNavbar() {
 
             {/* --- NOTIFICATIONS --- */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => { setIsNotifOpen(!isNotifOpen); setIsWishlistOpen(false); }}
                 className={`p-2 transition-all duration-300 rounded-full relative ${isNotifOpen ? 'bg-gold/10 text-gold shadow-[0_0_15px_rgba(217,119,6,0.2)]' : 'text-earth hover:text-gold'}`}
                 aria-label="Notifications"
@@ -240,8 +240,8 @@ export default function OverlayNavbar() {
                       <div className="p-10 text-center text-earth text-xs italic">Мэдэгдэл алга</div>
                     ) : (
                       notifications.map((notif: any) => (
-                        <div 
-                          key={notif._id?.toString()} 
+                        <div
+                          key={notif._id?.toString()}
                           className={`p-4 border-b border-stone/30 last:border-0 hover:bg-cream/30 transition-colors ${!notif.read ? 'bg-gold/5' : ''}`}
                           onClick={() => !notif.read && markAsRead(notif._id?.toString())}
                         >
@@ -251,7 +251,7 @@ export default function OverlayNavbar() {
                               <p className="text-[11px] font-black text-ink mb-0.5">{notif.title[lang === 'mn' ? 'mn' : 'en']}</p>
                               <p className="text-[11px] text-earth leading-relaxed">{notif.message[lang === 'mn' ? 'mn' : 'en']}</p>
                               <p className="text-[9px] text-earth/60 mt-2 flex items-center gap-1">
-                                <Calendar size={10} /> 
+                                <Calendar size={10} />
                                 {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </p>
                             </div>
@@ -290,55 +290,32 @@ export default function OverlayNavbar() {
       {!isSubPage && (
         <div
           className="md:hidden mobile-header"
-          style={{ paddingTop: `max(${safeArea.top}px, 20px)`, paddingBottom: 12 }}
+          style={{ paddingTop: `max(${safeArea.top}px, 20px)`, paddingBottom: 8 }}
         >
-          <div className="flex items-center">
-            <LocalizedLink href="/" aria-label="Home" className="scale-75 origin-left -ml-2">
-              <Logo />
-            </LocalizedLink>
-            <span className="mobile-header-brand">
-              {CONTENT.logo[lang]}
-            </span>
-          </div>
+          <LocalizedLink href="/" aria-label="Home" className="scale-75 origin-left">
+            <Logo />
+          </LocalizedLink>
 
-          <div className="flex items-center gap-1.5">
-            {/* Wishlist Button */}
-            <motion.button 
-              whileTap={{ scale: 0.9 }}
-              onClick={() => { setIsWishlistOpen(!isWishlistOpen); setIsNotifOpen(false); }}
-              className={`p-2 transition-all duration-300 rounded-full ${isWishlistOpen ? 'text-gold' : 'text-earth'}`}
-              aria-label="Wishlist"
-            >
-              <Heart size={21} strokeWidth={isWishlistOpen ? 2.5 : 1.8} fill={isWishlistOpen ? "currentColor" : "none"} />
-            </motion.button>
+          <div className="header-actions flex items-center gap-1.5 mb-1">
+            <button className="p-2 text-earth active:scale-90 transition-transform" aria-label="Wishlist">
+              <Heart size={18} strokeWidth={2} />
+            </button>
+            <button className="relative p-2 text-earth active:scale-90 transition-transform" aria-label="Notifications">
+              <Bell size={18} strokeWidth={2} />
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-error rounded-full border border-white" />
+            </button>
 
-            {/* Notifications Button */}
-            <motion.button 
-              whileTap={{ scale: 0.9 }}
-              onClick={() => { setIsNotifOpen(!isNotifOpen); setIsWishlistOpen(false); }}
-              className={`p-2 transition-all duration-300 rounded-full relative ${isNotifOpen ? 'text-gold' : 'text-earth'}`}
-              aria-label="Notifications"
-            >
-              <Bell size={21} strokeWidth={isNotifOpen ? 2.5 : 1.8} fill={isNotifOpen ? "currentColor" : "none"} />
-              {unreadCount > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-3.5 h-3.5 bg-error border-2 border-white rounded-full" />
-              )}
-            </motion.button>
-
-            {/* Account Shortcut */}
-            <div className="ml-1 pl-2 border-l border-border/50">
-              {user ? (
-                <div className="scale-90 origin-right transition-transform hover:scale-100">
-                  <UserButton afterSignOutUrl="/" />
-                </div>
-              ) : (
-                <LocalizedLink href="/sign-in">
-                  <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold active:scale-90 transition-transform">
-                    <LogIn size={16} />
-                  </div>
-                </LocalizedLink>
-              )}
-            </div>
+            {user ? (
+              <div className="scale-90 origin-right transition-transform hover:scale-100">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            ) : (
+              <LocalizedLink href="/sign-in">
+                <button className="bg-gold text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-transform">
+                  {CONTENT.login[lang]}
+                </button>
+              </LocalizedLink>
+            )}
           </div>
         </div>
       )}
@@ -361,9 +338,9 @@ export default function OverlayNavbar() {
             const validLang = lang as 'mn' | 'en';
 
             return (
-              <LocalizedLink 
+              <LocalizedLink
                 key={item.id}
-                href={item.href} 
+                href={item.href}
                 className="tab-item"
                 onClick={handleTap}
               >

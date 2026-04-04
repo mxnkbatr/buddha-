@@ -27,12 +27,15 @@
   --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
-  
+
   /* === LUMINOUS BANNER DESIGN SYSTEM === */
-  --amber-luminous: #D97706;  /* Rich amber base */
-  --gold-luminous: #FDE68A;   /* Bright golden light */
-  --luminous-text: #1A0800;   /* Deep earthy accent */
-  
+  --amber-luminous: #D97706;
+  /* Rich amber base */
+  --gold-luminous: #FDE68A;
+  /* Bright golden light */
+  --luminous-text: #1A0800;
+  /* Deep earthy accent */
+
   /* Brand Redesign Variables */
   --brand-amber: #E89010;
   --brand-gold-bright: #F0B429;
@@ -104,7 +107,8 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  overscroll-behavior-y: none; /* Prevents native pull-to-refresh */
+  overscroll-behavior-y: none;
+  /* Prevents native pull-to-refresh */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -619,9 +623,18 @@ html.lenis body {
   padding-bottom: 16px;
 }
 
-.hero-bg { display: none; }   /* hide full-screen video bg */
-.hero-video { display: none; }
-.hero-overlay { display: none; }
+.hero-bg {
+  display: none;
+}
+
+/* hide full-screen video bg */
+.hero-video {
+  display: none;
+}
+
+.hero-overlay {
+  display: none;
+}
 
 .hero-content {
   position: relative;
@@ -641,8 +654,8 @@ html.lenis body {
   max-width: 500px;
   margin: 0 auto;
   text-align: center;
-  box-shadow: 
-    0 30px 60px rgba(0, 0, 0, 0.4), 
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.3),
     0 0 40px rgba(217, 119, 6, 0.2);
   animation: banner-float 6s ease-in-out infinite;
@@ -674,8 +687,15 @@ html.lenis body {
 }
 
 @keyframes banner-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-12px) scale(1.02); }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-12px) scale(1.02);
+  }
 }
 
 .hero-badge {
@@ -731,19 +751,22 @@ html.lenis body {
   position: relative;
   width: 100%;
   max-width: 800px;
-  min-height: 200px;     /* refined height 200-220px */
+  min-height: 210px;
+  /* Premium Minimal Balance */
   background-image: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)),
-    linear-gradient(135deg, var(--brand-amber), var(--brand-gold-bright));
+    radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    linear-gradient(135deg, #FDFBF7 0%, #F4E8D6 60%, #E8D0B0 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 24px;
+  border-radius: 28px;
   margin: 0 auto;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(232, 144, 16, 0.15);
+  box-shadow: 
+    0 10px 40px rgba(28, 20, 16, 0.06),
+    inset 0 0 60px rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
-  border: 1px solid var(--brand-border-glow);
+  border: 0.5px solid rgba(217, 119, 6, 0.15);
 }
 
 /* Premium Shimmer Effect */
@@ -754,12 +777,10 @@ html.lenis body {
   left: -100%;
   width: 50%;
   height: 200%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%);
   transform: rotate(25deg);
   animation: banner-shimmer 3.5s infinite;
   pointer-events: none;
@@ -767,50 +788,62 @@ html.lenis body {
 }
 
 @keyframes banner-shimmer {
-  0% { left: -100%; }
-  25% { left: 150%; }
-  100% { left: 150%; }
+  0% {
+    left: -100%;
+  }
+
+  25% {
+    left: 150%;
+  }
+
+  100% {
+    left: 150%;
+  }
 }
 
 .luminous-content {
   position: relative;
   z-index: 5;
   flex: 1;
-  padding: 16px 20px;    /* was 24px 32px */
+  padding: 16px 20px;
+  /* was 24px 32px */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;              /* was 12px */
+  gap: 8px;
+  /* was 12px */
 }
 
 .luminous-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(240, 180, 40, 0.15); /* Tinted gold so it contrasts against white */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(240, 180, 40, 0.3);
-  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(120, 104, 81, 0.1);
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-  box-shadow: 0 0 15px rgba(240, 180, 40, 0.1);
+  box-shadow: 0 4px 12px rgba(28, 20, 16, 0.04);
 }
 
 .luminous-status span {
   font-size: 10px;
-  font-weight: 800;
-  color: var(--luminous-text);
+  font-weight: 900;
+  color: var(--ink);
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .luminous-title {
-  font-family: 'Georgia', serif;
-  font-size: 20px;         /* refined font size for 2-3 lines */
-  font-weight: 800;
-  color: var(--brand-text-mid); 
-  line-height: 1.35;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 950;
+  color: var(--ink);
+  line-height: 1.25;
   margin: 0;
-  max-width: 280px;
+  max-width: 290px;
+  letter-spacing: -0.01em;
 }
 
 .luminous-buddha-wrap {
@@ -831,9 +864,9 @@ html.lenis body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.3;            /* blended opacity for glass effect */
-  filter: contrast(1.1) saturate(1.2); 
-  transform: translateX(5px) scale(1.08); /* slight zoom for focus */
+  opacity: 0.18;
+  filter: contrast(0.9) brightness(1.2) sepia(0.2);
+  transform: translateX(20px) scale(1.1);
 }
 
 .luminous-btn-sm {
@@ -865,11 +898,11 @@ html.lenis body {
     align-items: flex-start;
     padding: 0;
   }
-  
+
   .luminous-title {
     font-size: 20px;
   }
-  
+
   .luminous-buddha-wrap {
     width: 100%;
     height: 100%;
@@ -885,9 +918,10 @@ html.lenis body {
 
 /* Semantic color aliases (textMid / textLight as referenced in mockup) */
 :root {
-  --text-mid:     #5A4200;   /* refined dark amber for text */
-  --text-light:   #786851;
-  --border-glow:  rgba(217, 119, 6, 0.3);
+  --text-mid: #5A4200;
+  /* refined dark amber for text */
+  --text-light: #786851;
+  --border-glow: rgba(217, 119, 6, 0.3);
 }
 
 /* ── Wrapper ────────────────────────────────────────────────── */
@@ -944,7 +978,7 @@ html.lenis body {
   border-radius: 18px;
   box-shadow:
     0 2px 8px rgba(28, 20, 16, 0.05),
-    inset 0 1px 0 rgba(255,255,255,0.8);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   text-decoration: none;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   cursor: pointer;
@@ -978,14 +1012,18 @@ html.lenis body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.hs-blog-scroll::-webkit-scrollbar { display: none; }
+
+.hs-blog-scroll::-webkit-scrollbar {
+  display: none;
+}
 
 .hs-blog-card {
   flex: 0 0 220px;
   background: #fff;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 4px 20px var(--border-glow); /* soft golden glow effect */
+  box-shadow: 0 4px 20px var(--border-glow);
+  /* soft golden glow effect */
   text-decoration: none;
   transition: transform 0.18s ease;
   border: 1px solid rgba(217, 119, 6, 0.1);
@@ -1085,8 +1123,15 @@ html.lenis body {
 }
 
 @keyframes aura-pulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(217,119,6,0.2), 0 0 20px rgba(217,119,6,0.08); }
-  50%       { box-shadow: 0 0 18px rgba(217,119,6,0.4), 0 0 36px rgba(217,119,6,0.15); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(217, 119, 6, 0.2), 0 0 20px rgba(217, 119, 6, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 0 18px rgba(217, 119, 6, 0.4), 0 0 36px rgba(217, 119, 6, 0.15);
+  }
 }
 
 /* === SELECTION & SCROLLBAR === */
@@ -1099,13 +1144,16 @@ html.lenis body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--earth);
 }
@@ -1115,6 +1163,7 @@ html.lenis body {
   position: relative;
   overflow: hidden;
 }
+
 .banner-shimmer::after {
   content: "";
   position: absolute;
@@ -1122,19 +1171,22 @@ html.lenis body {
   left: -150%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
   transform: skewX(-20deg);
   animation: banner-shimmer 3.5s infinite;
 }
 
 @keyframes banner-shimmer {
-  0%   { left: -150%; }
-  100% { left: 150%; }
+  0% {
+    left: -150%;
+  }
+
+  100% {
+    left: 150%;
+  }
 }
 
 .hs-practitioner-avatar {
@@ -1184,7 +1236,10 @@ html.lenis body {
   margin-top: 5px;
 }
 
-.hs-star { color: #F59E0B; font-size: 12px; }
+.hs-star {
+  color: #F59E0B;
+  font-size: 12px;
+}
 
 .hs-rating-num {
   font-size: 12px;
@@ -1230,6 +1285,7 @@ html.lenis body {
 html {
   scroll-behavior: smooth;
 }
+
 body {
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
@@ -1239,6 +1295,7 @@ body {
 .page-safe-top {
   padding-top: max(calc(env(safe-area-inset-top, 0px) + var(--header-height-mobile, 84px)), 90px);
 }
+
 .page-safe-bottom {
   padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 76px), 90px);
 }
@@ -1248,6 +1305,7 @@ body {
   transition: transform 0.12s ease, opacity 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
+
 .press-effect:active {
   transform: scale(0.96);
   opacity: 0.85;
@@ -1258,14 +1316,36 @@ body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.scroll-hide::-webkit-scrollbar { display: none; }
+
+.scroll-hide::-webkit-scrollbar {
+  display: none;
+}
 
 /* === STATUS BADGE === */
-.status-pending  { background: rgba(245,158,11,0.1); color: #92400E; }
-.status-confirmed { background: rgba(16,185,129,0.1); color: #065F46; }
-.status-completed { background: rgba(107,114,128,0.1); color: #374151; }
-.status-cancelled { background: rgba(239,68,68,0.1); color: #7F1D1D; }
-.status-rejected  { background: rgba(239,68,68,0.1); color: #7F1D1D; }
+.status-pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400E;
+}
+
+.status-confirmed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065F46;
+}
+
+.status-completed {
+  background: rgba(107, 114, 128, 0.1);
+  color: #374151;
+}
+
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7F1D1D;
+}
+
+.status-rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7F1D1D;
+}
 
 /* === SECTION LABEL === */
 .section-label {
@@ -1284,35 +1364,10 @@ body {
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
+
 .card-stone {
   background: var(--stone);
   border-radius: var(--radius-lg);
-}
-
-/* === HIGH-FIDELITY MOBILE HEADER (iOS Spec) === */
-.mobile-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 20px;
-  padding-right: 12px;
-  background: rgba(253, 251, 247, 0.82);
-  backdrop-filter: blur(24px) saturate(210%);
-  -webkit-backdrop-filter: blur(24px) saturate(210%);
-  border-bottom: 0.5px solid rgba(28, 20, 16, 0.08);
-  transition: all 0.3s ease;
-}
-
-.mobile-header-brand {
-  font-family: var(--font-serif);
-  font-weight: 900;
-  font-size: 19px;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin-left: -8px; /* Correct for logo padding */
 }
 
 /* === FLOATING HEADER (iOS blur style) === */
@@ -1334,6 +1389,7 @@ body {
   padding-bottom: 2px;
   scrollbar-width: none;
 }
+
 .pill-tab {
   flex-shrink: 0;
   padding: 6px 16px;
@@ -1344,8 +1400,16 @@ body {
   cursor: pointer;
   border: none;
 }
-.pill-tab.active { background: var(--ink); color: #fff; }
-.pill-tab.inactive { background: var(--stone); color: var(--earth); }
+
+.pill-tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.pill-tab.inactive {
+  background: var(--stone);
+  color: var(--earth);
+}
 
 /* === MESSAGE BUBBLES === */
 .bubble-mine {
@@ -1357,6 +1421,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
 }
+
 .bubble-other {
   background: var(--stone);
   color: var(--ink);
@@ -1381,9 +1446,15 @@ body {
 
 /* === SHIMMER SKELETON === */
 @keyframes shimmer {
-  from { background-position: -200% 0; }
-  to   { background-position: 200% 0; }
+  from {
+    background-position: -200% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
 }
+
 .skeleton {
   background: linear-gradient(90deg, var(--stone) 25%, var(--border) 50%, var(--stone) 75%);
   background-size: 200% 100%;
@@ -1392,6 +1463,13 @@ body {
 
 /* === AURA PULSE (online indicator) === */
 @keyframes aura-pulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(217,119,6,0.2), 0 0 20px rgba(217,119,6,0.08); }
-  50%       { box-shadow: 0 0 18px rgba(217,119,6,0.4), 0 0 36px rgba(217,119,6,0.15); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(217, 119, 6, 0.2), 0 0 20px rgba(217, 119, 6, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 0 18px rgba(217, 119, 6, 0.4), 0 0 36px rgba(217, 119, 6, 0.15);
+  }
 }
