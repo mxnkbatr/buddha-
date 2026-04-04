@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/db";
-import { getAdminUserFromRequest } from "@/lib/admin-utils";
+import { adminGuard } from "@/lib/admin-utils";
 
 /**
  * Admin-only endpoint to sync all services to ALL monks
@@ -8,18 +7,8 @@ import { getAdminUserFromRequest } from "@/lib/admin-utils";
  */
 export async function POST(request: Request) {
     try {
-        const adminUserResult = await getAdminUserFromRequest(request);
-
-        // Admin check
-        if (!adminUserResult) {
-            return NextResponse.json({
-                success: false,
-                error: "Unauthorized",
-                message: "Admin access required"
-            }, { status: 403 });
-        }
-
-        const db = adminUserResult.db;
+        const { adminUser, db, errorResponse } = await adminGuard(request);
+        if (errorResponse) return errorResponse;
 
 
 
@@ -64,7 +53,7 @@ export async function POST(request: Request) {
         }
 
         // 4. Update ALL monks to have exactly these services
-        const updatePromises = allMonks.map((monk) =>
+        const updatePromises = allMonks.map((monk: any) =>
             db.collection("users").updateOne(
                 { _id: monk._id },
                 {
@@ -90,7 +79,7 @@ export async function POST(request: Request) {
                 totalMonks: allMonks.length,
                 servicesSynced: allServices.length,
                 successfulUpdates: successfulUpdates,
-                services: serviceRefs.map(s => ({ id: s.id, name: s.name }))
+                services: serviceRefs.map((s: any) => ({ id: s.id, name: s.name }))
             }
         });
 

@@ -12,6 +12,7 @@ import CapacitorInitWrapper from '../capacitor/CapacitorInitWrapper'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { cookies } from 'next/headers'
 import { currentUser } from '@clerk/nextjs/server'
+import OfflineBanner from '../components/OfflineBanner'
 import { jwtVerify } from 'jose'
 import { connectToDatabase } from '@/database/db'
 import { ObjectId } from 'mongodb'
@@ -128,6 +129,7 @@ export default async function RootLayout({
             </head>
             <body className={`${playfair.variable} ${lato.variable} font-sans overflow-x-hidden`}>
               <ThemeProvider attribute="class" forcedTheme="light" defaultTheme="light" enableSystem={false}>
+                <OfflineBanner />
                 <CapacitorInitWrapper />
                 <SmoothScroll />
                 <NotificationProvider>

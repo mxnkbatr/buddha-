@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { clerkClient } from "@clerk/nextjs/server";
-import { getAdminUserFromRequest } from "@/lib/admin-utils";
+import { adminGuard } from "@/lib/admin-utils";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -10,15 +9,11 @@ type Props = {
 
 export async function DELETE(request: Request, props: Props) {
   try {
-    const adminUser = await getAdminUserFromRequest(request);
-    if (!adminUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-    }
+    const { adminUser, db, errorResponse } = await adminGuard(request);
+    if (errorResponse) return errorResponse;
 
     const params = await props.params;
     const { id } = params;
-
-    const { db } = await connectToDatabase();
 
     // Construct query to find the specific user
     let query = {};
@@ -71,16 +66,12 @@ export async function DELETE(request: Request, props: Props) {
 
 export async function PATCH(request: Request, props: Props) {
   try {
-    const adminUser = await getAdminUserFromRequest(request);
-    if (!adminUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-    }
+    const { adminUser, db, errorResponse } = await adminGuard(request);
+    if (errorResponse) return errorResponse;
 
     const params = await props.params;
     const { id } = params;
     const body = await request.json();
-
-    const { db } = await connectToDatabase();
 
     // Build query
     let query = {};

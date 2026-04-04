@@ -129,6 +129,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ mon
 
     await db.collection("direct_messages").insertOne(newMessage);
 
+    // TRIGGER PUSH NOTIFICATION
+    try {
+      const { pushTriggers } = await import("@/lib/pushService");
+      // senderName is already defined around line 117
+      await pushTriggers.newMessage(
+        receiverId,
+        senderName.toString(),
+        text || "Sent an image",
+        senderId
+      );
+    } catch (pushErr) {
+      console.error("Push Notification for message failed:", pushErr);
+    }
+
     return NextResponse.json(newMessage);
   } catch (error) {
     console.error("POST Message Error:", error);

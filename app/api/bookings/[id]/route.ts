@@ -126,7 +126,7 @@ export async function PATCH(
       { $set: updateData }
     );
 
-    // 4. Send Email Notification (The Missing Logic)
+    // 4. Send Notification Logic
     if (status === 'confirmed' || status === 'rejected') {
       // Ensure we have monk profile for the name if not fetched yet (e.g. if admin did the action)
       if (!monkProfile && booking.monkId) {
@@ -137,18 +137,22 @@ export async function PATCH(
       const serviceName = booking.serviceName?.en || booking.serviceName?.mn || "Spiritual Session";
 
       if (booking.userEmail) {
-        await sendBookingStatusUpdate({
-          userEmail: booking.userEmail,
-          userName: booking.clientName || "Seeker",
-          monkName,
-          serviceName,
-          date: booking.date,
-          time: booking.time,
-          status
-        });
+        try {
+          await sendBookingStatusUpdate({
+            userEmail: booking.userEmail,
+            userName: booking.clientName || "Seeker",
+            monkName,
+            serviceName,
+            date: booking.date,
+            time: booking.time,
+            status
+          });
+        } catch (mailErr) {
+          console.error("Email notification failed:", mailErr);
+        }
       }
 
-      // Add In-App Notification
+      // Add In-App and Push Notification
       try {
         const clientId = booking.clientId || booking.userId;
         if (clientId) {
@@ -172,6 +176,20 @@ export async function PATCH(
             link: `/${isMN ? 'mn' : 'en'}/profile`,
             createdAt: new Date()
           });
+
+          // TRIGGER PUSH NOTIFICATION
+          try {
+            const { pushTriggers } = await import("@/lib/pushService");
+            await pushTriggers.bookingUpdate(
+              clientId.toString(),
+              monkName,
+              status,
+              booking.date,
+              booking.time
+            );
+          } catch (pushErr) {
+            console.error("Push Notification recruitment failed:", pushErr);
+          }
         }
       } catch (err) {
         console.error("Failed to create status notification:", err);
@@ -185,7 +203,7 @@ export async function PATCH(
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }
-// DELETE remains the same
+
 export async function DELETE(request: Request, props: Props) {
   if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
@@ -203,13 +221,11 @@ export async function DELETE(request: Request, props: Props) {
 
     const { db } = await connectToDatabase();
 
-    // 1. Fetch booking to check permissions
     const booking = await db.collection("bookings").findOne({ _id: new ObjectId(id) });
     if (!booking) {
       return NextResponse.json({ message: "Booking not found" }, { status: 404 });
     }
 
-    // 2. Authorization Check
     const isClient = booking.clientId === user.id || booking.userId === user.id;
     const isAdmin = user.role === "admin";
 

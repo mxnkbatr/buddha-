@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { Resend } from "resend";
-import { executeAdminOperation, validateUserData, checkDataConsistency, getAdminUserFromRequest } from "@/lib/admin-utils";
+import { executeAdminOperation, validateUserData, checkDataConsistency, adminGuard } from "@/lib/admin-utils";
 import { logSuccess, logFailure, createOperationContext } from "@/lib/admin-logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -83,22 +83,10 @@ export async function PATCH(request: Request, props: Props) {
         }
 
         // 5. Check admin access (Clerk OR Bearer JWT for mobile)
-        const adminUserResult = await getAdminUserFromRequest(request);
-        const adminId = adminUserResult?.user ? adminUserResult.user._id.toString() : null;
-
-        const user = adminUserResult?.user || { id: adminId };
-        if (!adminId) {
-            logFailure(
-                createOperationContext("Application Processing", undefined, id, "application"),
-                `Unauthorized ${action} attempt`,
-                "INSUFFICIENT_PERMISSIONS"
-            );
-            return NextResponse.json({
-                success: false,
-                message: "Unauthorized - Admin access required",
-                error: "INSUFFICIENT_PERMISSIONS"
-            }, { status: 401 });
-        }
+        const { adminUser: guardUser, errorResponse: guardError } = await adminGuard(request);
+        if (guardError) return guardError;
+        const user = guardUser;
+        const adminId = user._id?.toString();
 
         // 6. Validate applicant state
         if (applicant.role === 'monk' && applicant.monkStatus === 'approved') {
@@ -313,8 +301,15 @@ export async function PATCH(request: Request, props: Props) {
                     console.log(`Approval email sent to ${applicant.email}`);
                 } catch (emailError) {
                     console.error("Failed to send approval email:", emailError);
-                    // Note: We do NOT fail the operation here, so the database update remains successful even if email fails
                 }
+            }
+
+            // --- C. Send Push Notification ---
+            try {
+                const { pushTriggers } = await import("@/lib/pushService");
+                await pushTriggers.monkApproved(id);
+            } catch (pushErr) {
+                console.error("Push Notification for monk approval failed:", pushErr);
             }
 
             // 8. Log successful approval

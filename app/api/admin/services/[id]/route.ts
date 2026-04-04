@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { logSuccess, logFailure, createOperationContext } from "@/lib/admin-logger";
-import { validateServiceData, checkDataConsistency, getAdminUserFromRequest } from "@/lib/admin-utils";
+import { validateServiceData, checkDataConsistency, adminGuard } from "@/lib/admin-utils";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -14,14 +14,8 @@ export async function DELETE(request: Request, props: Props) {
     const { id } = params;
 
     // 1. Check Admin Auth
-    const adminUserResult = await getAdminUserFromRequest(request);
-    if (!adminUserResult) {
-      return NextResponse.json({
-        success: false,
-        message: "Unauthorized - Admin access required",
-        error: "INSUFFICIENT_PERMISSIONS"
-      }, { status: 401 });
-    }
+    const { adminUser, db: guardDb, errorResponse } = await adminGuard(request);
+    if (errorResponse) return errorResponse;
 
     // 2. Parse request body
     let body;
@@ -180,20 +174,9 @@ export async function PATCH(request: Request, props: Props) {
     }
 
     // 2. Check Admin Auth
-    const adminUserResult = await getAdminUserFromRequest(request);
-    user = adminUserResult?.user;
-    if (!adminUserResult) {
-      logFailure(
-        createOperationContext("Service Management", user?.clerkId || undefined, id, "service"),
-        `Unauthorized ${action} attempt`,
-        "INSUFFICIENT_PERMISSIONS"
-      );
-      return NextResponse.json({
-        success: false,
-        message: "Unauthorized - Admin access required",
-        error: "INSUFFICIENT_PERMISSIONS"
-      }, { status: 401 });
-    }
+    const { adminUser: patchAdminUser, db: patchDb, errorResponse: patchErrorResponse } = await adminGuard(request);
+    if (patchErrorResponse) return patchErrorResponse;
+    user = patchAdminUser;
 
     // Create operation context for logging
     operationContext = createOperationContext("Service Management", user?.clerkId || undefined, id, "service");
@@ -345,15 +328,9 @@ export async function PUT(request: Request, props: Props) {
 
   try {
     // 1. Check Admin Auth
-    const adminUserResult = await getAdminUserFromRequest(request);
-    user = adminUserResult?.user;
-    if (!adminUserResult) {
-      return NextResponse.json({
-        success: false,
-        message: "Unauthorized - Admin access required",
-        error: "INSUFFICIENT_PERMISSIONS"
-      }, { status: 401 });
-    }
+    const { adminUser: putAdminUser, db: putDb, errorResponse: putErrorResponse } = await adminGuard(request);
+    if (putErrorResponse) return putErrorResponse;
+    user = putAdminUser;
 
     // 2. Validate service ID
     if (!id || typeof id !== 'string') {

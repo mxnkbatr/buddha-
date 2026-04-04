@@ -88,7 +88,7 @@ const getMonksHandler = asyncHandler(async (request: Request) => {
     status: 200,
     headers: {
       'Content-Type': 'application/json',
-      ...getCacheHeaders(900),
+      ...getCacheHeaders(300),
     },
   });
 });

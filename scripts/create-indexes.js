@@ -36,6 +36,18 @@ async function createIndexes() {
             { unique: true, sparse: true, name: 'idx_users_clerkId' }
         );
 
+        // Index for phone lookup
+        await db.collection('users').createIndex(
+            { phone: 1 },
+            { sparse: true, name: 'idx_users_phone' }
+        );
+
+        // Index for role based monk status filtering
+        await db.collection('users').createIndex(
+            { role: 1, monkStatus: 1 },
+            { name: 'idx_users_role_status' }
+        );
+
         // Index for email lookup
         await db.collection('users').createIndex(
             { email: 1 },
@@ -61,10 +73,22 @@ async function createIndexes() {
             { name: 'idx_bookings_monk_date_status' }
         );
 
+        // Optimized index for monk schedule/time verification
+        await db.collection('bookings').createIndex(
+            { monkId: 1, date: 1, time: 1 },
+            { name: 'idx_bookings_monk_schedule' }
+        );
+
         // Index for finding bookings by user
         await db.collection('bookings').createIndex(
             { clientId: 1, status: 1 },
             { name: 'idx_bookings_client_status' }
+        );
+
+        // Index for finding bookings by specific userId mapping
+        await db.collection('bookings').createIndex(
+            { userId: 1, status: 1 },
+            { name: 'idx_bookings_user_status' }
         );
 
         // Index for email lookup
@@ -117,6 +141,19 @@ async function createIndexes() {
             { name: 'idx_messages_booking_created' }
         );
 
+        // ==========================================
+        // DIRECT MESSAGES COLLECTION INDEXES
+        // ==========================================
+        console.log('📦 Creating indexes for direct_messages collection...');
+
+        // Index for retrieving conversation history between two users
+        await db.collection('direct_messages').createIndex(
+            { senderId: 1, receiverId: 1, createdAt: -1 },
+            { name: 'idx_dm_conversation' }
+        );
+
+        console.log('✅ Direct Messages indexes created\n');
+
         console.log('✅ Messages indexes created\n');
 
         // ==========================================
@@ -143,7 +180,7 @@ async function createIndexes() {
         // ==========================================
         console.log('📊 Verifying indexes...\n');
 
-        const collections = ['users', 'bookings', 'services', 'messages', 'blogs'];
+        const collections = ['users', 'bookings', 'services', 'messages', 'direct_messages', 'blogs'];
 
         for (const collName of collections) {
             const indexes = await db.collection(collName).indexes();

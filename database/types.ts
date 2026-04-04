@@ -20,6 +20,7 @@ export interface User {
   role: "seeker" | "monk" | "admin";
   monkStatus?: "pending" | "approved" | "rejected"; // Approval status for monks
   wishlist?: string[]; // Array of Monk IDs
+  fcmToken?: string; // Firebase Cloud Messaging Token for Push Notifications
   createdAt: Date;
   updatedAt: Date;
 }
@@ -186,3 +187,15 @@ export interface Notification {
   link?: string;
   createdAt: Date;
 }
+
+export interface Review {
+  _id?: ObjectId | string;
+  monkId: string | ObjectId;
+  userId: string; // Clerk ID or Custom ID
+  userName: string;
+  userAvatar?: string;
+  rating: number; // 1-5
+  comment: string;
+  bookingId?: string | ObjectId; // Optional link to a specific booking
+  createdAt: Date;
+}

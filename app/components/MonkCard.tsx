@@ -11,10 +11,11 @@ import { motion } from "framer-motion";
 
 interface MonkCardProps {
     monk: Monk;
+    index?: number;
     onClick?: () => void;
 }
 
-export default function MonkCard({ monk, onClick }: MonkCardProps) {
+export default function MonkCard({ monk, index = 0, onClick }: MonkCardProps) {
     const { t, language: lang } = useLanguage();
     const { user } = useAuth();
     const validLang = (['mn', 'en'].includes(lang) ? lang : 'mn') as 'mn' | 'en';
@@ -69,10 +70,13 @@ export default function MonkCard({ monk, onClick }: MonkCardProps) {
             <div className="relative w-24 h-24 flex-shrink-0">
                 <div className={`absolute inset-0 rounded-full ${isOnline ? "aura-pulse" : "bg-stone/50"}`} />
                 <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-white shadow-sm z-10">
-                    <img 
+                    <Image 
                         src={monk.image || "/default-monk.jpg"} 
                         alt={name} 
-                        className="w-full h-full object-cover" 
+                        fill
+                        priority={index < 3}
+                        loading={index < 3 ? undefined : "lazy"}
+                        className="object-cover" 
                     />
                 </div>
                 {isOnline && (

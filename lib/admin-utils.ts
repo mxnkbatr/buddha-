@@ -2,86 +2,166 @@ import { connectToDatabase } from "@/database/db";
 import { ObjectId } from "mongodb";
 import { currentUser, verifyToken } from "@clerk/nextjs/server";
 import { jwtVerify } from "jose";
+import { NextResponse } from "next/server";
+import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
+// ─── Audit Logger ─────────────────────────────────────────────────────────────
+async function logAdminAudit(
+  db: any,
+  event: "access_denied" | "access_granted" | "rate_limited",
+  details: { ip?: string; path?: string; userId?: string; reason?: string }
+) {
+  try {
+    await db.collection("admin_audit_log").insertOne({
+      event,
+      ...details,
+      timestamp: new Date(),
+    });
+  } catch { /* Non-blocking — don't let audit failure break the request */ }
+}
+
+// ─── Core Auth Function ───────────────────────────────────────────────────────
 /**
- * Enhanced Admin Authenticator supporting Clerk Cookie, Custom JWT (Bearer), and Clerk Token (Bearer).
+ * Authenticates an admin user from a Next.js Request.
+ * Supports: Custom JWT (mobile Bearer token) + Clerk Cookie/Bearer (web).
+ * Returns { user, db } on success, null on failure.
  */
 export async function getAdminUserFromRequest(request?: Request) {
+  const JWT_SECRET = process.env.JWT_SECRET;
+  if (!JWT_SECRET) {
+    console.error("[Admin] JWT_SECRET environment variable is not set");
+    return null;
+  }
+
   const { db } = await connectToDatabase();
 
-  // 1. Try Clerk session (browser cookie)
+  // ── 1. Custom JWT Bearer token (Mobile app) ──────────────────────────────
+  const authHeader = request?.headers.get("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+  if (bearerToken) {
+    // 1a. Try our own Custom JWT first
+    try {
+      const { payload } = await jwtVerify(bearerToken, new TextEncoder().encode(JWT_SECRET));
+      if (payload.sub && ObjectId.isValid(payload.sub as string)) {
+        const dbUser = await db.collection("users").findOne({ _id: new ObjectId(payload.sub as string) });
+        if (dbUser && (dbUser.role === "admin" || dbUser.isSpecial === true)) {
+          return { user: dbUser, db, isClerk: false };
+        }
+        // User found but not admin
+        if (dbUser) return null;
+      }
+    } catch { /* Not a valid custom JWT — try Clerk next */ }
+
+    // 1b. Try Clerk Bearer token (Clerk-issued JWT)
+    try {
+      const payload = await verifyToken(bearerToken, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      if (payload?.sub) {
+        const dbUser = await db.collection("users").findOne({ clerkId: payload.sub });
+        if (dbUser && (dbUser.role === "admin" || dbUser.isSpecial === true)) {
+          return { user: dbUser, db, isClerk: true };
+        }
+        if (dbUser) return null;
+      }
+    } catch { /* Invalid Clerk token */ }
+  }
+
+  // ── 2. Clerk session cookie (Web browser) ────────────────────────────────
   try {
     const clerkUser = await currentUser();
     if (clerkUser) {
       const dbUser = await db.collection("users").findOne({
         $or: [
           { clerkId: clerkUser.id },
-          { email: clerkUser.emailAddresses?.[0]?.emailAddress }
-        ]
+          { email: clerkUser.emailAddresses?.[0]?.emailAddress },
+        ],
       });
-      if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
+      if (dbUser && (dbUser.role === "admin" || dbUser.isSpecial === true)) {
         return { user: dbUser, db, isClerk: true };
       }
+      // Clerk user found but not admin — no fallback
+      if (dbUser) return null;
     }
-  } catch (e) { /* Clerk not available */ }
+  } catch { /* Clerk not available in this context */ }
 
-  // 2. Try Bearer token (mobile)
-  const authHeader = request?.headers.get("Authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-
-  if (bearerToken) {
-    const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
-
-    // 2a. Try Jose (Custom JWT)
-    try {
-      const { payload } = await jwtVerify(bearerToken, new TextEncoder().encode(JWT_SECRET));
-      const dbUser = await db.collection("users").findOne({ _id: new ObjectId(payload.sub as string) });
-      if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
-        return { user: dbUser, db, isClerk: false };
-      }
-    } catch (e) {
-      // 2b. Try Clerk VerifyToken
-      try {
-        const payload = await verifyToken(bearerToken, {
-          secretKey: process.env.CLERK_SECRET_KEY,
-        });
-        if (payload && payload.sub) {
-          const dbUser = await db.collection("users").findOne({ clerkId: payload.sub });
-          if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
-            return { user: dbUser, db, isClerk: true };
-          }
-        }
-      } catch (clerkErr) {
-        /* Invalid Clerk token */
-      }
-    }
-  }
-
-  // 3. Fallback: Try userId query parameter (mobile app sends this)
-  if (request) {
-    try {
-      const url = new URL(request.url);
-      const userId = url.searchParams.get("userId");
-      if (userId) {
-        // Verify the userId corresponds to an admin user in DB
-        let dbUser = null;
-        try {
-          dbUser = await db.collection("users").findOne({ _id: new ObjectId(userId) });
-        } catch {
-          // userId might not be a valid ObjectId, try as clerkId
-          dbUser = await db.collection("users").findOne({ clerkId: userId });
-        }
-        if (dbUser && (dbUser.role === 'admin' || dbUser.isSpecial === true)) {
-          return { user: dbUser, db, isClerk: false };
-        }
-      }
-    } catch (e) {
-      console.error("userId query param fallback failed:", e);
-    }
-  }
-
+  // NOTE: Intentionally no userId query param fallback — that would be a security bypass.
   return null;
 }
+
+// ─── Admin Guard Helper ───────────────────────────────────────────────────────
+/**
+ * Full admin middleware: Rate limit → Auth → Audit log.
+ * Usage:
+ *   const { adminUser, db, errorResponse } = await adminGuard(request);
+ *   if (errorResponse) return errorResponse;
+ */
+export async function adminGuard(request: Request): Promise<{
+  adminUser: any;
+  db: any;
+  errorResponse: null;
+} | {
+  adminUser: null;
+  db: null;
+  errorResponse: NextResponse;
+}> {
+  const ip = getClientIp(request);
+  const path = new URL(request.url).pathname;
+
+  // ── Rate limit: 100 req/min per IP on /api/admin/* ──
+  const allowed = rateLimit(ip, 100, 60_000);
+  if (!allowed) {
+    // Get db for audit log (best effort)
+    try {
+      const { db } = await connectToDatabase();
+      await logAdminAudit(db, "rate_limited", { ip, path });
+    } catch { }
+
+    return {
+      adminUser: null,
+      db: null,
+      errorResponse: NextResponse.json(
+        { message: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      ),
+    };
+  }
+
+  // ── Authentication ──
+  const result = await getAdminUserFromRequest(request);
+
+  if (!result) {
+    // Audit the failed attempt
+    try {
+      const { db } = await connectToDatabase();
+      await logAdminAudit(db, "access_denied", {
+        ip,
+        path,
+        reason: "Not authenticated or not an admin",
+      });
+    } catch { }
+
+    return {
+      adminUser: null,
+      db: null,
+      errorResponse: NextResponse.json(
+        { message: "Forbidden: Admin access required." },
+        { status: 403 }
+      ),
+    };
+  }
+
+  // Success audit
+  await logAdminAudit(result.db, "access_granted", {
+    ip,
+    path,
+    userId: result.user._id?.toString(),
+  });
+
+  return { adminUser: result.user, db: result.db, errorResponse: null };
+}
+
 
 /**
  * Utility functions for admin operations with rollback capabilities

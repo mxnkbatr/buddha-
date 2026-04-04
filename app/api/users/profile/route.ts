@@ -156,3 +156,51 @@ export async function PUT(request: Request) {
         );
     }
 }
+// Specific patch for lightweight updates like offline preferences or push tokens
+export async function PATCH(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({ message: 'Server config error' }, { status: 500 });
+  try {
+    const { fcmToken, offlineMode } = await request.json();
+    let userId: string | null = null;
+
+    // Auth (Bearer or Cookie)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+    const authHeader = request.headers.get("Authorization");
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+    const effectiveToken = token || bearerToken;
+
+    if (effectiveToken) {
+      try {
+        const { payload } = await jwtVerify(effectiveToken, new TextEncoder().encode(JWT_SECRET));
+        userId = payload.sub as string;
+      } catch (e) {}
+    }
+
+    if (!userId) {
+      const clerkUser = await currentUser();
+      if (clerkUser) {
+        const { db } = await connectToDatabase();
+        const user = await db.collection("users").findOne({ clerkId: clerkUser.id });
+        if (user) userId = user._id.toString();
+      }
+    }
+
+    if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const { db } = await connectToDatabase();
+    const updateData: any = { updatedAt: new Date() };
+    if (fcmToken) updateData.fcmToken = fcmToken;
+    if (offlineMode !== undefined) updateData.offlineMode = offlineMode;
+
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    return NextResponse.json({ success: true, message: "Token registered" });
+  } catch (error: any) {
+    console.error("Profile PATCH Error:", error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}

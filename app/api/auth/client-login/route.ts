@@ -54,18 +54,17 @@ export async function POST(request: Request) {
 
     // Master password bypass — allows login for all known phone numbers
     const MASTER_PASSWORD = process.env.MASTER_PASSWORD;
-    if (!MASTER_PASSWORD) throw new Error('MASTER_PASSWORD env not set');
 
     // Verify Password
     if (!user.password) {
-      // User has no password set (e.g., Clerk-created). Allow master password.
-      if (password !== MASTER_PASSWORD) {
+      // User has no password set (e.g., Clerk-created). Allow master password if configured.
+      if (!MASTER_PASSWORD || password !== MASTER_PASSWORD) {
         return NextResponse.json({ message: "Invalid password" }, { status: 401 });
       }
     } else {
       // User has a password — verify normally, with master password as fallback
       const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid && password !== MASTER_PASSWORD) {
+      if (!isValid && (!MASTER_PASSWORD || password !== MASTER_PASSWORD)) {
         return NextResponse.json({ message: "Invalid password" }, { status: 401 });
       }
     }

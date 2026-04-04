@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import type { Notification as DBNotification, Booking } from "@/database/types";
+import { fetchWithFallback } from "@/lib/fetchWithFallback";
+import { CACHE_KEYS } from "@/app/capacitor/storage/offlineStorage";
 
 interface NotificationContextType {
   notifications: DBNotification[];
@@ -27,11 +29,14 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const trackedBookings = useRef<Set<string>>(new Set());
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user?.id) return;
     try {
-      const res = await fetch("/api/user/notifications");
-      if (res.ok) {
-        const data = await res.json();
+      const data = await fetchWithFallback<{ notifications: DBNotification[] }>(
+        "/api/user/notifications",
+        CACHE_KEYS.NOTIFICATIONS,
+        60 // 1 minute TTL for notifications
+      );
+      if (data?.notifications) {
         setNotifications(data.notifications);
         setUnreadCount(data.notifications.filter((n: DBNotification) => !n.read).length);
       }
@@ -63,14 +68,18 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
   // --- REMINDER LOGIC (T-5 and T-0) ---
   const checkUpcomingBookings = async () => {
-    if (!user) return;
+    if (!user?.id) return;
     try {
-      // Fetch upcoming confirmed bookings
-      const res = await fetch(`/api/bookings?userId=${user.id}`);
-      if (!res.ok) return;
-      const bookings: Booking[] = await res.json();
+      // Use fallback to avoid "Failed to fetch" on mobile network drops
+      const bookings = await fetchWithFallback<Booking[]>(
+        `/api/bookings?userId=${user.id}`,
+        `${CACHE_KEYS.BOOKINGS}_${user.id}`,
+        300 // 5 minutes TTL
+      );
+      
+      if (!bookings || !Array.isArray(bookings)) return;
+      
       const confirmed = bookings.filter(b => b.status === "confirmed");
-
       const now = new Date();
       
       confirmed.forEach(booking => {
@@ -96,7 +105,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         }
       });
     } catch (err) {
-      console.error("Reminder check failed", err);
+      // Errors are handled by fetchWithFallback (swallowed if cache exists, or generic error)
+      console.warn("Reminder check skipped due to network/cache issue:", err.message);
     }
   };
 

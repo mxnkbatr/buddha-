@@ -8,7 +8,6 @@ import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Force dynamic to prevent caching issues (users not seeing new bookings)
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
@@ -16,131 +15,42 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const monkId = searchParams.get("monkId");
-    const userEmail = searchParams.get("userEmail"); // Get email from params
-    const userId = searchParams.get("userId"); // Get custom userId from params
-    const userPhone = searchParams.get("userPhone"); // Get phone from params
+    const userEmail = searchParams.get("userEmail");
+    const userId = searchParams.get("userId");
+    const userPhone = searchParams.get("userPhone");
 
-    // FIX: Allow searching by either monkId OR userEmail OR userId OR userPhone
     if (!monkId && !userEmail && !userId && !userPhone) {
       return NextResponse.json({ message: "Missing search parameter" }, { status: 400 });
     }
 
     const { db } = await connectToDatabase();
-
-    // Build query dynamically
     const query: any = {};
 
-    if (monkId) {
-      query.monkId = monkId;
-    }
-    if (userEmail) {
-      query.userEmail = userEmail;
-    }
-    if (userPhone) {
-      query.userPhone = userPhone;
-    }
+    if (monkId) query.monkId = monkId;
+    if (userEmail) query.userEmail = userEmail;
+    if (userPhone) query.userPhone = userPhone;
+    
     if (userId) {
-      // Resolve User Identity to match both ObjectId and ClerkId
-      // This fixes cases where Dashboard sends ObjectId but Booking stores ClerkId (or vice versa)
       const userIdsToSearch = [userId];
-
       try {
-        // If it looks like an ObjectId, find the user
         if (ObjectId.isValid(userId)) {
           const u = await db.collection("users").findOne({ _id: new ObjectId(userId) });
           if (u && u.clerkId) userIdsToSearch.push(u.clerkId);
-        }
-        // If it looks like a Clerk ID (starts with user_), find the user to get _id
-        else if (userId.startsWith("user_")) {
+        } else if (userId.startsWith("user_")) {
           const u = await db.collection("users").findOne({ clerkId: userId });
           if (u) userIdsToSearch.push(u._id.toString());
         }
-      } catch (e) { /* ignore lookups if invalid */ }
-
-      // Query bookings where userId/clientId matches ANY of the user's known IDs
-      query.$or = [
-        { userId: { $in: userIdsToSearch } },
-        { clientId: { $in: userIdsToSearch } }
-      ];
+      } catch (e) {}
+      query.$or = [{ userId: { $in: userIdsToSearch } }, { clientId: { $in: userIdsToSearch } }];
     }
 
-    // Optional date filter
-    if (searchParams.get("date")) {
-      query.date = searchParams.get("date");
-    }
-
-    // --- OPTIMIZED LAZY CLEANUP LOGIC ---
-    // Only fetch bookings that actually NEED cleanup (Confirmed + Past Time)
-    // Run this check independent of the user's view query
-
-    // We only check for cleanup occasionally or efficiently. 
-    // Let's check only "confirmed" bookings for the related user/monk to scope it down
-    // or better, verify if we can do this efficiently.
-
-    // For now, to prevent O(N) scan on every read:
-    // 1. We skip cleanup on general reads unless specifically requested or random chance (10%)
-    // 2. Or we trust the loop is fast if N is small.
-    // 3. BEST: Fetch expired confirmed bookings explicitly.
-
-    // Auto-complete bookings that are more than 30 minutes past their start time
-    const nowTimestamp = new Date();
-
-    // Only run cleanup if we are filtering by a specific monk or user (contextual cleanup)
-    if (monkId || userId || userEmail) {
-      const cleanupQuery = {
-        status: 'confirmed',
-        $or: [
-          { monkId: monkId },
-          { userId: { $in: query.$or?.[0]?.userId?.$in || [] } },
-          { clientId: { $in: query.$or?.[1]?.clientId?.$in || [] } }
-        ]
-      };
-      // Cleanup logic below... (Refactored to be safe)
-    }
+    if (searchParams.get("date")) query.date = searchParams.get("date");
 
     const bookings = await db.collection("bookings")
       .find(query)
       .sort({ date: 1, time: 1 })
-      .limit(100) // Optimization: Limit to 100 recent/upcoming bookings
+      .limit(100)
       .toArray();
-
-    // Perform cleanup ONLY on the fetched active/confirmed bookings that are expired
-    // This avoids querying the whole DB.
-    const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
-
-    for (const b of confirmedBookings) {
-      // ... (Existing logic) ...
-      let timeStr = b.time || "00:00";
-      if (timeStr.includes(':')) {
-        let [h, m] = timeStr.split(':').map((part: string) => part.trim().padStart(2, '0'));
-        timeStr = `${h}:${m}`;
-      }
-      const scheduledTime = new Date(`${b.date}T${timeStr}`);
-      const expiryTime = new Date(scheduledTime.getTime() + 30 * 60 * 1000); // 30 mins limit
-
-      // SKIP CLEANUP if the booking is marked as manual (re-opened)
-      if (nowTimestamp > expiryTime && !b.isManual) {
-        // Perform update
-        try {
-          const mId = b.monkId;
-          if (mId) {
-            const monkQ = ObjectId.isValid(mId) ? { _id: new ObjectId(mId) } : { _id: mId };
-            const monk = await db.collection("users").findOne(monkQ);
-            if (monk) {
-              const isSpecial = monk.isSpecial === true;
-              const earnings = isSpecial ? 88800 : 40000;
-              await db.collection("users").updateOne(monkQ, { $inc: { earnings: earnings } });
-              if (!isSpecial) {
-                await db.collection("users").updateMany({ role: "monk", isSpecial: true }, { $inc: { earnings: 10000 } });
-              }
-            }
-          }
-          await db.collection("messages").deleteMany({ bookingId: b._id.toString() });
-          await db.collection("bookings").updateOne({ _id: b._id }, { $set: { status: 'completed', updatedAt: new Date() } });
-          b.status = 'completed'; // Update in memory
-        } catch (err) { console.error("Cleanup error", err); }
-      }
-    }
 
     if (monkId && searchParams.get("date")) {
       return NextResponse.json(bookings.filter(b => b.status !== 'rejected' && b.status !== 'cancelled').map(b => b.time));
@@ -155,189 +65,101 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
-    // 1. Authenticate (Clerk OR Custom)
     let authenticatedUserId = null;
-
-    // Check Clerk
     const { userId: clerkUserId } = await auth();
     authenticatedUserId = clerkUserId;
 
-    // Check Custom if no Clerk (Cookie OR Bearer token for mobile)
     if (!authenticatedUserId) {
       const cookieStore = await cookies();
-      const cookieToken = cookieStore.get("auth_token")?.value;
-
-      // Also check for Bearer token in header (for mobile apps)
+      const token = cookieStore.get("auth_token")?.value;
       const authHeader = request.headers.get("Authorization");
       const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+      const effectiveToken = token || bearerToken;
 
-      const token = cookieToken || bearerToken;
-
-      if (token) {
+      if (effectiveToken) {
         try {
-          const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+          const { payload } = await jwtVerify(effectiveToken, new TextEncoder().encode(JWT_SECRET));
           authenticatedUserId = payload.sub as string;
-        } catch (e) { /* invalid token */ }
+        } catch (e) {}
       }
     }
 
-    if (!authenticatedUserId) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    if (!authenticatedUserId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
     const { monkId, date, time, userName, userEmail, userPhone, serviceId, note } = body;
 
-    // Validate phone number
-    if (!userPhone) {
-      return NextResponse.json({ message: "Phone number is required." }, { status: 400 });
-    }
+    if (!userPhone) return NextResponse.json({ message: "Phone number is required." }, { status: 400 });
 
     const { db } = await connectToDatabase();
 
-    // 1. Validate that the booking time is not in the past
+    // 1. past date check
     const [hours, minutes] = time.split(':').map(Number);
-    // Parse the date string (YYYY-MM-DD) and set local hours/minutes
     const [year, month, day] = date.split('-').map(Number);
-    const bookingDateTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
-
-    const now = new Date();
-    // Allow a small buffer (e.g. 5 minutes) or just check dates. 
-    // Strict minute comparison often fails due to server/client clock drift.
-    // Let's just block dates strictly prior to Today.
-    // For Today's slots, we rely on the UI to not show past slots, or we do a loose check.
-
-    // Check if date is strictly in the past (Yesterday or before)
     const bookingDateOnly = new Date(year, month - 1, day);
     const todayDateOnly = new Date();
     todayDateOnly.setHours(0, 0, 0, 0);
 
-    if (bookingDateOnly < todayDateOnly) {
-      console.error("Booking Rejected: Date is in past", { bookingDateOnly, todayDateOnly });
-      return NextResponse.json({ message: "Cannot book dates in the past." }, { status: 400 });
-    }
+    if (bookingDateOnly < todayDateOnly) return NextResponse.json({ message: "Cannot book dates in the past." }, { status: 400 });
 
-    // If it *is* today, check time with a buffer
-    if (bookingDateOnly.getTime() === todayDateOnly.getTime()) {
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      // If booking hour is less than current hour, reject
-      if (hours < currentHours) {
-        console.error("Booking Rejected: Time is past", { time, now: now.toLocaleTimeString() });
-        return NextResponse.json({ message: "Time slot has passed." }, { status: 400 });
-      }
-    }
-
-    // 2. Atomic Slot Lock - prevent race condition double bookings
+    // 2. Atomic Slot Lock
     await db.collection('booking_locks').deleteMany({ expiresAt: { $lte: new Date() } });
-
     let lockId: any = null;
     try {
       const lockResult = await db.collection('booking_locks').insertOne({
-        monkId,
-        date,
-        time,
-        lockedAt: new Date(),
-        lockedBy: authenticatedUserId,
-        expiresAt: new Date(Date.now() + 30000)
+        monkId, date, time, lockedAt: new Date(), lockedBy: authenticatedUserId, expiresAt: new Date(Date.now() + 30000)
       });
       lockId = lockResult.insertedId;
     } catch (lockErr: any) {
-      if (lockErr.code === 11000) {
-        return NextResponse.json({ message: '??? ??? ??????????? ?????, ??? ??????? ??' }, { status: 409 });
-      }
+      if (lockErr.code === 11000) return NextResponse.json({ message: 'Энэ цаг дээр өөр хүн ажиллаж байна, дахин оролдоно уу' }, { status: 409 });
       throw lockErr;
     }
 
-    // Check for confirmed/pending bookings AFTER acquiring lock
-    const existing = await db.collection("bookings").findOne({
-      monkId,
-      date,
-      time,
-      status: { $in: ['confirmed', 'pending'] }
-    });
-
+    const existing = await db.collection("bookings").findOne({ monkId, date, time, status: { $in: ['confirmed', 'pending'] } });
     if (existing) {
-      await db.collection('booking_locks').deleteOne({ _id: lockId });
-      return NextResponse.json({ message: '??? ??? ???????????? ?????' }, { status: 409 });
+      if (lockId) await db.collection('booking_locks').deleteOne({ _id: lockId });
+      return NextResponse.json({ message: 'Энэ цаг аль хэдийн захиалагдсан байна' }, { status: 409 });
     }
 
-    // 3. Fetch Monk & Service Details (For the Email Notification)
-    let monk = null;
+    // 3. Monk & Service Details
     const monkQuery = ObjectId.isValid(monkId) ? { _id: new ObjectId(monkId) } : { _id: monkId };
-    monk = await db.collection("users").findOne(monkQuery);
-
+    const monk = await db.collection("users").findOne(monkQuery);
     let serviceName = "Spiritual Session";
 
     if (serviceId) {
-      // Check standard services collection (uses ObjectId)
       if (ObjectId.isValid(serviceId)) {
         const serviceDoc = await db.collection("services").findOne({ _id: new ObjectId(serviceId) });
-        if (serviceDoc) {
-          serviceName = serviceDoc.title?.en || serviceDoc.title?.mn || serviceName;
-        }
+        if (serviceDoc) serviceName = serviceDoc.title?.en || serviceDoc.title?.mn || serviceName;
       }
-
-      // If not found, check inside the monk's profile (uses UUID strings)
-      if (serviceName === "Spiritual Session" && monk && monk.services) {
+      if (serviceName === "Spiritual Session" && monk?.services) {
         const embedded = monk.services.find((s: any) => s.id === serviceId);
-        if (embedded) {
-          serviceName = embedded.name?.en || embedded.name?.mn || serviceName;
-        }
+        if (embedded) serviceName = embedded.name?.en || embedded.name?.mn || serviceName;
       }
     }
 
     // 4. Save Booking
     const newBooking = {
-      monkId,
-      clientId: body.userId || authenticatedUserId,
-      clientName: userName,
-      serviceName: { en: serviceName, mn: serviceName },
-      date,
-      time,
-      userEmail,
-      userPhone, // Store phone number
-      note,
-      status: 'pending',
-      createdAt: new Date()
+      monkId, clientId: body.userId || authenticatedUserId, clientName: userName, serviceName: { en: serviceName, mn: serviceName },
+      date, time, userEmail, userPhone, note, status: 'pending', createdAt: new Date()
     };
-
     const result = await db.collection("bookings").insertOne(newBooking);
+    if (lockId) await db.collection('booking_locks').deleteOne({ _id: lockId });
 
-    // Release the atomic lock after successful insert
-    if (lockId) {
-      await db.collection('booking_locks').deleteOne({ _id: lockId });
-    }
-
-    // 5. Send Email
-    // Wrapped in try/catch so booking succeeds even if email fails
+    // 5. Notifications
     try {
       if (userEmail) {
         await sendBookingNotification({
-          userEmail,
-          userName,
-          monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
-          serviceName: serviceName,
-          date,
-          time
+          userEmail, userName, monkName: monk?.name?.en || monk?.name?.mn || "The Monk", serviceName, date, time
         });
       }
-      // Also notify the Monk via email
       if (monk?.email) {
         await sendBookingNotification({
-          userEmail: monk.email,
-          userName: `[??? ????????] ${userName}`,
-          monkName: monk?.name?.mn || monk?.name?.en || '??',
-          serviceName: serviceName,
-          date,
-          time
+          userEmail: monk.email, userName: `[Шинэ захиалга] ${userName}`, monkName: monk?.name?.mn || monk?.name?.en || 'Та', serviceName, date, time
         });
       }
-    } catch (emailError) {
-      console.error("Failed to send email:", emailError);
-    }
+    } catch (e) {}
 
-    // 6. Create In-App Notification
+    // In-App Notification
     try {
       const clientId = body.userId || authenticatedUserId;
       if (clientId) {
@@ -348,14 +170,10 @@ export async function POST(request: Request) {
             mn: `${monk?.name?.mn || "Лам"}-д засал захиалах хүсэлт илгээгдлээ.`, 
             en: `Request sent to ${monk?.name?.en || "the Monk"} for a session.` 
           },
-          type: "booking",
-          read: false,
-          createdAt: new Date()
+          type: "booking", read: false, createdAt: new Date()
         });
       }
-    } catch (err) {
-      console.error("Failed to create notification:", err);
-    }
+    } catch (e) {}
 
     return NextResponse.json({ success: true, id: result.insertedId });
   } catch (error: any) {

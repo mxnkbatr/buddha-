@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminUserFromRequest } from "@/lib/admin-utils";
+import { adminGuard } from "@/lib/admin-utils";
 
-async function checkPermission(request?: Request) {
-    const adminUserResult = await getAdminUserFromRequest(request);
-    if (adminUserResult && adminUserResult.user) {
-        return { user: adminUserResult.user, db: adminUserResult.db };
-    }
-    throw new Error("Unauthorized");
+async function checkPermission(request: Request) {
+    const { adminUser, db, errorResponse } = await adminGuard(request);
+    if (errorResponse) throw errorResponse;
+    return { user: adminUser, db };
 }
 
 export async function POST(req: Request) {

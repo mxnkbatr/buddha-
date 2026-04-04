@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { SecureStorage } from "@/app/capacitor/storage/secureStorage";
+import { getItem, setItem, CACHE_KEYS } from "@/app/capacitor/storage/offlineStorage";
 
 interface AuthContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +36,12 @@ export const AuthProvider = ({ children, initialUser }: { children: React.ReactN
 
   const fetchUser = async () => {
     try {
+      // 1. Try to load from cache first for instant UI response
+      const cached = await getItem<any>(CACHE_KEYS.USER_PROFILE);
+      if (cached && !user) {
+        setUser(cached);
+      }
+
       const token = await SecureStorage.getToken();
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -42,7 +49,11 @@ export const AuthProvider = ({ children, initialUser }: { children: React.ReactN
       const res = await fetch("/api/auth/me", { headers });
       if (res.ok) {
         const data = await res.json();
-        setUser(data.user);
+        const freshUser = data.user;
+        
+        // Update state and cache with TTL (5 minutes)
+        setUser(freshUser);
+        await setItem(CACHE_KEYS.USER_PROFILE, freshUser, { ttl: 300 });
       }
     } catch (error) {
       console.error("Failed to fetch user", error);
@@ -84,6 +95,7 @@ export const AuthProvider = ({ children, initialUser }: { children: React.ReactN
         signOut()
       ]);
       await SecureStorage.removeToken();
+      await setItem(CACHE_KEYS.USER_PROFILE, null); // Clear cache
 
       setUser(null);
       

@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/database/db";
-import { getAdminUserFromRequest } from "@/lib/admin-utils";
+import { adminGuard } from "@/lib/admin-utils";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
-    const adminUser = await getAdminUserFromRequest(request);
-
-    // SERVER-SIDE SECURITY CHECK
-    if (!adminUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
-    }
-
-    const { db } = await connectToDatabase();
+    const { adminUser, db, errorResponse } = await adminGuard(request);
+    if (errorResponse) return errorResponse;
 
     // 1. Fetch All Users
     const users = await db.collection("users").find({}).toArray();

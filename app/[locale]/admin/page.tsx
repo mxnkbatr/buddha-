@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   const [wasm, setWasm] = useState<typeof import("rust-modules") | null>(null);
 
   const isLoaded = !authLoading;
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || (user as any)?.isSpecial === true;
   const isDark = false;
 
   useEffect(() => {

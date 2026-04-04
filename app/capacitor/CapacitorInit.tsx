@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import { usePlatform } from '@/app/capacitor/hooks/usePlatform';
 import { App } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { initPushNotifications } from './plugins/pushNotifications';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 /**
  * Initialize Capacitor plugins and platform-specific behavior.
@@ -11,13 +14,15 @@ import { StatusBar, Style } from '@capacitor/status-bar';
  */
 export default function CapacitorInit() {
     const { isNative } = usePlatform();
+    const { user } = useAuth();
+    const router = useRouter();
 
     useEffect(() => {
         if (!isNative) return;
 
         const initialize = async () => {
+            // ... (previous status bar logic)
             try {
-                // StatusBar: style LIGHT, overlaysWebView: true, backgroundColor transparent
                 await StatusBar.setOverlaysWebView({ overlay: true });
                 await StatusBar.setStyle({ style: Style.Light });
                 await StatusBar.setBackgroundColor({ color: '#00000000' });
@@ -25,9 +30,16 @@ export default function CapacitorInit() {
                 console.warn('StatusBar initialization failed:', e);
             }
 
-            // Note: Native SplashScreen hiding is now managed by SplashScreen.tsx 
-            // internally. We removed it here to coordinate with the Web splash.
+            // Push Notifications initialization
+            if (user?._id) {
+                try {
+                    await initPushNotifications(user._id.toString(), router);
+                } catch (err) {
+                    console.error('Push Notifications init failed:', err);
+                }
+            }
 
+            // ... (rest of initialize)
             // Handle back button on Android
             App.addListener('backButton', ({ canGoBack }) => {
                 if (!canGoBack) {
@@ -41,11 +53,9 @@ export default function CapacitorInit() {
             App.addListener('appStateChange', ({ isActive }) => {
                 if (isActive) {
                     console.log('App is foregrounded - triggering token refresh logic');
-                    // Add actual token refresh logic here via AuthContext if needed
                 }
             });
 
-            // Add CSS variables for safe area insets
             const addSafeAreaCSS = () => {
                 const style = document.createElement('style');
                 style.textContent = `
@@ -70,7 +80,7 @@ export default function CapacitorInit() {
                 App.removeAllListeners();
             }
         };
-    }, [isNative]);
+    }, [isNative, user, router]);
 
-    return null; // This component doesn't render anything
+    return null;
 }

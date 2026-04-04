@@ -119,6 +119,7 @@ export const CACHE_KEYS = {
     USER_PROFILE: 'cache_user_profile',
     BOOKINGS: 'cache_bookings',
     SETTINGS: 'cache_settings',
+    NOTIFICATIONS: 'cache_notifications',
 } as const;
 
 /**

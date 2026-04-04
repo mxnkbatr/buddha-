@@ -7,6 +7,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { Monk } from "@/database/types";
 import MonkCard from "./MonkCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { getCachedMonks, cacheMonks } from "@/app/capacitor/storage/offlineStorage";
 
 export default function MonkShowcaseClient({ 
   initialMonks, 
@@ -19,6 +20,31 @@ export default function MonkShowcaseClient({
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
+    const [monks, setMonks] = useState<Monk[]>(initialMonks || []);
+
+    useEffect(() => {
+        const refreshMonks = async () => {
+            try {
+                // 1. Try to load from cache
+                const cached = await getCachedMonks();
+                if (cached && cached.length > 0) {
+                    setMonks(cached);
+                }
+
+                // 2. Fetch fresh data in the background
+                const res = await fetch('/api/monks');
+                if (res.ok) {
+                    const freshData = await res.json();
+                    setMonks(freshData);
+                    await cacheMonks(freshData); // Use the 15m TTL defined in helper
+                }
+            } catch (err) {
+                console.warn("Background monk refresh failed", err);
+            }
+        };
+
+        refreshMonks();
+    }, []);
 
     const categories = [
         { id: "All", mn: "Бүгд", en: "All" },
@@ -30,7 +56,7 @@ export default function MonkShowcaseClient({
 
     const filteredMonks = useMemo<Monk[]>(() => {
         const query = searchQuery.toLowerCase();
-        return initialMonks.filter(monk => {
+        return monks.filter(monk => {
             if (!monk.isAvailable && !hideHeader) return false;
             
             const matchesQuery = !query || 
@@ -113,10 +139,11 @@ export default function MonkShowcaseClient({
                             layout
                             className="flex flex-col"
                         >
-                            {filteredMonks.map((monk) => (
+                            {filteredMonks.map((monk, index) => (
                                 <MonkCard 
                                     key={monk._id?.toString()} 
                                     monk={monk} 
+                                    index={index}
                                     onClick={() => handleMonkClick(monk._id?.toString() || "")}
                                 />
                             ))}

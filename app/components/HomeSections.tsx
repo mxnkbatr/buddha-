@@ -40,7 +40,23 @@ export default function HomeSections({ locale, blogs, monks = [] }: { locale: st
   const validLang = (["mn", "en"].includes(lang) ? lang : "mn") as "mn" | "en";
 
   const displayBlogs = blogs && blogs.length > 0 ? blogs.slice(0, 5) : MOCK_BLOGS;
-  const displayMonks = monks.filter((m) => !m.name?.mn?.includes("Буянцог")).slice(0, 5);
+  
+  // Reorder monks as requested: Буянцог, Ундраа, Амина, Доржбаатар, Банчинэрдэнэ, Цэцэг
+  const preferredNames = ["Буянцог", "Ундраа", "Амина", "Доржбаатар", "Эрдэнэ", "Цэцэг"];
+  
+  const getMonkRank = (m: any) => {
+    const nameMn = m.name?.mn || "";
+    const nameEn = m.name?.en || "";
+    const index = preferredNames.findIndex(p => 
+      nameMn.toLowerCase().includes(p.toLowerCase()) || 
+      nameEn.toLowerCase().includes(p.toLowerCase())
+    );
+    return index === -1 ? 999 : index;
+  };
+
+  const displayMonks = [...monks]
+    .sort((a, b) => getMonkRank(a) - getMonkRank(b))
+    .slice(0, 6);
 
   return (
     <div className="home-sections-wrapper !bg-white">
