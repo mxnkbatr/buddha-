@@ -14,23 +14,48 @@ interface Message {
 export function useRealtimeMessages(otherId: string | null, userId: string | null, initialMessages: Message[] = []) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isConnected, setIsConnected] = useState(false);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<any>(null);
+  const retryCount = useRef(0);
+
+  // Progressive Enhancement: Fallback to HTTP Polling if WS fails
+  useEffect(() => {
+    if (!isFallbackMode || !otherId) return;
+    
+    const pollMessages = async () => {
+      try {
+        const res = await fetch(`/api/messages/${otherId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMessages(data);
+        }
+      } catch (e) {
+        // Silent catch for background polling
+      }
+    };
+
+    // Poll every 5s silently
+    const interval = setInterval(pollMessages, 5000);
+    return () => clearInterval(interval);
+  }, [isFallbackMode, otherId]);
 
   // Use the state initializer only, no useEffect to spam state updates
   // to avoid infinite loops when initialMessages is a new array reference.
 
   const connect = () => {
-    if (!otherId || !userId) return;
+    if (!otherId || !userId || isFallbackMode) return;
     
-    // Using a more robust WS url resolution
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${protocol}//${window.location.host}/api/ws`;
     
     try {
       wsRef.current = new WebSocket(`${wsUrl}?room=${userId}_${otherId}`);
       
-      wsRef.current.onopen = () => setIsConnected(true);
+      wsRef.current.onopen = () => {
+        setIsConnected(true);
+        retryCount.current = 0; // reset retries
+      };
       
       wsRef.current.onmessage = (event) => {
         try {
@@ -38,23 +63,25 @@ export function useRealtimeMessages(otherId: string | null, userId: string | nul
           if (msg.type === 'new_message') {
             setMessages(prev => [...prev, msg.data]);
           }
-        } catch (e) {
-          console.error("Failed to parse websocket message", e);
-        }
+        } catch (e) {}
       };
       
       wsRef.current.onclose = () => {
         setIsConnected(false);
-        // Auto reconnect 3 секундын дараа
+        if (retryCount.current >= 2) {
+          setIsFallbackMode(true); // Switch to polling
+          return;
+        }
+        retryCount.current += 1;
         reconnectTimer.current = setTimeout(connect, 3000);
       };
       
-      wsRef.current.onerror = (e) => {
-        console.error("WebSocket Error", e);
+      wsRef.current.onerror = () => {
+        // Silently close, which triggers onclose and manages retry/fallback logic
         wsRef.current?.close();
       };
     } catch (e) {
-      console.error("WebSocket connection failed", e);
+      setIsFallbackMode(true);
     }
   };
 
@@ -78,5 +105,5 @@ export function useRealtimeMessages(otherId: string | null, userId: string | nul
     return false;
   };
 
-  return { messages, setMessages, isConnected, sendMessage };
+  return { messages, setMessages, isConnected, isFallbackMode, sendMessage };
 }

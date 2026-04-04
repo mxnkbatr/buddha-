@@ -49,7 +49,7 @@ export default function MessengerPage() {
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   
   // Replace static messages state with realtime websocket hook
-  const { messages, setMessages, isConnected, sendMessage } = useRealtimeMessages(
+  const { messages, setMessages, isConnected, isFallbackMode, sendMessage } = useRealtimeMessages(
     selectedConv?.otherId || null,
     user?._id || user?.id || null
   );
@@ -395,9 +395,13 @@ export default function MessengerPage() {
         <div className="flex-1 min-w-0 pr-4">
           <p className="text-[16px] font-black text-ink truncate leading-tight">{selectedConv.otherName}</p>
           <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors ${isConnected ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-live"}`} />
+            <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors ${isConnected ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : isFallbackMode ? "bg-gold shadow-[0_0_8px_rgba(217,119,6,0.5)]" : "bg-live"}`} />
             <p className="text-[11px] font-black text-earth/60 uppercase tracking-widest">
-              {isConnected ? t({ mn: "Холбогдсон", en: "Connected" }) : t({ mn: "Холбогдож байна...", en: "Connecting..." })}
+              {isConnected 
+                ? t({ mn: "Холбогдсон", en: "Connected" }) 
+                : isFallbackMode
+                  ? t({ mn: "Холбогдсон", en: "Connected" })
+                  : t({ mn: "Холбогдож байна...", en: "Connecting..." })}
             </p>
           </div>
         </div>
