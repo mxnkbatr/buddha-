@@ -31,63 +31,54 @@ export default function NirvanaComments() {
   const { t } = useLanguage();
 
   return (
-    <section className="py-32 bg-cream relative overflow-hidden">
-      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+    <section className="app-section !bg-white">
+      <div className="container mx-auto max-w-7xl relative z-10">
         
-        <div className="flex flex-col md:flex-row justify-between items-end mb-24">
-          <div>
+        <div className="app-section-header">
             <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="text-display mb-6 text-ink"
+              className="text-3xl font-black text-ink mb-2 tracking-tight"
             >
               {t({ mn: "Сэтгэгдэл", en: "Community Stories" })}
             </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-secondary max-w-lg text-lg"
-            >
+            <p className="text-earth/60 text-sm max-w-md">
               {t({ 
                 mn: "Манай багш нартай холбогдсон хүмүүсийн бодит түүх, сэтгэгдлүүд.", 
                 en: "Real stories from people who found clarity and peace through our sanctuary." 
               })}
-            </motion.p>
-          </div>
+            </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="app-carousel hide-scrollbar md:grid md:grid-cols-3 md:gap-8 md:px-6">
           {COMMENTS.map((c, i) => (
             <motion.div 
               key={i} 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.1 }}
-              className="monastery-card p-12 flex flex-col h-full bg-white group hover:border-gold/30 transition-all duration-700"
+              whileTap={{ scale: 0.98 }}
+              className="app-card-premium p-10 flex flex-col h-full !bg-cream/30 border-none shadow-none"
             >
-              <div className="flex items-center gap-6 mb-10">
-                <div className="w-16 h-16 rounded-3xl overflow-hidden border border-border group-hover:border-gold/20 transition-colors shadow-card">
-                  <Image src={c.avatar} alt={c.name} width={64} height={64} className="object-cover" />
+              <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4">
+                  <Image src={c.avatar} alt={c.name} width={80} height={80} className="object-cover" />
                 </div>
                 <div>
-                  <h4 className="text-h2 text-ink mb-1">{c.name}</h4>
-                  <span className="text-label text-gold opacity-80">{c.role}</span>
+                  <h4 className="text-lg font-black text-ink leading-tight">{c.name}</h4>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gold opacity-80">{c.role}</span>
                 </div>
               </div>
               
-              <div className="flex-1 relative">
-                 <Quote className="text-gold/10 absolute -top-4 -left-4" size={48} />
-                 <p className="text-body italic text-earth/90 leading-relaxed font-serif relative z-10 text-lg">
+              <div className="flex-1 relative text-center">
+                 <Quote className="text-gold/10 absolute -top-4 left-1/2 -translate-x-1/2" size={40} />
+                 <p className="text-base italic text-earth leading-relaxed font-serif relative z-10">
                    "{c.text}"
                  </p>
               </div>
 
-              <div className="mt-12 pt-8 border-t border-border/50 flex justify-between items-center">
-                <div className="flex gap-1.5">
-                  {[1,2,3,4,5].map(star => <Star key={star} size={14} className="text-gold fill-gold" />)}
+              <div className="mt-8 pt-6 border-t border-earth/5 flex flex-col items-center gap-3">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(star => <Star key={star} size={12} className="text-gold fill-gold" />)}
                 </div>
-                <span className="text-label text-earth/40">Verified</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-earth/30">Verified User</span>
               </div>
             </motion.div>
           ))}

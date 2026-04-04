@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { 
     Users, Video, BookOpen, ArrowRight, UserCircle, Sparkles, 
-    ShieldCheck, Calendar, MessageCircle, Star 
+     MessageCircle, Star 
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -20,7 +20,7 @@ export default function PhilosophySection() {
             en: "Spreading ancient heritage through modern innovation to bring peace to your mind." 
         }),
         seeAll: t({ mn: "Бүгдийг үзэх", en: "See All" }),
-        valuesTitle: t({ mn: "Яагаад Геваbal?", en: "Why Gevabal?" }),
+        valuesTitle: t({ mn: "Яагаад Гэвабал?", en: "Why Gevabal?" }),
         value1Title: t({ mn: "Мэргэжлийн Багш нар", en: "Expert Masters" }),
         value1Body: t({ mn: "Олон жилийн туршлагатай, шашны гүн ухаанд мэргэшсэн багш нар.", en: "Experienced masters specialized in spiritual philosophy." }),
         value2Title: t({ mn: "Онлайн Засал", en: "Live Rituals" }),
@@ -48,115 +48,93 @@ export default function PhilosophySection() {
     ];
 
     return (
-        <section className="py-32 bg-cream relative overflow-hidden">
-            <div className="container mx-auto px-6 max-w-7xl relative z-10">
+        <section className="app-section">
+            <div className="container mx-auto max-w-7xl relative z-10">
                 
                 {/* HEADLINE */}
-                <div className="text-center mb-24">
+                <div className="app-section-header text-center px-6">
                     <motion.h2 
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        className="text-display mb-6 text-ink"
+                        className="text-3xl font-black text-ink mb-4 tracking-tight"
                     >
                         {TEXT.title}
                     </motion.h2>
                     <motion.p 
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="max-w-2xl mx-auto text-secondary text-lg leading-relaxed"
+                        className="max-w-xl mx-auto text-earth/70 text-sm leading-relaxed"
                     >
                         {TEXT.subtitle}
                     </motion.p>
                 </div>
 
-                {/* FEATURE GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-32">
+                {/* FEATURE CAROUSEL / GRID */}
+                <div className="app-carousel hide-scrollbar md:grid md:grid-cols-3 md:gap-8 md:px-6 md:mb-24">
                     {features.map((f, i) => (
                         <motion.div 
                             key={i} 
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="monastery-card p-10 group hover:border-gold/30 bg-white"
+                            whileTap={{ scale: 0.98 }}
+                            className="app-card-premium p-8 flex flex-col items-center text-center"
                         >
-                            <div className="w-16 h-16 rounded-2xl bg-gold/5 flex items-center justify-center mb-8 group-hover:bg-gold/10 transition-colors text-gold">
+                            <div className="w-16 h-16 rounded-2xl bg-gold/5 flex items-center justify-center mb-6 text-gold group-hover:bg-gold/10 transition-colors">
                                 {f.icon}
                             </div>
-                            <h3 className="text-h2 text-ink mb-4">{t(f.title)}</h3>
-                            <p className="text-body text-earth/80">
+                            <h3 className="text-lg font-black text-ink mb-3">{t(f.title)}</h3>
+                            <p className="text-xs text-earth/80 leading-relaxed">
                                 {t(f.desc)}
                             </p>
                         </motion.div>
                     ))}
                 </div>
 
-                {/* HERO CTA CARD */}
-                <div className="relative rounded-[4rem] p-12 md:p-24 text-center overflow-hidden bg-hero-bg shadow-modal">
-                    {/* Background Texture Overlay */}
-                    <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.15)_0%,_transparent_70%)]" />
-
-                    <div className="relative z-10">
-                        <motion.h2 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            className="text-hero-title sm:text-5xl md:text-6xl font-serif font-black mb-10 text-white"
-                        >
-                            {TEXT.ctaTitle}
-                        </motion.h2>
-                        <Link href={`/${langKey}/monks`}>
-                            <motion.button 
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="cta-button h-18 px-14 shadow-gold group"
-                            >
-                                <span className="text-sm uppercase tracking-[0.2em]">{TEXT.ctaButton}</span> 
-                                <ArrowRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
-                            </motion.button>
-                        </Link>
+                {/* ADDITIONAL VALUES SECTION */}
+                <div className="mt-20">
+                     <div className="app-section-header">
+                        <h2 className="text-2xl font-black text-ink">{TEXT.valuesTitle}</h2>
                     </div>
-                </div>
-
-                {/* ADDITIONAL VALUES */}
-                <div className="mt-40 max-w-5xl mx-auto px-6">
-                    <h2 className="text-display text-ink text-center mb-20">{TEXT.valuesTitle}</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    
+                    <div className="app-carousel hide-scrollbar md:grid md:grid-cols-2 md:gap-8 md:px-6">
                         {[
                             { icon: UserCircle, title: TEXT.value1Title, desc: TEXT.value1Body },
                             { icon: Sparkles, title: TEXT.value2Title, desc: TEXT.value2Body },
                         ].map((item, idx) => (
                             <motion.div 
                                 key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="monastery-card p-12 bg-white border-border/50 group hover:border-gold/30 transition-all duration-700"
+                                whileTap={{ scale: 0.98 }}
+                                className="app-card-premium p-8"
                             >
-                                <div className="w-20 h-20 rounded-3xl bg-stone/5 flex items-center justify-center mb-10 group-hover:bg-gold/10 transition-colors">
-                                    <item.icon className="w-10 h-10 text-gold" />
+                                <div className="w-14 h-14 rounded-2xl bg-stone/40 flex items-center justify-center mb-6">
+                                    <item.icon className="w-7 h-7 text-gold" />
                                 </div>
-                                <h3 className="text-h2 text-ink mb-6">{item.title}</h3>
-                                <p className="text-secondary leading-relaxed text-lg">{item.desc}</p>
+                                <h3 className="text-lg font-black text-ink mb-3">{item.title}</h3>
+                                <p className="text-sm text-earth/70 leading-relaxed">{item.desc}</p>
                             </motion.div>
                         ))}
                     </div>
                 </div>
 
-                {/* SEE ALL BUTTON */}
-                <div className="mt-20 text-center">
-                    <Link href={`/${langKey}/monks`}>
-                        <motion.button 
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="cta-button px-10 h-16 shadow-gold group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="text-sm uppercase tracking-[0.2em]">{TEXT.seeAll}</span>
-                                <Sparkles className="w-4 h-4 group-hover:animate-spin" />
-                            </div>
-                        </motion.button>
-                    </Link>
+                {/* CTA BANNER - REFINED FOR APP LOOK */}
+                <div className="container px-4 mt-20">
+                    <div className="relative rounded-[2.5rem] p-10 text-center overflow-hidden bg-hero-bg shadow-xl">
+                        <div className="absolute inset-0 opacity-10 bg-[url('/noise.svg')]" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.15)_0%,_transparent_70%)]" />
+
+                        <div className="relative z-10">
+                            <h2 className="text-3xl font-serif font-black mb-8 text-white leading-tight">
+                                {TEXT.ctaTitle}
+                            </h2>
+                            <Link href={`/${langKey}/monks`}>
+                                <motion.button 
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-gold text-white px-8 py-3.5 rounded-full text-xs font-black uppercase tracking-widest shadow-gold"
+                                >
+                                    {TEXT.ctaButton}
+                                </motion.button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
 
             </div>
