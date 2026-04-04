@@ -47,42 +47,40 @@ const BlogCard = ({ post, lang, idx }: { post: BlogPost, lang: 'en' | 'mn', idx:
 
     return (
         <motion.div 
-            initial={{ opacity: 0, y: 15 }} 
+            initial={{ opacity: 0, y: 10 }} 
             animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: idx * 0.05, ease: "easeOut" }}
-            className="group flex flex-col h-full bg-white rounded-[24px] overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-stone/20 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300"
+            transition={{ delay: idx * 0.04, ease: "easeOut" }}
+            className="group block"
         >
-            <Link href={`/${lang}/blog/${post.id}`} className="block flex-none relative aspect-[4/3] w-full overflow-hidden bg-stone/20">
-                {post.cover ? (
-                    <Image src={post.cover} alt={title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <BookOpen size={40} className="text-earth/20" />
-                    </div>
-                )}
-                <div className="absolute inset-0 border border-black/5 rounded-t-[24px] pointer-events-none" />
-                <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-ink shadow-sm">
-                        {post.category || "Wisdom"}
-                    </span>
+            <Link href={`/${lang}/blog/${post.id}`} className="flex gap-4 p-3 bg-white rounded-[24px] border border-stone/20 shadow-sm active:scale-[0.98] transition-all duration-200 press-effect h-32 overflow-hidden">
+                <div className="relative w-28 h-full shrink-0 rounded-[18px] overflow-hidden bg-stone">
+                    {post.cover ? (
+                        <Image src={post.cover} alt={title} fill className="object-cover" />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                            <BookOpen size={24} className="text-earth" />
+                        </div>
+                    )}
                 </div>
-            </Link>
 
-            <Link href={`/${lang}/blog/${post.id}`} className="flex flex-col flex-1 p-5">
-                <div className="mb-3 text-[11px] font-bold tracking-widest uppercase text-earth/60 flex items-center gap-2">
-                    <span>{formatDate(post.date, lang)}</span>
-                    <div className="w-1 h-1 rounded-full bg-earth/30" />
-                    <span className="truncate">{post.authorName || "Багш"}</span>
-                </div>
-                <h3 className="text-[17px] font-serif font-black text-ink leading-snug mb-3 group-hover:text-gold transition-colors line-clamp-2">
-                    {title}
-                </h3>
-                <p className="text-[14px] text-earth/80 leading-relaxed line-clamp-2 mb-4 flex-1">
-                    {content}
-                </p>
-                <div className="mt-auto flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-gold group-hover:text-gold/80 transition-colors">
-                    {TRANSLATIONS.readMore[lang]}
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                <div className="flex flex-col justify-between py-1 flex-1 min-w-0 pr-1">
+                    <div>
+                        <div className="flex items-center justify-between gap-2 mb-1.5 ">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-gold bg-gold/5 px-2 py-0.5 rounded-full">
+                                {post.category || "Wisdom"}
+                            </span>
+                            <span className="text-[9px] text-earth/50 font-bold uppercase tracking-wider">
+                                {formatDate(post.date, lang)}
+                            </span>
+                        </div>
+                        <h3 className="text-[15px] font-black text-ink leading-tight line-clamp-2 mb-1 tracking-tight">
+                            {title}
+                        </h3>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-gold uppercase tracking-widest overflow-hidden">
+                        <span className="truncate">{post.authorName || "Багш"}</span>
+                        <ArrowRight size={10} className="shrink-0 opacity-40" />
+                    </div>
                 </div>
             </Link>
         </motion.div>
