@@ -20,6 +20,7 @@ export default function MonkProfileClient() {
     const [monk, setMonk] = useState<Monk | null>(null);
     const [availableServices, setAvailableServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -59,11 +60,15 @@ export default function MonkProfileClient() {
                 }));
 
                 // Use database values for price and duration, falling back to defaults if missing
-                setAvailableServices(uniqueServices.map((s: any) => ({
+                const formatted = uniqueServices.map((s: any) => ({
                     ...s,
                     price: s.price || (isSpecial ? 88800 : 50000),
                     duration: s.duration || "60 мин"
-                })));
+                }));
+                setAvailableServices(formatted);
+                if (formatted.length > 0) {
+                    setSelectedServiceId(formatted[0]._id || formatted[0].id);
+                }
             } catch (error) { console.error(error); }
             finally { setLoading(false); }
         }
@@ -80,6 +85,17 @@ export default function MonkProfileClient() {
     const monkName = monk.name[lang as 'mn' | 'en'] || monk.name.mn || monk.name.en || "";
     const monkTitle = monk.title?.[lang as 'mn' | 'en'] || monk.title?.mn || "Багш";
     const monkBio = monk.bio?.[lang as 'mn' | 'en'] || monk.bio?.mn || "";
+
+    const handleBook = (srvId?: string) => {
+        const id = srvId || selectedServiceId || (availableServices[0]?._id || availableServices[0]?.id);
+        if (!id) return;
+        
+        if (isSignedIn) {
+            router.push(`/${lang}/booking/${id}?monkId=${monkId}`);
+        } else {
+            router.push(`/${lang}/sign-in`);
+        }
+    };
 
     return (
         <div className="min-h-[100svh] bg-cream flex flex-col">
@@ -164,53 +180,48 @@ export default function MonkProfileClient() {
                         {lang === 'mn' ? "Үйлчилгээ" : "Services"}
                     </h2>
                     <div className="space-y-3">
-                        {availableServices.slice(0, 4).map((svc: any) => (
-                            <div key={svc._id || svc.id}
-                                className="bg-stone rounded-2xl px-4 py-3.5 flex items-center justify-between"
-                            >
-                                <div>
-                                    <p className="text-[14px] font-bold text-ink">
-                                        {svc.name?.[lang as 'mn' | 'en'] || svc.name?.mn || svc.title?.mn || "Үйлчилгээ"}
-                                    </p>
-                                    <p className="text-[11px] text-earth mt-0.5">{svc.duration || "60 мин"}</p>
+                        {availableServices.map((svc: any) => {
+                            const isSelected = selectedServiceId === (svc._id || svc.id);
+                            return (
+                                <div key={svc._id || svc.id}
+                                    onClick={() => {
+                                        setSelectedServiceId(svc._id || svc.id);
+                                        handleBook(svc._id || svc.id);
+                                    }}
+                                    className={`rounded-2xl px-4 py-3.5 flex items-center justify-between press-effect cursor-pointer border-2 transition-all ${
+                                        isSelected ? 'bg-gold/5 border-gold shadow-sm' : 'bg-stone border-transparent'
+                                    }`}
+                                >
+                                    <div>
+                                        <p className="text-[14px] font-bold text-ink">
+                                            {svc.name?.[lang as 'mn' | 'en'] || svc.name?.mn || svc.title?.mn || "Үйлчилгээ"}
+                                        </p>
+                                        <p className="text-[11px] text-earth mt-0.5">{svc.duration || "60 мин"}</p>
+                                    </div>
+                                    <span className={`text-[13px] font-bold px-3 py-1.5 rounded-xl transition-colors ${
+                                        isSelected ? 'bg-gold text-white' : 'bg-amber-50 text-amber-800'
+                                    }`}>
+                                        ₮{(svc.price || 50000).toLocaleString()}
+                                    </span>
                                 </div>
-                                <span className="bg-amber-50 text-amber-800 text-[13px] font-bold px-3 py-1.5 rounded-xl">
-                                    ₮{(svc.price || 50000).toLocaleString()}
-                                </span>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
             {/* ── STICKY BOOK BUTTON ── */}
-            {isSignedIn && availableServices.length > 0 && (
-                <div
-                    className="fixed left-0 right-0 bottom-0 px-5 bg-white/90 backdrop-blur-md border-t border-stone/60"
-                    style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 20px)", paddingTop: 12 }}
+            <div
+                className="fixed left-0 right-0 bottom-0 px-5 bg-white/90 backdrop-blur-md border-t border-stone/60 z-30"
+                style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 20px)", paddingTop: 12 }}
+            >
+                <button
+                    onClick={() => handleBook()}
+                    className="btn-primary btn-primary-full"
                 >
-                    <button
-                        onClick={() => router.push(`/${lang}/booking/${availableServices[0]._id || availableServices[0].id}?monkId=${monkId}`)}
-                        className="btn-primary btn-primary-full"
-                    >
-                        {lang === 'mn' ? "Цаг захиалах" : "Book Session"}
-                    </button>
-                </div>
-            )}
-
-            {!isSignedIn && (
-                <div
-                    className="fixed left-0 right-0 bottom-0 px-5 bg-white/90 backdrop-blur-md border-t border-stone/60"
-                    style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 20px)", paddingTop: 12 }}
-                >
-                    <button
-                        onClick={() => router.push(`/${lang}/sign-in`)}
-                        className="btn-primary btn-primary-full"
-                    >
-                        {lang === 'mn' ? "Нэвтрэн захиалах" : "Sign in to Book"}
-                    </button>
-                </div>
-            )}
+                    {!isSignedIn ? (lang === 'mn' ? "Нэвтрэн захиалах" : "Sign in to Book") : (lang === 'mn' ? "Цаг захиалах" : "Book Session")}
+                </button>
+            </div>
         </div>
     );
 }
