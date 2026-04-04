@@ -1,17 +1,10 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { clerkMiddleware } from '@clerk/nextjs/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const locales = ['mn', 'en'];
 const defaultLocale = 'mn';
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
-
-const isProtectedRoute = createRouteMatcher([
-  '/:locale/dashboard(.*)',
-  '/:locale/admin(.*)',
-  '/:locale/messenger(.*)',
-  '/:locale/booking(.*)',
-]);
 
 // CORS headers for mobile app access
 const corsHeaders = {
@@ -20,20 +13,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-async function isValidCustomToken(token: string | undefined) {
-  if (!token) return false;
+async function getCustomTokenData(token: string | undefined): Promise<{ userId: string, role: string } | null> {
+  if (!token) return null;
   try {
     const { payload } = await jwtVerify(
       token,
       new TextEncoder().encode(JWT_SECRET)
     );
-    return !!payload.sub;
+    if (payload.sub) {
+      return { 
+        userId: payload.sub as string, 
+        role: (payload.role as string) || 'client' 
+      };
+    }
+    return null;
   } catch (err) {
-    return false;
+    return null;
   }
 }
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
   // Handle CORS preflight for API routes
@@ -53,36 +52,78 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // Check if pathname already has locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
+  
+  const locale = pathnameHasLocale ? pathname.split('/')[1] : defaultLocale;
+  const pathWithoutLocale = pathnameHasLocale ? pathname.replace(`/${locale}`, '') : pathname;
 
   // AUTH PROTECTION LOGIC
-  if (isProtectedRoute(req)) {
-    // 1. Check Custom JWT first
-    const customToken = req.cookies.get('auth_token')?.value;
-    const isCustomAuth = await isValidCustomToken(customToken);
+  // Helper to redirect
+  const redirectToLogin = () => {
+    const loginUrl = new URL(`/${locale}/sign-in`, req.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
+  };
 
-    // 2. If NOT custom auth, enforce Clerk protection
-    if (!isCustomAuth) {
-      await auth.protect();
-    }
+  // Determine user identity
+  const customToken = req.cookies.get('auth_token')?.value;
+  const customData = await getCustomTokenData(customToken);
+  
+  let role = null;
+  let hasUser = false;
+  
+  if (customData) {
+      hasUser = true;
+      role = customData.role;
+  } else {
+      const authState = await auth();
+      if (authState.userId) {
+          hasUser = true;
+          // Extract role from unsafeMetadata or sessionClaims
+          const sessionRole = (authState.sessionClaims?.metadata as any)?.role || (authState.sessionClaims?.publicMetadata as any)?.role;
+          role = sessionRole || 'client';
+      }
   }
 
-  if (pathnameHasLocale) {
-    return;
+  // Role-based Routing Rules
+  // 1. Admin restricted routes
+  if (pathWithoutLocale.startsWith('/admin')) {
+      if (role !== 'admin') {
+          return redirectToLogin();
+      }
   }
 
-  // Redirect if no locale
-  const locale = defaultLocale;
-  const newUrl = new URL(`/${locale}${pathname === '/' ? '' : pathname}`, req.url);
-  return NextResponse.redirect(newUrl);
+  // 2. Monk restricted routes
+  if (pathWithoutLocale.startsWith('/monk/content')) {
+      if (role !== 'monk' && role !== 'admin') {
+          return redirectToLogin();
+      }
+  }
+
+  // 3. User restricted routes
+  if (
+      pathWithoutLocale.startsWith('/messenger') || 
+      pathWithoutLocale.startsWith('/booking/') ||
+      pathWithoutLocale.startsWith('/dashboard') ||
+      pathWithoutLocale.startsWith('/profile')
+  ) {
+      if (!hasUser) {
+          return redirectToLogin();
+      }
+  }
+
+  // Locale fallback redirect
+  if (!pathnameHasLocale) {
+    const newUrl = new URL(`/${locale}${pathname === '/' ? '' : pathname}`, req.url);
+    return NextResponse.redirect(newUrl);
+  }
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
+    // Skip Next.js internals and all static files
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     // Always run for API routes
     '/(api|trpc)(.*)',

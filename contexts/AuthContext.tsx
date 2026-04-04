@@ -25,9 +25,9 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children, initialUser }: { children: React.ReactNode, initialUser?: any }) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(initialUser || null);
   const [loading, setLoading] = useState(true);
   const { signOut } = useClerk();
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();

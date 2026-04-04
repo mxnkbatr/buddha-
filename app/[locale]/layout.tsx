@@ -10,6 +10,11 @@ import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
 import CapacitorInitWrapper from '../capacitor/CapacitorInitWrapper'
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import { cookies } from 'next/headers'
+import { currentUser } from '@clerk/nextjs/server'
+import { jwtVerify } from 'jose'
+import { connectToDatabase } from '@/database/db'
+import { ObjectId } from 'mongodb'
 
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
 
@@ -54,10 +59,52 @@ export default async function RootLayout({
   const { locale } = await params;
   const validLocale = (['mn', 'en'].includes(locale) ? locale : 'mn') as any;
 
+  // Perform SSR Auth user fetching for performance
+  let serverUser = null;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+    const JWT_SECRET = process.env.JWT_SECRET;
+    const { db } = await connectToDatabase();
+
+    if (token && JWT_SECRET) {
+      try {
+         const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+         if (payload.sub) {
+           const dbUser = await db.collection("users").findOne({ _id: new ObjectId(payload.sub as string) });
+           if (dbUser) serverUser = { ...dbUser, id: dbUser._id.toString(), isAuthenticated: true };
+         }
+      } catch (e) { /* ignore jwt error */ }
+    }
+
+    if (!serverUser) {
+      const clerkUser = await currentUser();
+      if (clerkUser) {
+         let dbUser: any = await db.collection("users").findOne({ clerkId: clerkUser.id });
+         if (!dbUser) {
+           // Lazy create just in case to avoid empty states
+           const role = (clerkUser.unsafeMetadata?.role as string) || "client";
+           dbUser = {
+              clerkId: clerkUser.id,
+              email: clerkUser.emailAddresses[0]?.emailAddress,
+              firstName: clerkUser.firstName,
+              lastName: clerkUser.lastName,
+              avatar: clerkUser.imageUrl,
+              role: role,
+           };
+           await db.collection("users").insertOne(dbUser);
+         }
+         serverUser = { ...dbUser, id: clerkUser.id, isAuthenticated: true };
+      }
+    }
+  } catch (e) {
+    console.error("Layout SSR Auth Error", e);
+  }
+
   return (
     <ClerkProvider>
       <LanguageProvider initialLocale={validLocale}>
-        <AuthProvider>
+        <AuthProvider initialUser={serverUser}>
           <html lang={validLocale} suppressHydrationWarning>
             <head>
               {/* Mobile viewport for edge-to-edge design */}
