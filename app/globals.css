@@ -755,7 +755,7 @@ html.lenis body {
   /* Premium Minimal Balance */
   background-image: 
     radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-    linear-gradient(135deg, #FDFBF7 0%, #F4E8D6 60%, #E8D0B0 100%);
+    linear-gradient(135deg, #FFF9F0 0%, #F8E0B0 50%, #D97706 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 28px;
