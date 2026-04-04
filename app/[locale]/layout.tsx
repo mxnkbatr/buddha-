@@ -101,6 +101,11 @@ export default async function RootLayout({
     console.error("Layout SSR Auth Error", e);
   }
 
+  // Strip MongoDB ObjectId to avoid Next.js boundary serialization errors
+  if (serverUser) {
+    serverUser = JSON.parse(JSON.stringify(serverUser));
+  }
+
   return (
     <ClerkProvider>
       <LanguageProvider initialLocale={validLocale}>

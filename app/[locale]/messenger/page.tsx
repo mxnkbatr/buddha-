@@ -7,6 +7,7 @@ import { Send, ArrowLeft, Search, MessageSquare, Loader2, User, Sparkles } from 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtimeMessages } from "@/app/hooks/useRealtimeMessages";
 
 interface Conversation {
   otherId: string;
@@ -46,7 +47,13 @@ export default function MessengerPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [allMonks, setAllMonks] = useState<MonkUser[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Replace static messages state with realtime websocket hook
+  const { messages, setMessages, isConnected, sendMessage } = useRealtimeMessages(
+    selectedConv?.otherId || null,
+    user?._id || user?.id || null
+  );
+
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -153,13 +160,8 @@ export default function MessengerPage() {
 
   useEffect(() => {
     if (selectedConv) {
+      setMessages([]); // Clear previous conversation messages
       fetchMessages(selectedConv.otherId);
-      
-      const interval = setInterval(() => {
-        fetchMessages(selectedConv.otherId);
-      }, 5000);
-      
-      return () => clearInterval(interval);
     }
   }, [selectedConv]);
 
@@ -177,7 +179,14 @@ export default function MessengerPage() {
 
       if (res.ok) {
         const sentMsg = await res.json();
-        setMessages([...messages, sentMsg]);
+        
+        // Push WS message for realtime broadcasting
+        if (isConnected) {
+          sendMessage(sentMsg.text);
+        } else {
+          setMessages([...messages, sentMsg]);
+        }
+        
         setNewMessage("");
         
         setConversations(prev => {
@@ -386,9 +395,9 @@ export default function MessengerPage() {
         <div className="flex-1 min-w-0 pr-4">
           <p className="text-[16px] font-black text-ink truncate leading-tight">{selectedConv.otherName}</p>
           <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-live animate-pulse" />
+            <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors ${isConnected ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-live"}`} />
             <p className="text-[11px] font-black text-earth/60 uppercase tracking-widest">
-              {t({ mn: "Шууд", en: "Live" })}
+              {isConnected ? t({ mn: "Холбогдсон", en: "Connected" }) : t({ mn: "Холбогдож байна...", en: "Connecting..." })}
             </p>
           </div>
         </div>
