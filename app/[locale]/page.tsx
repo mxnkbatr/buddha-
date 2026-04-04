@@ -59,20 +59,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <>
       <Hero />
       <HomeSections locale={locale} blogs={blogs} monks={allMonks} />
-      <section className="bg-cream">
-        <div className="px-5 pt-8 pb-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold mb-1">Онцлох</p>
-          <h2 className="text-[20px] font-black text-ink tracking-tight">Шилдэг багш нар</h2>
-        </div>
-        <Suspense fallback={<MonksSkeleton />}>
-          <MonkShowcaseClient initialMonks={featuredMonks} hideHeader={true} />
-        </Suspense>
-        <div className="flex justify-center py-6">
-          <Link href={`/${locale}/monks`}>
-            <button className="btn-primary text-[13px] px-8">Бүгдийг харах →</button>
-          </Link>
-        </div>
-      </section>
       <Suspense fallback={<div className="h-48 skeleton mx-5 my-6 rounded-2xl" />}>
         <PhilosophySection />
       </Suspense>
