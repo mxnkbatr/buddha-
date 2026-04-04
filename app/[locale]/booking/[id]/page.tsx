@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, Calendar as CalIcon, Clock, CheckCircle2, Sparkles, ChevronRight } from "lucide-react";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function NativeBookingPage() {
     const params = useParams();
@@ -81,9 +82,9 @@ export default function NativeBookingPage() {
             }
             
             setSubmitted(true);
-            setTimeout(() => router.push(`/${lang}/profile`), 2000);
+            setTimeout(() => router.push(`/${lang}/profile`), 2500);
         } catch (err: any) {
-            setSubmitError(err.message || t({ mn: "Захиалга хийхэд алдаа гарлаа", en: "Booking failed" }));
+            setSubmitError(err.message || t({ mn: "Алдаа гарлаа", en: "Booking failed" }));
         } finally {
             setSubmitting(false);
         }
@@ -130,9 +131,8 @@ export default function NativeBookingPage() {
     const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
     const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
 
-    // Calculate available times from monk's schedule
     const availableTimes = useMemo(() => {
-        const defaultSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
+        const defaultSlots = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
         const baseSlots = (monk?.schedule) ? (() => {
             const today = selectedDate || new Date();
             const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -150,166 +150,231 @@ export default function NativeBookingPage() {
         return baseSlots.filter((time: string) => !bookedSlots.includes(time));
     }, [monk, selectedDate, bookedSlots]);
 
+    const morningSlots = availableTimes.filter((sl: string) => parseInt(sl.split(':')[0]) < 13);
+    const afternoonSlots = availableTimes.filter((sl: string) => parseInt(sl.split(':')[0]) >= 13);
+
     if (submitted) return (
-        <div className="min-h-[100svh] bg-cream flex flex-col items-center justify-center px-6 text-center animate-fade-in">
-            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
-                <div className="w-10 h-10 rounded-full bg-live flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 10l4 4 8-8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                </div>
-            </div>
-            <h2 className="text-[22px] font-black text-ink mb-2">
-                {t({ mn: "Захиалга баталгаажлаа!", en: "Booking confirmed!" })}
-            </h2>
-            <p className="text-[14px] text-earth">
-                {t({ mn: "Таны захиалга самбарт харагдана.", en: "Check your dashboard for details." })}
-            </p>
+        <div className="min-h-[100svh] bg-cream flex flex-col items-center justify-center px-6 text-center">
+            <motion.div 
+                initial={{ scale: 0 }} 
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="w-24 h-24 rounded-[2.5rem] bg-live/10 flex items-center justify-center mb-8 border-4 border-white shadow-xl"
+            >
+                <CheckCircle2 size={48} className="text-live" />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                <h2 className="text-3xl font-black text-ink mb-3 tracking-tight">
+                    {t({ mn: "Захиалга баталгаажлаа", en: "Sacred Slot Confirmed" })}
+                </h2>
+                <p className="text-[15px] font-medium text-earth/60 leading-relaxed max-w-[280px]">
+                    {t({ mn: "Таны захиалгын мэдээлэл самбар дээр харагдаж байна.", en: "Your ritual session has been successfully added to your dashboard." })}
+                </p>
+            </motion.div>
         </div>
     );
 
     if (loading || !monk || !service) {
-        return <div className="h-screen w-full flex items-center justify-center bg-cream"><div className="w-8 h-8 rounded-full border-2 border-[#D97706] border-t-transparent animate-spin" /></div>;
+        return <div className="h-[100svh] w-full flex items-center justify-center bg-cream"><div className="w-10 h-10 rounded-2xl border-4 border-gold border-t-transparent animate-spin" /></div>;
     }
 
     const monkName = monk.name?.[lang] || monk.name?.mn || monk.name?.en || "Багш";
     const serviceName = service.name?.[lang] || service.title?.[lang] || service.name?.mn || "Үйлчилгээ";
 
-    const formattedSelectedDate = selectedDate ? `${selectedDate.getFullYear()}/${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${String(selectedDate.getDate()).padStart(2, '0')}` : "--";
-
     return (
-        <div className="min-h-[100svh] bg-cream flex flex-col relative pb-32">
-            {/* Header */}
-            <div className="px-6 pt-[max(env(safe-area-inset-top),40px)] pb-6 flex items-center gap-4 border-b border-stone/50 bg-cream z-10 sticky top-0">
+        <div className="min-h-[100svh] bg-cream flex flex-col relative pb-40 overflow-x-hidden hide-scrollbar">
+            
+            {/* ── PREMIUM STICKY HEADER ── */}
+            <div className="px-6 pt-[max(env(safe-area-inset-top, 0px), 16px)] pb-6 flex items-center gap-5 border-b border-stone/30 bg-cream/80 backdrop-blur-3xl z-40 sticky top-0">
                 <button 
                     onClick={() => router.back()}
-                    className="w-10 h-10 rounded-2xl bg-[#F6F4F0] flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+                    className="w-11 h-11 rounded-2xl bg-white shadow-sm border border-stone/40 flex items-center justify-center shrink-0 active:scale-95 transition-all"
                 >
-                    <ChevronLeft className="text-ink" size={20} />
+                    <ChevronLeft className="text-ink" size={24} />
                 </button>
-                <div>
-                    <h1 className="text-xl font-black text-ink">{t({ mn: "Цаг захиалах", en: "Book Session" })}</h1>
-                    <p className="text-[11px] font-medium text-earth">{monkName} · {serviceName}</p>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-[17px] font-black text-ink truncate leading-tight">{t({ mn: "Цаг захиалах", en: "Book Session" })}</h1>
+                    <p className="text-[12px] font-bold text-gold uppercase tracking-[0.1em] truncate mt-1">{monkName} · {serviceName}</p>
+                </div>
+                <div className="w-11 h-11 rounded-2xl bg-stone flex items-center justify-center shrink-0">
+                    <CalIcon size={20} className="text-ink" />
                 </div>
             </div>
 
-            <div className="px-6 pt-6 pb-24 flex-1">
-                {/* Month Navigation */}
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-black text-ink">
-                        {currentMonth.getFullYear()} оны {currentMonth.getMonth() + 1}-р сар
-                    </h2>
-                    <div className="flex gap-2">
-                        <button onClick={prevMonth} className="w-8 h-8 rounded-xl bg-[#F6F4F0] flex items-center justify-center active:bg-stone">
-                            <ChevronLeft size={16} className="text-[#80766A]" />
-                        </button>
-                        <button onClick={nextMonth} className="w-8 h-8 rounded-xl bg-[#F6F4F0] flex items-center justify-center active:bg-stone">
-                            <ChevronLeft size={16} className="text-[#80766A] rotate-180" />
-                        </button>
+            <div className="px-6 pt-8 flex-1">
+                
+                {/* ── INTERACTIVE CALENDAR ── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="app-card-premium p-6 mb-10 !rounded-[2.5rem] bg-white/50 border border-stone/30"
+                >
+                    <div className="flex items-center justify-between mb-8 px-2">
+                        <h2 className="text-[17px] font-black text-ink tracking-tight">
+                            {currentMonth.getFullYear()} оны {currentMonth.getMonth() + 1}-р сар
+                        </h2>
+                        <div className="flex gap-3">
+                            <button onClick={prevMonth} className="w-9 h-9 rounded-[1.2rem] bg-white border border-stone/50 flex items-center justify-center hover:bg-stone/20 active:scale-90 transition-all">
+                                <ChevronLeft size={18} className="text-earth" />
+                            </button>
+                            <button onClick={nextMonth} className="w-9 h-9 rounded-[1.2rem] bg-white border border-stone/50 flex items-center justify-center hover:bg-stone/20 active:scale-90 transition-all">
+                                <ChevronRight size={18} className="text-earth" />
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Days of week */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
-                    {["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"].map(day => (
-                        <div key={day} className="text-center text-[10px] font-bold text-[#b7b0a7]">{day}</div>
-                    ))}
-                </div>
-
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-y-4 gap-x-2 mb-10">
-                    {calendarGrid.map((date, idx) => {
-                        if (!date) return <div key={`empty-${idx}`} />;
-                        
-                        const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
-                        const isPast = date < new Date(new Date().setHours(0,0,0,0));
-                        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-                        const dayName = dayNames[date.getDay()];
-                        const hasSlot = !isPast && monk?.schedule?.some((s: any) => 
-                          s.day === dayName && s.active !== false && 
-                          (s.slots?.length > 0 || (s.start && s.end))
-                        );
-
-                        return (
-                            <div key={idx} className="flex flex-col items-center justify-start h-10">
-                                <button 
-                                    disabled={isPast}
-                                    onClick={() => setSelectedDate(date)}
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-colors ${
-                                        isSelected ? "bg-[#D97706] text-white" : 
-                                        isPast ? "text-[#D4CEC9]" : "text-ink"
-                                    }`}
-                                >
-                                    {date.getDate()}
-                                </button>
-                                {/* Available indicator dot */}
-                                {hasSlot && !isSelected && !isPast && (
-                                    <div className="w-1 h-1 rounded-full bg-[#D97706] mt-1" />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Time Selection */}
-                <h3 className="text-[11px] font-black uppercase tracking-[0.1em] text-[#80766A] mb-4">ЦАГ СОНГОХ</h3>
-                <div className="flex flex-wrap gap-2 mb-10">
-                    {availableTimes.length > 0 ? (
-                        availableTimes.map((time: string) => {
-                            const isSelected = selectedTime === time;
-                            return (
-                                <button
-                                    key={time}
-                                    onClick={() => setSelectedTime(time)}
-                                    className={`px-5 py-2.5 rounded-2xl text-[14px] font-black border transition-colors ${
-                                        isSelected ? "bg-[#1C1410] border-[#1C1410] text-[#FDFBF7]" : "bg-[#FDFBF7] border-stone/80 text-[#1C1410]"
-                                    }`}
-                                >
-                                    {time}
-                                </button>
+                    <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center">
+                        {["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"].map(day => (
+                            <div key={day} className="text-[11px] font-black text-earth/30 uppercase tracking-widest mb-4">{day}</div>
+                        ))}
+                        {calendarGrid.map((date, idx) => {
+                            if (!date) return <div key={`empty-${idx}`} />;
+                            
+                            const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+                            const isPast = date < new Date(new Date().setHours(0,0,0,0));
+                            const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                            const dayName = dayNames[date.getDay()];
+                            const hasSlot = !isPast && monk?.schedule?.some((s: any) => 
+                              s.day === dayName && s.active !== false
                             );
-                        })
-                    ) : (
-                        <p className="w-full text-sm text-earth text-center py-4 bg-stone/5 rounded-2xl border border-dashed border-stone/50">
-                            {t({ mn: "Энэ өдөр нээлттэй цаг байхгүй байна", en: "No available slots this day" })}
-                        </p>
-                    )}
-                </div>
 
-                {/* Summary Card */}
-                <div className="bg-[#FDFBF7] rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-stone/60 mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                        <span className="text-[#80766A] text-[13px] font-medium">Огноо</span>
-                        <span className="text-[#1C1410] font-bold text-[14px]">{formattedSelectedDate}</span>
+                            return (
+                                <div key={idx} className="flex flex-col items-center justify-center">
+                                    <button 
+                                        disabled={isPast || !hasSlot}
+                                        onClick={() => setSelectedDate(date)}
+                                        className={`w-11 h-11 rounded-[1.5rem] flex items-center justify-center text-[15px] font-black transition-all ${
+                                            isSelected 
+                                            ? "bg-ink text-white shadow-xl scale-110" : 
+                                            isPast || !hasSlot 
+                                            ? "text-earth/10 opacity-30 cursor-not-allowed" : "text-ink hover:bg-stone/50"
+                                        }`}
+                                    >
+                                        {date.getDate()}
+                                    </button>
+                                    {hasSlot && !isSelected && !isPast && (
+                                        <div className="w-1 h-1 rounded-full bg-gold mt-1" />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="flex justify-between items-center mb-3">
-                        <span className="text-[#80766A] text-[13px] font-medium">Цаг</span>
-                        <span className="text-[#1C1410] font-bold text-[14px]">{selectedTime || "--:--"}</span>
+                </motion.div>
+
+                {/* ── TIME SLOT SELECTION ── */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-10 px-2"
+                >
+                    <div className="flex items-center gap-2 mb-6">
+                        <Clock size={16} className="text-gold" />
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-earth">БОЛОМЖИТ ЦАГУУД</h3>
                     </div>
-                    <div className="flex justify-between items-center mb-4 border-b border-stone/40 pb-4">
-                        <span className="text-[#80766A] text-[13px] font-medium">Үргэлжлэх</span>
-                        <span className="text-[#1C1410] font-bold text-[14px]">{service.duration || "60 мин"}</span>
+
+                    <div className="space-y-8">
+                        {morningSlots.length > 0 && (
+                            <div>
+                                <p className="text-[10px] font-black text-earth/30 uppercase tracking-widest mb-4">Өглөө</p>
+                                <div className="grid grid-cols-4 gap-3">
+                                    {morningSlots.map((time: string) => (
+                                        <button
+                                            key={time}
+                                            onClick={() => setSelectedTime(time)}
+                                            className={`py-3 rounded-[1.5rem] text-[14px] font-black border-2 transition-all ${
+                                                selectedTime === time 
+                                                ? "bg-ink border-ink text-white shadow-lg scale-105" 
+                                                : "bg-white border-stone/50 text-ink shadow-sm hover:border-gold/30"
+                                            }`}
+                                        >
+                                            {time}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {afternoonSlots.length > 0 && (
+                            <div>
+                                <p className="text-[10px] font-black text-earth/30 uppercase tracking-widest mb-4">Үдээс хойш</p>
+                                <div className="grid grid-cols-4 gap-3">
+                                    {afternoonSlots.map((time: string) => (
+                                        <button
+                                            key={time}
+                                            onClick={() => setSelectedTime(time)}
+                                            className={`py-3 rounded-[1.5rem] text-[14px] font-black border-2 transition-all ${
+                                                selectedTime === time 
+                                                ? "bg-ink border-ink text-white shadow-lg scale-105" 
+                                                : "bg-white border-stone/50 text-ink shadow-sm hover:border-gold/30"
+                                            }`}
+                                        >
+                                            {time}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {availableTimes.length === 0 && !fetchingSlots && (
+                            <div className="py-12 bg-stone/20 rounded-[2.5rem] border border-dashed border-stone/60 text-center">
+                                <p className="text-[14px] font-bold text-earth/40 italic">
+                                    {t({ mn: "Боломжит цаг олдсонгүй", en: "No available slots for this day" })}
+                                </p>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-[#1C1410] font-black text-[14px]">Нийт</span>
-                        <span className="text-[#D97706] font-black text-[18px]">₮{Number(service.price).toLocaleString()}</span>
+                </motion.div>
+
+                {/* ── SUMMARY CARD ── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="app-card-premium p-6 mb-10 !rounded-[2.5rem] bg-white border border-stone/10"
+                >
+                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-stone/20">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-cream flex items-center justify-center text-gold">
+                                <Sparkles size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[13px] font-black text-ink">{serviceName}</p>
+                                <p className="text-[11px] font-bold text-earth/40">{service.duration || "60 min"}</p>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                             <p className="text-[17px] font-black text-gold">₮{Number(service.price).toLocaleString()}</p>
+                         </div>
                     </div>
-                </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-earth/30 uppercase tracking-widest mb-1">Огноо</span>
+                            <span className="text-[14px] font-black text-ink">{selectedDate ? selectedDate.toLocaleDateString() : "--"}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                            <span className="text-[9px] font-black text-earth/30 uppercase tracking-widest mb-1">Цаг</span>
+                            <span className="text-[14px] font-black text-ink">{selectedTime || "--:--"}</span>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
 
-            {/* Bottom Fixed Checkout Button */}
-            <div className="fixed bottom-0 left-0 w-full px-6 pt-3 pb-[max(env(safe-area-inset-bottom),24px)] bg-[#FDFBF7]/90 backdrop-blur-md border-t border-stone/40">
-                <button 
+            {/* ── STICKY CHECKOUT ── */}
+            <div className="fixed bottom-0 left-0 w-full px-6 pt-4 pb-[max(env(safe-area-inset-bottom, 0px), 24px)] bg-white/100 backdrop-blur-3xl border-t border-stone/30 z-50">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleConfirm}
                   disabled={!selectedDate || !selectedTime || submitting}
-                  className="btn-primary btn-primary-full disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full h-16 bg-ink text-white text-[16px] font-black rounded-[2.2rem] shadow-xl shadow-ink/20 flex items-center justify-center disabled:opacity-30 transition-all"
                 >
                     {submitting 
-                        ? <Loader2 size={20} className="animate-spin mx-auto" /> 
-                        : t({ mn: "Баталгаажуулах", en: "Confirm Booking" })}
-                </button>
+                        ? <Loader2 size={24} className="animate-spin" /> 
+                        : t({ mn: "Захиалгыг баталгаажуулах", en: "Proceed to Ritual" })}
+                </motion.button>
                 {submitError && (
-                    <p className="text-[12px] text-red-500 text-center mt-2 font-medium">{submitError}</p>
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[12px] text-red-500 text-center mt-3 font-black uppercase tracking-widest">{submitError}</motion.p>
                 )}
             </div>
         </div>
