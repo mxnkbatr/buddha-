@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/database/db";
 import { Message } from "@/database/types";
@@ -6,7 +7,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Helper to get authenticated user from Clerk or Custom JWT
 async function getAuthenticatedUser(request?: Request | NextRequest) {

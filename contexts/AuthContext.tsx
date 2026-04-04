@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { SecureStorage } from "@/app/capacitor/storage/secureStorage";
 
 interface AuthContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +35,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const token = await SecureStorage.getToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      const res = await fetch("/api/auth/me", { headers });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -74,13 +79,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setLoading(true);
     try {
-      // 1. Logout Custom
-      await fetch("/api/auth/logout", { method: "POST" });
-      // 2. Logout Clerk
-      await signOut();
+      await Promise.all([
+        fetch("/api/auth/logout", { method: "POST" }),
+        signOut()
+      ]);
+      await SecureStorage.removeToken();
 
       setUser(null);
-      router.push("/sign-in");
+      
+      // Attempt to extract lang code if we had it, but default fallback
+      const pathSegments = window.location.pathname.split('/');
+      const lang = pathSegments[1] === 'en' ? 'en' : 'mn';
+      router.push(`/${lang}/sign-in`);
     } catch (error) {
       console.error("Logout error", error);
     } finally {

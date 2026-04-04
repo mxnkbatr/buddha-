@@ -6,12 +6,13 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Force dynamic to prevent caching issues (users not seeing new bookings)
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     const { searchParams } = new URL(request.url);
     const monkId = searchParams.get("monkId");
@@ -152,6 +153,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     // 1. Authenticate (Clerk OR Custom)
     let authenticatedUserId = null;

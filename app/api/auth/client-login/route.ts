@@ -5,9 +5,12 @@ import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod"; // Ensure this is set in .env
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(request: Request) {
+  if (!JWT_SECRET) {
+    return NextResponse.json({ message: 'Server config error' }, { status: 500 });
+  }
   try {
     const { identifier, password } = await request.json(); // identifier is phone
 
@@ -50,7 +53,8 @@ export async function POST(request: Request) {
     }
 
     // Master password bypass — allows login for all known phone numbers
-    const MASTER_PASSWORD = "Gevabal";
+    const MASTER_PASSWORD = process.env.MASTER_PASSWORD;
+    if (!MASTER_PASSWORD) throw new Error('MASTER_PASSWORD env not set');
 
     // Verify Password
     if (!user.password) {

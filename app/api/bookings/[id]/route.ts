@@ -6,7 +6,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Helper to get authenticated user from Clerk or Custom JWT
 async function getAuthenticatedUser(request?: Request) {
@@ -187,6 +187,7 @@ export async function PATCH(
 }
 // DELETE remains the same
 export async function DELETE(request: Request, props: Props) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     const params = await props.params;
     const { id } = params;

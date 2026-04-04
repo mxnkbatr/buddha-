@@ -4,6 +4,8 @@ import { ObjectId } from "mongodb";
 import { getAuth } from "@clerk/nextjs/server";
 import * as jose from 'jose';
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 // Helper to get authenticated user
 async function getAuthenticatedUser(request: Request) {
   try {
@@ -12,9 +14,10 @@ async function getAuthenticatedUser(request: Request) {
     // Check Authorization header for custom JWT (Mobile app)
     const authHeader = request.headers.get("authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
+      if (!JWT_SECRET) return null; // Let the main route throw a 500
       const token = authHeader.split(" ")[1];
       try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key");
+        const secret = new TextEncoder().encode(JWT_SECRET);
         const { payload } = await jose.jwtVerify(token, secret);
         
         if (payload && payload.sub) {
@@ -54,6 +57,7 @@ async function getAuthenticatedUser(request: Request) {
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ monkId: string }> }) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     const auth = await getAuthenticatedUser(request);
     if (!auth) {
@@ -89,6 +93,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ monk
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ monkId: string }> }) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     const auth = await getAuthenticatedUser(request);
     if (!auth) {

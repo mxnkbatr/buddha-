@@ -5,9 +5,10 @@ import { connectToDatabase } from "@/database/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function GET(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
     try {
         let userId: string | null = null;
 
@@ -76,6 +77,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
     try {
         const { firstName, lastName, dateOfBirth, zodiacYear } = await request.json();
         console.log("Profile Update Request:", { firstName, lastName, dateOfBirth, zodiacYear });

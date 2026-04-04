@@ -1,5 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const config: CapacitorConfig = {
   appId: 'mn.gevabal.buddha',
   appName: 'Gevabal',
@@ -16,7 +18,7 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     // Enable WKWebView optimizations
-    webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
+    webContentsDebuggingEnabled: isDev,
     limitsNavigationsToAppBoundDomains: true,
   },
 
@@ -29,7 +31,7 @@ const config: CapacitorConfig = {
     // Enable hardware acceleration
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
+    webContentsDebuggingEnabled: isDev,
   },
 
   plugins: {

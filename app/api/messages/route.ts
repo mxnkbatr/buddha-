@@ -4,15 +4,18 @@ import { ObjectId } from "mongodb";
 import { getAuth } from "@clerk/nextjs/server";
 import * as jose from 'jose';
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 async function getAuthenticatedUser(request: Request) {
   try {
     const { db } = await connectToDatabase();
     
     const authHeader = request.headers.get("authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
+      if (!JWT_SECRET) return null;
       const token = authHeader.split(" ")[1];
       try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key");
+        const secret = new TextEncoder().encode(JWT_SECRET);
         const { payload } = await jose.jwtVerify(token, secret);
         
         if (payload && payload.sub) {
@@ -48,6 +51,7 @@ async function getAuthenticatedUser(request: Request) {
 
 // Get recent conversations for the current user
 export async function GET(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     const auth = await getAuthenticatedUser(request);
     if (!auth) {

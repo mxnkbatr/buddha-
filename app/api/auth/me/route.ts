@@ -5,9 +5,10 @@ import { connectToDatabase } from "@/database/db";
 import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function GET(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
   try {
     // 1. Check Custom Cookie first
     const cookieStore = await cookies();

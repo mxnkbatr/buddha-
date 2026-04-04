@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/database/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { ObjectId } from "mongodb";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 async function getUserId() {
   const cookieStore = await cookies();

@@ -5,9 +5,10 @@ import { User } from "@/database/types";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(request: Request) {
+  if (!JWT_SECRET) return NextResponse.json({message:'Server config error'},{status:500});
     try {
         const { email, password } = await request.json();
 
