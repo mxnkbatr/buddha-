@@ -290,34 +290,57 @@ export default function OverlayNavbar() {
       {!isSubPage && (
         <div
           className="md:hidden mobile-header"
-          style={{ paddingTop: `max(${safeArea.top}px, 20px)`, paddingBottom: 8 }}
+          style={{ paddingTop: `max(${safeArea.top}px, 20px)`, paddingBottom: 12 }}
         >
-        <LocalizedLink href="/" aria-label="Home" className="scale-75 origin-left">
-          <Logo />
-        </LocalizedLink>
-
-        <div className="header-actions flex items-center gap-1.5 mb-1">
-          <button className="p-2 text-earth active:scale-90 transition-transform" aria-label="Wishlist">
-            <Heart size={18} strokeWidth={2} />
-          </button>
-          <button className="relative p-2 text-earth active:scale-90 transition-transform" aria-label="Notifications">
-            <Bell size={18} strokeWidth={2} />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-error rounded-full border border-white" />
-          </button>
-
-          {user ? (
-            <div className="scale-90 origin-right transition-transform hover:scale-100">
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          ) : (
-            <LocalizedLink href="/sign-in">
-              <button className="bg-gold text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-transform">
-                {CONTENT.login[lang]}
-              </button>
+          <div className="flex items-center">
+            <LocalizedLink href="/" aria-label="Home" className="scale-75 origin-left -ml-2">
+              <Logo />
             </LocalizedLink>
-          )}
+            <span className="mobile-header-brand">
+              {CONTENT.logo[lang]}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {/* Wishlist Button */}
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { setIsWishlistOpen(!isWishlistOpen); setIsNotifOpen(false); }}
+              className={`p-2 transition-all duration-300 rounded-full ${isWishlistOpen ? 'text-gold' : 'text-earth'}`}
+              aria-label="Wishlist"
+            >
+              <Heart size={21} strokeWidth={isWishlistOpen ? 2.5 : 1.8} fill={isWishlistOpen ? "currentColor" : "none"} />
+            </motion.button>
+
+            {/* Notifications Button */}
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { setIsNotifOpen(!isNotifOpen); setIsWishlistOpen(false); }}
+              className={`p-2 transition-all duration-300 rounded-full relative ${isNotifOpen ? 'text-gold' : 'text-earth'}`}
+              aria-label="Notifications"
+            >
+              <Bell size={21} strokeWidth={isNotifOpen ? 2.5 : 1.8} fill={isNotifOpen ? "currentColor" : "none"} />
+              {unreadCount > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-3.5 h-3.5 bg-error border-2 border-white rounded-full" />
+              )}
+            </motion.button>
+
+            {/* Account Shortcut */}
+            <div className="ml-1 pl-2 border-l border-border/50">
+              {user ? (
+                <div className="scale-90 origin-right transition-transform hover:scale-100">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              ) : (
+                <LocalizedLink href="/sign-in">
+                  <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold active:scale-90 transition-transform">
+                    <LogIn size={16} />
+                  </div>
+                </LocalizedLink>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
       )}
 
       {/* --- MOBILE BOTTOM TAB BAR (iOS Native Feel) --- */}
