@@ -171,3 +171,9 @@ export async function clearAuthTokens(): Promise<void> {
     await removeSecure(SECURE_KEYS.AUTH_TOKEN);
     await removeSecure(SECURE_KEYS.REFRESH_TOKEN);
 }
+
+export const SecureStorage = {
+    getToken: getAuthToken,
+    setToken: saveAuthToken,
+    removeToken: removeAuthToken
+};
