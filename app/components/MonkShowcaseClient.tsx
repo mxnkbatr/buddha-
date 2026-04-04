@@ -7,34 +7,25 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { Monk } from "@/database/types";
 import MonkCard from "./MonkCard";
 
-export default function MonkShowcaseClient({ initialMonks, hideHeader = false }: { initialMonks: Monk[], hideHeader?: boolean }) {
+export default function MonkShowcaseClient({ 
+  initialMonks, 
+  hideHeader = false 
+}: { 
+  initialMonks: Monk[], 
+  hideHeader?: boolean 
+}) {
     const { t, language } = useLanguage();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
-    const [wasm, setWasm] = useState<any>(null);
-
-    // Initialize WASM for rust-based filtering (optional performance boost)
-    useEffect(() => {
-        import("rust-modules").then(async mod => {
-            if (mod.default) {
-                await mod.default();
-            }
-            setWasm(mod);
-        }).catch(err => console.error("WASM load failed", err));
-    }, []);
 
     const filteredMonks = useMemo<Monk[]>(() => {
         const query = searchQuery.toLowerCase();
-        
-        // Simple JS fallback filtering for search
         return initialMonks.filter(monk => {
             if (!monk.isAvailable) return false;
             if (!query) return true;
-            
             const nameMatch = (monk.name?.mn || "").toLowerCase().includes(query) || 
                               (monk.name?.en || "").toLowerCase().includes(query);
             const specialtyMatch = monk.specialties?.some(s => s.toLowerCase().includes(query));
-            
             return nameMatch || specialtyMatch;
         });
     }, [initialMonks, searchQuery]);
@@ -52,11 +43,11 @@ export default function MonkShowcaseClient({ initialMonks, hideHeader = false }:
             
             {/* Header Area */}
             {!hideHeader && (
-                <div className="px-6 pt-4 pb-4 sticky top-[calc(var(--header-height-mobile)+env(safe-area-inset-top))] z-20 bg-cream/90 backdrop-blur-md">
-                    <p className="text-saffron font-bold text-sm tracking-wide lowercase mb-1">
+                <div className="px-5 sticky top-[calc(var(--header-height-mobile)+env(safe-area-inset-top))] ios-header z-20 pb-5">
+                    <p className="section-label mt-4">
                         {t({ mn: "Өнөөдөр нээлттэй", en: "Open Today" })}
                     </p>
-                    <h1 className="text-3xl font-black text-ink mb-6">
+                    <h1 className="text-[28px] font-black text-ink mb-6">
                         {t({ mn: "Багш нар", en: "Mentors" })}
                     </h1>
 
