@@ -838,8 +838,8 @@ html.lenis body {
 
 .luminous-btn-sm {
   background: #000000;
-  color: var(--brand-gold-bright);
-  border: 1px solid rgba(240, 180, 41, 0.5);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.5);
   padding: 10px 24px;
   border-radius: var(--radius-pill);
   font-size: 11px;
