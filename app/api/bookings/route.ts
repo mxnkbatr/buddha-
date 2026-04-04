@@ -228,17 +228,38 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Check Availability
-    // We check if a slot is taken for this specific Monk
+    // 2. Atomic Slot Lock - prevent race condition double bookings
+    await db.collection('booking_locks').deleteMany({ expiresAt: { $lte: new Date() } });
+
+    let lockId: any = null;
+    try {
+      const lockResult = await db.collection('booking_locks').insertOne({
+        monkId,
+        date,
+        time,
+        lockedAt: new Date(),
+        lockedBy: authenticatedUserId,
+        expiresAt: new Date(Date.now() + 30000)
+      });
+      lockId = lockResult.insertedId;
+    } catch (lockErr: any) {
+      if (lockErr.code === 11000) {
+        return NextResponse.json({ message: '??? ??? ??????????? ?????, ??? ??????? ??' }, { status: 409 });
+      }
+      throw lockErr;
+    }
+
+    // Check for confirmed/pending bookings AFTER acquiring lock
     const existing = await db.collection("bookings").findOne({
       monkId,
       date,
       time,
-      status: { $nin: ["rejected", "cancelled"] } // If previous was rejected or cancelled, slot is free
+      status: { $in: ['confirmed', 'pending'] }
     });
 
     if (existing) {
-      return NextResponse.json({ message: "Slot already taken" }, { status: 409 });
+      await db.collection('booking_locks').deleteOne({ _id: lockId });
+      return NextResponse.json({ message: '??? ??? ???????????? ?????' }, { status: 409 });
     }
 
     // 3. Fetch Monk & Service Details (For the Email Notification)
@@ -283,6 +304,11 @@ export async function POST(request: Request) {
 
     const result = await db.collection("bookings").insertOne(newBooking);
 
+    // Release the atomic lock after successful insert
+    if (lockId) {
+      await db.collection('booking_locks').deleteOne({ _id: lockId });
+    }
+
     // 5. Send Email
     // Wrapped in try/catch so booking succeeds even if email fails
     try {
@@ -291,6 +317,17 @@ export async function POST(request: Request) {
           userEmail,
           userName,
           monkName: monk?.name?.en || monk?.name?.mn || "The Monk",
+          serviceName: serviceName,
+          date,
+          time
+        });
+      }
+      // Also notify the Monk via email
+      if (monk?.email) {
+        await sendBookingNotification({
+          userEmail: monk.email,
+          userName: `[??? ????????] ${userName}`,
+          monkName: monk?.name?.mn || monk?.name?.en || '??',
           serviceName: serviceName,
           date,
           time

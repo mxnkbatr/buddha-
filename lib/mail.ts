@@ -124,3 +124,59 @@ export const sendBookingStatusUpdate = async ({
     console.error("Error sending status email:", error);
   }
 };
+
+export const sendBookingCancellation = async ({
+  to,
+  toName,
+  monkName,
+  serviceName,
+  date,
+  time,
+  feeApplied,
+  feeAmount,
+  role,
+  clientName
+}: {
+  to: string;
+  toName: string;
+  monkName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  feeApplied: boolean;
+  feeAmount: number;
+  role: 'client' | 'monk';
+  clientName?: string;
+}) => {
+  try {
+    const isClient = role === 'client';
+    const subject = `❌ Захиалга цуцлагдлаа — ${serviceName}`;
+    const feeHtml = feeApplied
+      ? `<p style="color:#DC2626;font-weight:bold;">⚠️ Цуцлалтын хураамж: ${feeAmount.toLocaleString()}₮ (24 цагаас дотор цуцалсан)</p>`
+      : '';
+
+    const bodyHtml = isClient
+      ? `<p>Эрхэм <strong>${toName}</strong>,</p>
+         <p>Таны <strong>${serviceName}</strong> захиалга цуцлагдлаа.</p>
+         ${feeHtml}
+         <div style="background:#FEF2F2;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #DC2626;">
+           <p><strong>Багш:</strong> ${monkName}</p>
+           <p><strong>Огноо:</strong> ${date} ${time}</p>
+         </div>`
+      : `<p>Эрхэм <strong>${monkName}</strong>,</p>
+         <p><strong>${clientName || 'Хэрэглэгч'}</strong>-н ${serviceName} захиалга цуцлагдлаа.</p>
+         ${feeHtml}
+         <div style="background:#FEF2F2;padding:15px;border-radius:8px;margin:20px 0;border-left:4px solid #DC2626;">
+           <p><strong>Огноо:</strong> ${date} ${time}</p>
+         </div>`;
+
+    await transporter.sendMail({
+      from: `"Gevabal" <${process.env.GMAIL_USER}>`,
+      to,
+      subject,
+      html: `<div style="font-family:serif;color:#451a03;padding:20px;max-width:600px;">${bodyHtml}<p style="font-size:12px;color:#888;">Gevabal Spiritual Platform</p></div>`
+    });
+  } catch (error) {
+    console.error("Cancellation email error:", error);
+  }
+};
