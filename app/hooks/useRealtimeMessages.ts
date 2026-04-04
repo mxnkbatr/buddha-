@@ -17,9 +17,8 @@ export function useRealtimeMessages(otherId: string | null, userId: string | nul
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<any>(null);
 
-  useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
+  // Use the state initializer only, no useEffect to spam state updates
+  // to avoid infinite loops when initialMessages is a new array reference.
 
   const connect = () => {
     if (!otherId || !userId) return;
