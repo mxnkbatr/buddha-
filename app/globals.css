@@ -62,12 +62,14 @@
   --shadow-gold: 0 8px 24px rgba(217, 119, 6, 0.35);
 
   /* === SAFE AREA (Capacitor WebView) === */
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 44px);
+  --sab: env(safe-area-inset-bottom, 34px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
 
   --header-height-mobile: 84px;
+  --header-height: 96px;
+  --tab-bar-height: 83px;
   /* Standard clearing for fixed branding header */
 }
 
@@ -118,6 +120,15 @@ body {
   box-sizing: border-box;
 }
 
+main {
+  padding-bottom: calc(var(--tab-bar-height) + var(--sab));
+}
+
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
 /* --- PERFORMANCE & MOBILE OPTIMIZATION --- */
 html.lenis,
 html.lenis body {
@@ -144,6 +155,37 @@ html.lenis body {
 }
 
 /* --- DESIGN SYSTEM COMPONENTS --- */
+
+.tappable {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.tappable:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+.native-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.native-btn-primary {
+  background: linear-gradient(135deg, #E89010, #D97706);
+  color: white;
+  border-radius: 16px;
+  font-weight: 800;
+}
+
+.native-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--earth);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 
 /* Primary Button */
 .btn-primary {
