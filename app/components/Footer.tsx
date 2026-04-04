@@ -11,7 +11,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-hero-bg border-t border-white/5 pt-32 pb-12 relative overflow-hidden">
+    <footer className="bg-hero-bg border-t border-white/5 pt-32 pb-12 relative overflow-hidden hidden md:block">
       {/* Background Texture Overlay */}
       <div className="absolute inset-0 opacity-5 bg-[url('/noise.svg')]" />
       
