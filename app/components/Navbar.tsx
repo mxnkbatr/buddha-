@@ -47,8 +47,21 @@ export default function OverlayNavbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { isNative, safeArea } = usePlatform();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (user && isWishlistOpen) {
+      fetch("/api/user/wishlist")
+        .then(res => res.json())
+        .then(data => setWishlist(data.wishlist || []))
+        .catch(console.error);
+    }
+  }, [user, isWishlistOpen]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 20);
@@ -120,22 +133,6 @@ export default function OverlayNavbar() {
 
   const isAuthPage = ["/sign-in", "/sign-up"].some(p => pathname.includes(p));
   const isSubPage = false;
-
-
-  // --- WISHLIST & NOTIFICATIONS STATE ---
-  const { notifications, unreadCount, markAsRead } = useNotifications();
-  const [wishlist, setWishlist] = useState<any[]>([]);
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-
-  useEffect(() => {
-    if (user && isWishlistOpen) {
-      fetch("/api/user/wishlist")
-        .then(res => res.json())
-        .then(data => setWishlist(data.wishlist || []))
-        .catch(console.error);
-    }
-  }, [user, isWishlistOpen]);
 
   return (
     <>
