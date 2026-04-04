@@ -2,27 +2,19 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import {
-    BookOpen,
-    Sparkles,
-    Search,
-    Zap,
-    Filter,
-    X,
-    ArrowRight,
-    Calendar
-} from "lucide-react";
+import { BookOpen, Search, X, ArrowRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useLanguage } from "../contexts/LanguageContext";
+import { formatDate } from "../lib/dateUtils";
 
 // --- TYPES ---
 type BlogCategory = 'all' | 'wisdom' | 'news' | 'meditation';
 
 interface BlogPost {
     id: string;
-    title: { en: string; mn: string };
-    content: { en: string; mn: string };
+    title: any;
+    content: any;
     cover?: string;
     category?: string;
     date: string;
@@ -30,123 +22,160 @@ interface BlogPost {
 }
 
 const TRANSLATIONS = {
-    badge: { mn: "Блог & Мэдээ", en: "Blog & Wisdom" },
-    titleMain: { mn: "Өдөр тутмын", en: "Daily" },
-    titleHighlight: { mn: "Ухаарал", en: "Wisdom" },
-    titleEnd: { mn: ".", en: "." },
+    badge: { mn: "Унших", en: "Read" },
+    titleMain: { mn: "Блог &", en: "Blog &" },
+    titleHighlight: { mn: "Мэдээ", en: "News" },
     searchPlaceholder: { mn: "Хайх...", en: "Search posts..." },
-    found: { mn: "Нийтлэл", en: "Posts Found" },
     noResults: { mn: "Нийтлэл олдсонгүй.", en: "No posts found." },
-    readMore: { mn: "Унших", en: "Read More" },
+    readMore: { mn: "Унших", en: "Read" },
     all: { mn: "Бүгд", en: "All" },
     wisdom: { mn: "Сургаал", en: "Wisdom" },
     news: { mn: "Мэдээ", en: "News" },
-    meditation: { mn: "Бясалгал", en: "Meditation" }
+    meditation: { mn: "Бясалгал", en: "Meditation" },
+    featured: { mn: "ОНЦЛОХ", en: "FEATURED" }
 };
 
-const BlogCard = ({ post, lang, isDark }: { post: BlogPost, lang: 'en' | 'mn', isDark: boolean }) => {
-    const Icon = Sparkles;
-    const typeColor = "text-amber-500";
-    const typeBg = "bg-amber-500/10";
-    const hoverBorder = "hover:border-amber-500/40";
-    const title = post.title?.[lang] || post.title?.mn || "No Title";
-    const content = post.content?.[lang] || post.content?.mn || "";
+const getLocalizedText = (field: any, lang: string) => {
+    if (!field) return "";
+    if (typeof field === 'string') return field;
+    return field[lang] || field.mn || field.en || "";
+};
+
+const BlogCard = ({ post, lang, idx }: { post: BlogPost, lang: 'en' | 'mn', idx: number }) => {
+    const title = getLocalizedText(post.title, lang) || "No Title";
+    const content = getLocalizedText(post.content, lang);
 
     return (
-        <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className={`relative group rounded-[2.5rem] border p-8 transition-all duration-500 overflow-hidden h-full flex flex-col ${isDark ? `bg-[#001d30]/60 border-white/5 shadow-2xl ${hoverBorder}` : `bg-white border-slate-200 shadow-xl shadow-slate-200/40 ${hoverBorder}`}`}>
-            <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-6">
-                    <div className={`p-4 rounded-3xl transition-colors ${typeBg}`}>
-                        {post.cover ? (
-                            <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                                <Image src={post.cover} alt="Author" fill className="object-cover" sizes="32px" />
-                            </div>
-                        ) : <Icon size={28} className={typeColor} />}
+        <motion.div 
+            initial={{ opacity: 0, y: 15 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: idx * 0.05, ease: "easeOut" }}
+            className="group flex flex-col h-full bg-white rounded-[24px] overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-stone/20 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300"
+        >
+            <Link href={`/${lang}/blog/${post.id}`} className="block flex-none relative aspect-[4/3] w-full overflow-hidden bg-stone/20">
+                {post.cover ? (
+                    <Image src={post.cover} alt={title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <BookOpen size={40} className="text-earth/20" />
                     </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 ${isDark ? "bg-white/5" : "bg-slate-50"}`}>
-                        <Calendar size={12} className="text-amber-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{new Date(post.date).toLocaleDateString()}</span>
-                    </div>
+                )}
+                <div className="absolute inset-0 border border-black/5 rounded-t-[24px] pointer-events-none" />
+                <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-ink shadow-sm">
+                        {post.category || "Wisdom"}
+                    </span>
                 </div>
-                <div className="mb-4">
-                    <h3 className={`text-xl font-black mb-3 tracking-tight leading-tight line-clamp-2 ${isDark ? "text-white" : "text-[#001829]"}`}>{title}</h3>
-                    {post.authorName && <p className={`text-xs font-bold leading-relaxed opacity-50 ${isDark ? "text-white" : "text-slate-900"}`}>By {post.authorName}</p>}
+            </Link>
+
+            <Link href={`/${lang}/blog/${post.id}`} className="flex flex-col flex-1 p-5">
+                <div className="mb-3 text-[11px] font-bold tracking-widest uppercase text-earth/60 flex items-center gap-2">
+                    <span>{formatDate(post.date, lang)}</span>
+                    <div className="w-1 h-1 rounded-full bg-earth/30" />
+                    <span className="truncate">{post.authorName || "Багш"}</span>
                 </div>
-                <p className={`text-sm opacity-60 leading-relaxed mb-6 line-clamp-3 ${isDark ? "text-white" : "text-slate-600"}`}>{content}</p>
-                <div className="mt-auto pt-4">
-                    <Link href={`/blog/${post.id}`} className={`w-full py-4 rounded-2xl border font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all ${isDark ? "border-white/10 text-white hover:bg-amber-600 hover:border-amber-600" : "border-slate-200 text-[#001829] hover:bg-[#001829] hover:text-white"}`}>
-                        {TRANSLATIONS.readMore[lang]} <ArrowRight size={14} />
-                    </Link>
+                <h3 className="text-[17px] font-serif font-black text-ink leading-snug mb-3 group-hover:text-gold transition-colors line-clamp-2">
+                    {title}
+                </h3>
+                <p className="text-[14px] text-earth/80 leading-relaxed line-clamp-2 mb-4 flex-1">
+                    {content}
+                </p>
+                <div className="mt-auto flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-gold group-hover:text-gold/80 transition-colors">
+                    {TRANSLATIONS.readMore[lang]}
+                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                 </div>
-            </div>
+            </Link>
         </motion.div>
     );
 };
 
 export default function BlogListClient({ initialPosts }: { initialPosts: BlogPost[] }) {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const lang = language === 'mn' ? 'mn' : 'en';
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState<BlogCategory>('all');
-    const isDark = false; // Default brand theme on server/initial mount
 
     const filteredPosts = useMemo(() => initialPosts.filter(post => {
-        const title = (post.title?.[lang] || post.title?.mn || "").toLowerCase();
-        const content = (post.content?.[lang] || post.content?.mn || "").toLowerCase();
+        const title = getLocalizedText(post.title, lang).toLowerCase();
+        const content = getLocalizedText(post.content, lang).toLowerCase();
         const q = search.toLowerCase();
         const matchesSearch = title.includes(q) || content.includes(q);
         const matchesFilter = filter === 'all' || (post.category && post.category.toLowerCase() === filter);
         return matchesSearch && matchesFilter;
     }), [initialPosts, search, filter, lang]);
 
-    const filterTabs = [{ id: 'all', label: TRANSLATIONS.all[lang] }] as const;
-
     return (
-        <div className={`min-h-[100dvh] transition-colors duration-700 pt-32 pb-20 px-6 font-sans ${isDark ? "bg-[#001829] text-white" : "bg-slate-50 text-slate-900"}`}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className={`absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[150px] ${isDark ? "bg-amber-500 opacity-[0.05]" : "bg-amber-200 opacity-[0.3]"}`} />
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
-            </div>
+        <div className="min-h-[100svh] bg-[#FAFAFA] relative flex flex-col pb-24">
+            
+            {/* Header */}
+            <header className="px-6 pt-[calc(var(--header-height-mobile)+env(safe-area-inset-top)+20px)] pb-6 bg-[#FAFAFA] sticky top-0 z-20">
+                <div className="mb-8">
+                    <h1 className="text-[34px] font-serif font-black text-ink leading-tight tracking-tight">
+                        {t(TRANSLATIONS.titleMain)} <span className="text-gold italic">{t(TRANSLATIONS.titleHighlight)}</span>
+                    </h1>
+                </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto">
-                <div className="text-center mb-20">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors mb-6 ${isDark ? "bg-amber-500/10 border-amber-500/30 text-amber-500" : "bg-white border-amber-100 text-amber-600 shadow-sm"}`}>
-                        <Zap size={14} className="fill-current" />
-                        <span className="font-black text-[10px] uppercase tracking-[0.2em]">{TRANSLATIONS.badge[lang]}</span>
-                    </motion.div>
-                    <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[0.9] ${isDark ? "text-white" : "text-[#001829]"}`}>{TRANSLATIONS.titleMain[lang]} <span className="text-amber-500">{TRANSLATIONS.titleHighlight[lang]}</span>{TRANSLATIONS.titleEnd[lang]}</motion.h1>
-
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto relative group">
-                        <Search className={`absolute left-6 top-1/2 -translate-y-1/2 transition-colors ${isDark ? "text-white/20 group-focus-within:text-amber-500" : "text-slate-400 group-focus-within:text-amber-500"}`} size={20} />
-                        <input type="text" placeholder={TRANSLATIONS.searchPlaceholder[lang]} value={search} onChange={(e) => setSearch(e.target.value)} className={`w-full py-6 pl-16 pr-6 rounded-[2rem] border text-sm font-bold focus:outline-none focus:ring-4 ${isDark ? "bg-white/5 border-white/10 text-white focus:border-amber-500" : "bg-white border-slate-200 text-[#001829] focus:border-amber-500 shadow-xl shadow-slate-200/50"}`} />
-                        {search && <button onClick={() => setSearch("")} className="absolute right-6 top-1/2 -translate-y-1/2 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={18} className="opacity-40" /></button>}
-                    </motion.div>
-
-                    <div className="flex flex-wrap justify-center gap-3 mt-12">
-                        {filterTabs.map((tab) => (
-                            <button key={tab.id} onClick={() => setFilter(tab.id as BlogCategory)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === tab.id ? "bg-amber-500 text-white shadow-xl" : isDark ? "bg-white/5 text-white/40" : "bg-white border border-slate-100 text-slate-400"}`}>{tab.label}</button>
+                {/* Filter and Search Container */}
+                <div className="space-y-4">
+                    {/* Horizontal Categories */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {(['all', 'wisdom', 'news', 'meditation'] as const).map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setFilter(cat)}
+                                className={`shrink-0 px-5 py-2.5 rounded-full text-[12px] font-bold uppercase tracking-widest transition-all ${
+                                    filter === cat 
+                                    ? "bg-ink text-white shadow-md scale-100" 
+                                    : "bg-white border border-stone/60 text-earth/80 hover:bg-stone/30 scale-95 origin-center"
+                                }`}
+                            >
+                                {t(TRANSLATIONS[cat])}
+                            </button>
                         ))}
                     </div>
-                </div>
 
-                <div className="flex items-center gap-4 mb-8 px-4">
-                    <Filter size={14} className="opacity-40" />
-                    <span className="text-xs font-black uppercase tracking-widest opacity-40">{filteredPosts.length} {TRANSLATIONS.found[lang]}</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <AnimatePresence mode="popLayout">
-                        {filteredPosts.length > 0 ? (
-                            filteredPosts.map((post) => <BlogCard key={post.id} post={post} lang={lang} isDark={isDark} />)
-                        ) : (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full py-32 text-center">
-                                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6"><BookOpen className="opacity-20" size={40} /></div>
-                                <p className="opacity-30 italic font-medium">{TRANSLATIONS.noResults[lang]}</p>
-                            </motion.div>
+                    {/* Search Input */}
+                    <div className="relative">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-earth/50" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder={t(TRANSLATIONS.searchPlaceholder)}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-white border border-stone/40 focus:border-gold/50 focus:ring-4 focus:ring-gold/10 rounded-2xl py-3.5 pl-12 pr-12 text-[15px] font-medium text-ink placeholder:text-earth/40 outline-none transition-all shadow-sm"
+                        />
+                        {search && (
+                            <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 bg-stone/50 hover:bg-stone rounded-full transition-colors">
+                                <X size={14} className="text-ink/60" />
+                            </button>
                         )}
-                    </AnimatePresence>
+                    </div>
                 </div>
-            </div>
+            </header>
+
+            {/* Grid */}
+            <main className="px-6 flex-1 mt-4">
+                <AnimatePresence mode="wait">
+                    {filteredPosts.length > 0 ? (
+                        <motion.div 
+                            key={`${filter}-${search}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                        >
+                            {filteredPosts.map((post: BlogPost, idx: number) => (
+                                <BlogCard key={post.id} post={post} lang={lang} idx={idx} />
+                            ))}
+                        </motion.div>
+                    ) : (
+                        <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 opacity-50">
+                            <Sparkles size={40} className="text-earth/30 mb-4" />
+                            <p className="text-earth font-serif italic text-lg">{t(TRANSLATIONS.noResults)}</p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
         </div>
     );
 }

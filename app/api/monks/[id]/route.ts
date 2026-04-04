@@ -38,6 +38,79 @@ export async function GET(request: Request, props: Props) {
     });
 
     if (!monk) {
+      const mockMonks: any = {
+        buyantsog: {
+          _id: "buyantsog",
+          id: "buyantsog",
+          name: { mn: "Буянцог", en: "Buyantsog" },
+          title: { mn: "Зөн билэгтэн", en: "Psychic" },
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+          specialties: ["Засал", "Зөн билэг"],
+          yearsOfExperience: 15,
+          isAvailable: true,
+          bio: { mn: "Олон жилийн туршлагатай засалч.", en: "Experienced healer." },
+          quote: { mn: "Дотоод хүчээ мэдэр.", en: "Feel your inner strength." },
+          services: [{ id: "1", name: { mn: "Засал", en: "Healing" }, price: 88800, duration: "1 hour" }]
+        },
+        undraa: {
+          _id: "undraa",
+          id: "undraa",
+          name: { mn: "Ундраа", en: "Undraa" },
+          title: { mn: "Тарог зөн", en: "Tarot Reader" },
+          image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80",
+          yearsOfExperience: 12,
+          isAvailable: true,
+          bio: { mn: "12 жил таро уншсан туршлагатай.", en: "12 years of Tarot reading experience." },
+          services: [{ id: "2", name: { mn: "Таро үзлэг", en: "Tarot Reading" }, price: 50000, duration: "45 min" }]
+        },
+        amina: {
+          _id: "amina",
+          id: "amina",
+          name: { mn: "Амина", en: "Amina" },
+          title: { mn: "Зурхайч", en: "Astrologer" },
+          image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+          yearsOfExperience: 8,
+          isAvailable: false,
+          bio: { mn: "Төөрөг зурхай тайлагч.", en: "Astrology chart reader." }
+        },
+        dorjbaatar: {
+          _id: "dorjbaatar",
+          id: "dorjbaatar",
+          name: { mn: "Доржбаатар", en: "Dorjbaatar" },
+          title: { mn: "Бөө", en: "Shaman" },
+          image: "https://images.unsplash.com/photo-1548372290-8d01b6c8e78c?w=200&q=80",
+          yearsOfExperience: 10,
+          isAvailable: true,
+          bio: { mn: "Онгод тэнгэртэй холбогдогч.", en: "Shamanic healer connected to spirits." },
+          services: [{ id: "3", name: { mn: "Засал", en: "Ritual Healing" }, price: 60000, duration: "1.5 hours" }]
+        },
+        banchinerdene: {
+          _id: "banchinerdene",
+          id: "banchinerdene",
+          name: { mn: "Банчинэрдэнэ", en: "Banchinerdene" },
+          title: { mn: "Бясалгалын багш", en: "Meditation Teacher" },
+          image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
+          yearsOfExperience: 20,
+          isAvailable: true,
+          bio: { mn: "Бясалгал, йогийн багш.", en: "Meditation and yoga guide." },
+          services: [{ id: "4", name: { mn: "Бясалгал", en: "Meditation" }, price: 55000, duration: "1 hour" }]
+        },
+        tsetseg: {
+          _id: "tsetseg",
+          id: "tsetseg",
+          name: { mn: "Цэцэг", en: "Tsetseg" },
+          title: { mn: "Энергийн засалч", en: "Energy Healer" },
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80",
+          yearsOfExperience: 7,
+          isAvailable: false,
+          bio: { mn: "Энерги тэнцвэржүүлэгч.", en: "Energy balancing professional." }
+        }
+      };
+
+      if (mockMonks[id]) {
+        return NextResponse.json(mockMonks[id]);
+      }
+
       return NextResponse.json(
         { message: "Monk profile not found" },
         { status: 404 }

@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/dashboard/', '/api/'],
+            disallow: ['/admin/', '/profile/', '/api/'],
         },
         sitemap: 'https://gevabal.mn/sitemap.xml',
     };

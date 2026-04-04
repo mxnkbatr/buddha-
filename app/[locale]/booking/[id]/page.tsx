@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useLanguage } from "../../../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -26,8 +26,50 @@ export default function NativeBookingPage() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
     
+    // Submission states
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+
     // Calendar view state
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+
+    const handleConfirm = async () => {
+        if (!selectedDate || !selectedTime || !user) return;
+        setSubmitting(true);
+        setSubmitError("");
+        
+        try {
+            const res = await fetch("/api/bookings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    monkId,
+                    serviceId,
+                    date: selectedDate.toISOString(),
+                    time: selectedTime,
+                    userId: user._id || user.id,
+                    userEmail: user.email,
+                    userPhone: user.phone,
+                    serviceName: service?.name,
+                    notes: "",
+                }),
+            });
+            
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Booking failed");
+            }
+            
+            setSubmitted(true);
+            // Redirect after 2 seconds
+            setTimeout(() => router.push(`/${lang}/profile`), 2000);
+        } catch (err: any) {
+            setSubmitError(err.message || t({ mn: "Захиалга хийхэд алдаа гарлаа", en: "Booking failed" }));
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         async function loadData() {
@@ -84,8 +126,50 @@ export default function NativeBookingPage() {
     const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
     const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
 
-    // Fixed dummy times per screenshot
-    const availableTimes = ["09:00", "11:00", "14:00", "16:00"];
+    // Calculate available times from monk's schedule
+    const availableTimes = useMemo(() => {
+        if (!monk?.schedule) return ["09:00", "11:00", "14:00", "16:00"];
+        
+        const today = selectedDate || new Date();
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const dayName = dayNames[today.getDay()];
+        
+        const daySchedule = monk.schedule.find((s: any) => 
+            s.day === dayName && s.active !== false
+        );
+        
+        if (!daySchedule) return [];
+        
+        // If specific slots are defined, use them
+        if (daySchedule.slots?.length > 0) return daySchedule.slots;
+        
+        // Otherwise generate 1-hour slots from start to end time
+        const slots: string[] = [];
+        const startH = parseInt(daySchedule.start?.split(":")[0] || "9");
+        const endH = parseInt(daySchedule.end?.split(":")[0] || "18");
+        for (let h = startH; h < endH; h++) {
+            slots.push(`${h.toString().padStart(2, "0")}:00`);
+        }
+        return slots;
+    }, [monk, selectedDate]);
+
+    if (submitted) return (
+        <div className="min-h-[100svh] bg-cream flex flex-col items-center justify-center px-6 text-center animate-fade-in">
+            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-6">
+                <div className="w-10 h-10 rounded-full bg-live flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 10l4 4 8-8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            <h2 className="text-[22px] font-black text-ink mb-2">
+                {t({ mn: "Захиалга баталгаажлаа!", en: "Booking confirmed!" })}
+            </h2>
+            <p className="text-[14px] text-earth">
+                {t({ mn: "Таны захиалга самбарт харагдана.", en: "Check your dashboard for details." })}
+            </p>
+        </div>
+    );
 
     if (loading || !monk || !service) {
         return <div className="h-screen w-full flex items-center justify-center bg-cream"><div className="w-8 h-8 rounded-full border-2 border-[#D97706] border-t-transparent animate-spin" /></div>;
@@ -169,20 +253,26 @@ export default function NativeBookingPage() {
                 {/* Time Selection */}
                 <h3 className="text-[11px] font-black uppercase tracking-[0.1em] text-[#80766A] mb-4">ЦАГ СОНГОХ</h3>
                 <div className="flex flex-wrap gap-2 mb-10">
-                    {availableTimes.map(time => {
-                        const isSelected = selectedTime === time;
-                        return (
-                            <button
-                                key={time}
-                                onClick={() => setSelectedTime(time)}
-                                className={`px-5 py-2.5 rounded-2xl text-[14px] font-black border transition-colors ${
-                                    isSelected ? "bg-[#1C1410] border-[#1C1410] text-[#FDFBF7]" : "bg-[#FDFBF7] border-stone/80 text-[#1C1410]"
-                                }`}
-                            >
-                                {time}
-                            </button>
-                        );
-                    })}
+                    {availableTimes.length > 0 ? (
+                        availableTimes.map((time: string) => {
+                            const isSelected = selectedTime === time;
+                            return (
+                                <button
+                                    key={time}
+                                    onClick={() => setSelectedTime(time)}
+                                    className={`px-5 py-2.5 rounded-2xl text-[14px] font-black border transition-colors ${
+                                        isSelected ? "bg-[#1C1410] border-[#1C1410] text-[#FDFBF7]" : "bg-[#FDFBF7] border-stone/80 text-[#1C1410]"
+                                    }`}
+                                >
+                                    {time}
+                                </button>
+                            );
+                        })
+                    ) : (
+                        <p className="w-full text-sm text-earth text-center py-4 bg-stone/5 rounded-2xl border border-dashed border-stone/50">
+                            {t({ mn: "Энэ өдөр нээлттэй цаг байхгүй байна", en: "No available slots this day" })}
+                        </p>
+                    )}
                 </div>
 
                 {/* Summary Card */}
@@ -209,11 +299,17 @@ export default function NativeBookingPage() {
             {/* Bottom Fixed Checkout Button */}
             <div className="fixed bottom-0 left-0 w-full px-6 pt-3 pb-[max(env(safe-area-inset-bottom),24px)] bg-[#FDFBF7]/90 backdrop-blur-md border-t border-stone/40">
                 <button 
-                    disabled={!selectedDate || !selectedTime}
-                    className="w-full bg-[#D97706] text-white rounded-[22px] py-[15px] font-bold text-[15px] disabled:opacity-50 disabled:grayscale transition-all active:scale-[0.98] shadow-[0_4px_14px_rgba(217,119,6,0.25)]"
+                  onClick={handleConfirm}
+                  disabled={!selectedDate || !selectedTime || submitting}
+                  className="btn-primary btn-primary-full disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                    Баталгаажуулах
+                    {submitting 
+                        ? <Loader2 size={20} className="animate-spin mx-auto" /> 
+                        : t({ mn: "Баталгаажуулах", en: "Confirm Booking" })}
                 </button>
+                {submitError && (
+                    <p className="text-[12px] text-red-500 text-center mt-2 font-medium">{submitError}</p>
+                )}
             </div>
         </div>
     );

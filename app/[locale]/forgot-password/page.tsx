@@ -282,7 +282,7 @@ export default function ForgotPasswordPage() {
                                 <p className="text-[#78350F]/70 mb-8 font-sans">
                                     {content.successMsg}
                                 </p>
-                                <Link href="/dashboard">
+                                <Link href="/profile">
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}

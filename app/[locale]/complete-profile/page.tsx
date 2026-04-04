@@ -8,13 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, User, Calendar, Save } from "lucide-react";
 
 export default function CompleteProfilePage() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { user, loading: authLoading } = useAuth(); // We can reload user context after update if needed
     const router = useRouter();
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push('/sign-in');
+            router.push(`/${language}/profile`);
         }
     }, [authLoading, user]);
 

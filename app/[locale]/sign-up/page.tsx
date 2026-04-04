@@ -9,7 +9,6 @@ import {
   Loader2, ShieldCheck, User, ScrollText, Phone, KeyRound 
 } from "lucide-react";
 
-import DivineBackground from "../../components/DivineBackground";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,7 +32,7 @@ export default function SignUpPage() {
 
   React.useEffect(() => {
     if (!authLoading && user) {
-      router.push(`/${language}/dashboard`);
+      router.push(`/${language}/profile`);
     }
   }, [user, authLoading, router, language]);
 
@@ -68,7 +67,7 @@ export default function SignUpPage() {
         if (!res.ok) throw new Error(data.message || "Registration failed");
 
         await login({ identifier: formattedPhone, password });
-        router.push(`/${language}/dashboard`);
+        router.push(`/${language}/profile`);
       } else {
         if (!pendingVerification) {
           const signUpParams: any = {
@@ -114,7 +113,6 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen w-full relative">
-      <DivineBackground />
       
       <main className="relative z-10 flex flex-col justify-center items-center px-6 py-20 min-h-screen">
         <div className="w-full max-w-2xl">

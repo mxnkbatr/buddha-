@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import OptimizedVideo from "./OptimizedVideo";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useUser } from "@clerk/nextjs";
 
@@ -14,53 +13,49 @@ export default function Hero() {
     highlight: t({ mn: "асуудлын", en: "solutions" }),
     btnPrimary: isSignedIn ? t({ mn: "Цаг захиалах", en: "Book Now" }) : t({ mn: "Нэвтрэх", en: "Sign In" }),
     btnPrimaryHref: isSignedIn ? "/monks" : "/sign-in",
-    btnSecondary: t({ mn: "Танилцах", en: "Explore" }),
   };
 
   return (
     <section className="hero-section">
-      {/* Background video */}
-      <div className="hero-bg">
-        <OptimizedVideo
-          id="hero-video"
-          src="https://res.cloudinary.com/dxoxdiuwr/video/upload/v1768133484/video_kakyvu.mp4"
-          poster="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_60,f_webp,c_fill,w_1280,h_720,so_0/video_kakyvu.webp"
-          width={1920}
-          height={1080}
-          className="hero-video"
-          useNative={true}
-          isLCP={true}
-        />
-        {/* Overlay: доошоо gradient */}
-        <div className="hero-overlay" />
-      </div>
-
       {/* Content */}
       <div className="hero-content">
-        {/* Live badge */}
-        <div className="hero-badge">
-          <span className="live-dot" />
-          <span>{t({ mn: "Live · 3 багш нар", en: "Live · 3 Mentors" })}</span>
-        </div>
+        <div className="luminous-banner">
+          {/* Right Side: Buddha Overlay */}
+          <div className="luminous-buddha-wrap">
+            <img 
+              src="https://res.cloudinary.com/dxoxdiuwr/video/upload/q_auto:best,f_auto,e_contrast:40,e_vibrance:50,c_fill,w_1200,h_600,so_0/video_kakyvu.webp"
 
-        <h1 className="text-hero-title">
-          {t({ mn: "Бид таны ", en: "We help you find " })}
-          <span className="text-saffron">{content.highlight}</span><br />
-          {t({ mn: "шийдлийг олоход", en: "to your " })}<br />
-          {t({ mn: "тусална", en: "problems" })}
-        </h1>
 
-        <p className="hero-subtitle">
-          {t({ mn: "Туршлагатай багш нартай холбогдоорой", en: "Connect with experienced mentors" })}
-        </p>
+              alt="Buddha"
+              className="luminous-buddha-img"
+            />
+          </div>
 
-        <div className="hero-cta">
-          <Link href={content.btnPrimaryHref}>
-            <button className="btn-primary">{content.btnPrimary}</button>
-          </Link>
-          <Link href="/about">
-            <button className="btn-ghost">{content.btnSecondary}</button>
-          </Link>
+          {/* Left Side: Content Area */}
+          <div className="luminous-content">
+            {/* Status Badge */}
+            <div className="luminous-status">
+              <span className="live-dot" />
+              <span>{t({ mn: "Live - 3 багш нар", en: "Live - 3 Mentors" })}</span>
+            </div>
+
+            <h1 className="luminous-title">
+              {t({ 
+                mn: "Бид таны асуудлын шийдлийг олоход тусална", 
+                en: "We help you find solutions to your spiritual questions" 
+              })}
+            </h1>
+
+            <p className="text-[12px] opacity-70 font-medium text-[#1A0800]">
+              {t({ mn: "Туршлагатай багш нартай холболдоорой", en: "Connect with experienced mentors" })}
+            </p>
+
+            <div className="mt-2">
+              <Link href={content.btnPrimaryHref}>
+                <button className="luminous-btn-sm">НЭВТРЭХ</button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

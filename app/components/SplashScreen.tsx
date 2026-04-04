@@ -18,7 +18,7 @@ export default function SplashScreen() {
         const timer = setTimeout(() => {
             setIsVisible(false)
             sessionStorage.setItem('splashShown', 'true')
-        }, 1200) // Slightly longer for the new premium animation
+        }, 800)
 
         return () => clearTimeout(timer)
     }, [])
@@ -30,7 +30,7 @@ export default function SplashScreen() {
                     initial={{ opacity: 1 }}
                     exit={{
                         opacity: 0,
-                        transition: { duration: 1, ease: [0.22, 1, 0.36, 1] }
+                        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
                     }}
                     className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-hero-bg overflow-hidden"
                 >
@@ -39,33 +39,22 @@ export default function SplashScreen() {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.1)_0%,_transparent_70%)]" />
 
                     <div className="relative flex flex-col items-center z-10">
-                        {/* Logo container with Sacred Gold Glow */}
+                        {/* Logo container */}
                         <motion.div
-                            initial={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
+                            initial={{ scale: 0.92, opacity: 0 }}
                             animate={{
                                 scale: 1,
                                 opacity: 1,
-                                filter: 'blur(0px)',
                                 transition: {
-                                    duration: 1.8,
+                                    duration: 0.8,
                                     ease: [0.22, 1, 0.36, 1]
                                 }
                             }}
                             className="relative w-40 h-40 md:w-48 md:h-48 mb-12"
                         >
-                            {/* Inner Sacred Glow */}
-                            <motion.div 
-                                animate={{ 
-                                    opacity: [0.2, 0.4, 0.2],
-                                    scale: [1, 1.2, 1]
-                                }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute inset-0 bg-gold/10 rounded-full blur-3xl" 
-                            />
-                            
                             <div className="relative w-full h-full flex items-center justify-center p-6 bg-white/5 backdrop-blur-sm rounded-full border border-white/5 shadow-modal">
                                 <Image
-                                    src="/logo.webp"
+                                    src="/logo.png"
                                     alt="Gevabal Logo"
                                     width={160}
                                     height={160}
@@ -83,7 +72,7 @@ export default function SplashScreen() {
                                 y: 0,
                                 opacity: 1,
                                 transition: {
-                                    delay: 0.8,
+                                    delay: 0.4,
                                     duration: 1.2,
                                     ease: [0.22, 1, 0.36, 1]
                                 }
@@ -104,7 +93,7 @@ export default function SplashScreen() {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 1.5, duration: 1 }}
+                        transition={{ delay: 0.6, duration: 1 }}
                         className="absolute bottom-20 flex space-x-4"
                     >
                         {[0, 1, 2].map((i) => (
@@ -115,7 +104,7 @@ export default function SplashScreen() {
                                     opacity: [0.1, 0.6, 0.1],
                                 }}
                                 transition={{
-                                    duration: 2.5,
+                                    duration: 1.5,
                                     repeat: Infinity,
                                     delay: i * 0.4,
                                     ease: "easeInOut"

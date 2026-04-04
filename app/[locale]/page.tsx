@@ -1,90 +1,111 @@
-import { Suspense, cache } from "react";
+import { cache, Suspense } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import Hero from "../components/Hero";
+import HomeSections from "../components/HomeSections";
 import MonkShowcaseClient from "../components/MonkShowcaseClient";
 import { connectToDatabase } from "@/database/db";
 import { Monk } from "@/database/types";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { useLanguage } from "../contexts/LanguageContext";
-import Footer from "../components/Footer";
+
 const PhilosophySection = dynamic(() => import("../components/Philosophy"));
 const NirvanaComments = dynamic(() => import("../components/NirvanaComments"));
-const DivineBackground = dynamic(() => import("../components/DivineBackground"));
-const DivineButton = dynamic(() => import("../components/DivineButton")); // Using dynamic import to avoid SSR mismatches with motion
 
-// Fetch monks data server-side
 const getMonks = cache(async () => {
   try {
     const { db } = await connectToDatabase();
-    // Only fetch monks meant for the homepage
-    const monks = await db.collection("users").find({ 
-      role: "monk", 
-      showOnHomepage: true 
-    }).toArray() as unknown as Monk[];
-
-    // Serialize for client component
-    const serialized = monks.map(monk => ({
-      ...monk,
-      _id: monk._id?.toString() ?? ""
-    }));
-
-    // Sort: Priority by monkNumber, then isSpecial
-    return serialized.sort((a, b) => {
-      // If monkNumber exists, use it for explicit ordering
-      if (a.monkNumber !== undefined && b.monkNumber !== undefined) {
-        return a.monkNumber - b.monkNumber;
-      }
-      if (a.monkNumber !== undefined) return -1;
-      if (b.monkNumber !== undefined) return 1;
-
-      // Fallback to isSpecial
-      if (a.isSpecial && !b.isSpecial) return -1;
-      if (!a.isSpecial && b.isSpecial) return 1;
-      return 0;
-    });
-  } catch (error) {
-    console.error("Failed to fetch monks:", error);
-    return [];
-  }
+    // Fetch all monks
+    const monks = await db.collection("users").find({ role: "monk" }).toArray() as unknown as Monk[];
+    
+    return monks
+      .map(m => ({ ...m, _id: m._id?.toString() ?? "" }))
+      .sort((a, b) => {
+        if (a.isSpecial && !b.isSpecial) return -1;
+        if (!a.isSpecial && b.isSpecial) return 1;
+        return 0;
+      });
+  } catch { return []; }
 });
 
-export default async function Home() {
-  const allMonks = await getMonks();
+const getBlogs = cache(async () => {
+    try {
+        const { db } = await connectToDatabase();
+        const blogs = await db.collection("blogs")
+            .find({})
+            .sort({ date: -1 })
+            .limit(5)
+            .toArray();
 
-  // Show only featured monks on home page (up to 5)
-  const featuredMonks = allMonks.slice(0, 5);
-  const isDark = false
+        return blogs.map(blog => ({
+            _id: blog._id.toString(),
+            id: blog.id || blog._id.toString(),
+            title: blog.title || { mn: "", en: "" },
+            content: blog.content || { mn: "", en: "" },
+            date: blog.date ? new Date(blog.date).toISOString() : new Date().toISOString(),
+            cover: blog.cover || "",
+            category: blog.category || "Wisdom",
+            authorName: blog.authorName || "Багш",
+            authorId: blog.authorId ? blog.authorId.toString() : ""
+        }));
+    } catch { return []; }
+});
+
+// Skeleton loader
+const MonksSkeleton = () => (
+  <div className="px-4 pt-4 space-y-3">
+    {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl skeleton" />)}
+  </div>
+);
+
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const allMonks = await getMonks();
+  
+  // Find Buyantsog from DB (name contains Буянцог)
+  const buyantsogMock = allMonks.find(m => m.name?.mn?.includes("Буянцог")) || {
+    _id: "buyantsog",
+    name: { mn: "Буянцог Гэва", en: "Buyantsog" },
+    title: { mn: "Их багш", en: "Master" },
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    specialties: ["Засал", "Зөн билэг"],
+    yearsOfExperience: 15,
+    isAvailable: true,
+    rating: 4.8,
+    bio: { mn: "Олон жилийн туршлагатай засалч.", en: "Experienced healer." },
+    quote: { mn: "Дотоод хүчээ мэдэр.", en: "Feel your inner strength." },
+    services: [{ id: "1", name: { mn: "Засал", en: "Healing" }, price: 88800, duration: "1 hour" }]
+  } as any;
+
+  const featuredMonks = [buyantsogMock];
+  const blogs = await getBlogs();
+
   return (
     <>
-      <DivineBackground />
-      <div className="relative z-10">
-        <Hero />
+      <Hero />
 
-        {/* Monk Cards Section - First 5 Only */}
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50/50 animate-pulse">
-            <div className="text-2xl font-serif text-gray-400">Loading monks...</div>
-          </div>
-        }>
-          <MonkShowcaseClient initialMonks={featuredMonks} />
-          <div className="mt-16 md:mt-24 flex justify-center">
-            <Link href="/mn/monks">
-              <DivineButton variant="primary" icon={<ArrowUpRight size={20} />} className="shadow-2xl">
-                Илүү үзэх
-              </DivineButton>
-            </Link>
-          </div>
-        </Suspense>
+      {/* Categories + Blog + Practitioners */}
+      <HomeSections locale={locale} blogs={blogs} monks={allMonks} />
 
-        <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
-          <PhilosophySection />
+      {/* Monks Section */}
+      <section className="bg-cream">
+        <div className="px-5 pt-10 pb-4">
+          <h2 className="text-[22px] font-black text-ink tracking-tight">Онцлох багш</h2>
+        </div>
+
+        <Suspense fallback={<MonksSkeleton />}>
+          <MonkShowcaseClient initialMonks={featuredMonks} hideHeader={true} />
         </Suspense>
-        <Suspense fallback={<div className="h-96 flex items-center justify-center bg-gray-50/50 animate-pulse rounded-3xl mx-6 mb-20" />}>
-          <NirvanaComments />
-        </Suspense>
-      </div>
+      </section>
+
+      {/* Philosophy */}
+      <Suspense fallback={<div className="h-64 skeleton mx-5 my-8 rounded-2xl" />}>
+        <PhilosophySection />
+      </Suspense>
+
+      {/* Comments */}
+      <Suspense fallback={<div className="h-64 skeleton mx-5 my-8 rounded-2xl" />}>
+        <NirvanaComments />
+      </Suspense>
     </>
   );
 }

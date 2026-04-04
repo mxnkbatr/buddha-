@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, BookOpen, Loader2, Image as ImageIcon, X, Pen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { formatDate } from "../lib/dateUtils";
 
 interface ContentManagerProps {
     blogs: any[];
@@ -218,7 +219,7 @@ export default function ContentManager({ blogs }: ContentManagerProps) {
                                     <p className="text-sm text-stone-500 line-clamp-1">{item.content?.mn || item.content?.en || item.description?.mn}</p>
                                 </td>
                                 <td className="p-6 text-sm font-bold text-stone-500">
-                                    {new Date(item.date).toLocaleDateString()}
+                                    {formatDate(item.date, "en")}
                                 </td>
                                 <td className="p-6 text-right">
                                     <div className="flex justify-end gap-2">

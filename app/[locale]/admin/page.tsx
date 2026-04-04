@@ -10,6 +10,7 @@ import {
   Loader2, UserCog, ScrollText, TrendingUp, Check, X,
   FileText, Clock, Edit, Plus, RefreshCw, LogOut, Eye
 } from "lucide-react";
+import { formatDate } from "@/app/lib/dateUtils";
 import { useTheme } from "next-themes";
 import BookingDetailModal from "./BookingDetailModal";
 import MonkEditModal from "./MonkEditModal";
@@ -405,7 +406,7 @@ export default function AdminDashboard() {
 
   return (
     <div className={`min-h-screen font-sans ${isDark ? "bg-[#05051a] text-white" : "bg-[#FDFBF7] text-[#451a03]"}`}>
-      <main className="container mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-20">
+      <main className="container mx-auto px-4 md:px-6 pb-20" style={{ paddingTop: 'calc(var(--header-height-mobile) + env(safe-area-inset-top, 0px))' }}>
 
         {/* HEADER */}
         <header className="mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -702,7 +703,7 @@ export default function AdminDashboard() {
                         {u.showOnHomepage && <span className="bg-blue-500 text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-1"><LayoutDashboard size={8} /> Нүүр</span>}
                       </div>
                       <p className="text-xs opacity-50 truncate">{u.email || u.phone}</p>
-                      <p className="text-[10px] opacity-30 mt-1">Бүртгүүлсэн: {new Date(u.createdAt).toLocaleDateString()}</p>
+                      <p className="text-[10px] opacity-30 mt-1">Бүртгүүлсэн: {formatDate(u.createdAt, "mn")}</p>
                     </div>
                   </div>
 
@@ -788,7 +789,7 @@ export default function AdminDashboard() {
                         <td className="p-6">
                           <div className="flex items-center gap-2">
                             <Clock size={14} className="opacity-50" />
-                            <span>{new Date(b.date).toLocaleDateString()}</span>
+                            <span>{formatDate(b.date, "mn")}</span>
                           </div>
                           <div className="text-xs opacity-50 pl-6">{b.time}</div>
                         </td>

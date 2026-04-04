@@ -35,7 +35,7 @@ export default function LoginPage() {
   // Auto-redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      router.push(`/${language}/dashboard`);
+      router.push(`/${language}/profile`);
     }
   }, [user, authLoading, router, language]);
 

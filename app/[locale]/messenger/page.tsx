@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/app/contexts/LanguageContext";
-import { Send, ArrowLeft, MoreVertical, Search, MessageSquare, Loader2, User } from "lucide-react";
+import { Send, ArrowLeft, Search, MessageSquare, Loader2, User, Sparkles } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Conversation {
   otherId: string;
@@ -236,211 +236,224 @@ export default function MessengerPage() {
 
   if (authLoading || (loading && !user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfbf7]">
-        <Loader2 className="animate-spin text-amber-600" size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <div className="w-10 h-10 rounded-full border-2 border-gold border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  if (!user) {
-    return null; // Redirecting via useEffect
-  }
+  if (!user) return null;
 
-  return (
-    <div className="flex flex-col h-screen bg-[#fdfbf7] overflow-hidden">
-      
-      <div className="flex flex-1 pt-20 overflow-hidden relative">
-        {/* Left Sidebar: Conversations List */}
-        <div className={`w-full md:w-80 lg:w-96 border-r border-amber-900/5 flex flex-col bg-white/50 backdrop-blur-xl ${selectedConv ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-amber-900/5">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-serif font-black text-amber-900">Мессенжер</h1>
-            </div>
-            
-            {/* Tabs Toggle */}
-            <div className="flex p-1 bg-amber-900/5 rounded-xl mb-4">
-              <button 
-                onClick={() => setActiveTab("chats")}
-                className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'chats' ? 'bg-white text-amber-900 shadow-sm' : 'text-amber-900/40 hover:text-amber-900/60'}`}
-              >
-                {t({ mn: "Чат", en: "Chats" })}
-              </button>
-              <button 
-                onClick={() => setActiveTab("monks")}
-                className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'monks' ? 'bg-white text-amber-900 shadow-sm' : 'text-amber-900/40 hover:text-amber-900/60'}`}
-              >
-                {t({ mn: "Бүх Лам нар", en: "All Monks" })}
-              </button>
-            </div>
+  // --- COMPONENT: CONVERSATION LIST ---
+  if (!selectedConv) return (
+    <div className="min-h-[100svh] bg-cream flex flex-col">
+      {/* Header */}
+      <header className="px-6 bg-cream border-b border-stone/30 sticky top-0 z-20"
+        style={{ paddingTop: "calc(var(--header-height-mobile) + env(safe-area-inset-top))", paddingBottom: 16 }}>
+        <div className="flex items-center justify-between mb-5">
+           <h1 className="text-[26px] font-black text-ink tracking-tight">
+             {t({ mn: "Мессенжер", en: "Messages" })}
+           </h1>
+           <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-stone/50 flex items-center justify-center">
+             <MessageSquare size={20} className="text-gold" />
+           </div>
+        </div>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-900/30" size={18} />
-              <input 
-                type="text" 
-                placeholder={t({ mn: "Хайх...", en: "Search..." })}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-amber-900/5 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 ring-amber-500/20"
-              />
-            </div>
-          </div>
+        {/* Segmented Control */}
+        <div className="relative flex p-1 bg-stone/40 rounded-2xl">
+          <motion.div
+             className="absolute inset-1 bg-white rounded-xl shadow-sm z-0"
+             animate={{ x: activeTab === "chats" ? "0%" : "100%" }}
+             initial={false}
+             transition={{ type: "spring", stiffness: 400, damping: 35 }}
+             style={{ width: "calc(50% - 4px)" }}
+          />
+          {(["chats", "monks"] as const).map(tab => (
+            <button key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`relative z-10 flex-1 py-2 text-[13px] font-black transition-colors ${
+                activeTab === tab ? "text-ink" : "text-earth/60"
+              }`}
+            >
+              {tab === "chats" ? t({ mn: "Яриа", en: "Chats" }) : t({ mn: "Багш нар", en: "Monks" })}
+            </button>
+          ))}
+        </div>
+      </header>
 
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            {activeTab === 'chats' ? (
-              filteredConversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-12 text-center opacity-40">
-                  <MessageSquare size={48} className="mb-4" />
-                  <p className="text-sm font-bold uppercase tracking-widest">{t({ mn: "Чат байхгүй байна", en: "No chats yet" })}</p>
-                  <button onClick={() => setActiveTab("monks")} className="mt-4 text-[10px] text-amber-600 font-black hover:underline underline-offset-4">
-                    {t({ mn: "ШИНЭ ЧАТ ЭХЛҮҮЛЭХ", en: "START NEW CHAT" })}
-                  </button>
+      {/* Search */}
+      <div className="px-6 py-4">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-earth/50 group-focus-within:text-gold transition-colors" size={18} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder={t({ mn: "Хайх...", en: "Search conversations..." })}
+            className="w-full bg-stone/20 border-2 border-transparent focus:border-gold/10 focus:bg-white rounded-2xl py-3.5 pl-11 pr-4 text-[15px] text-ink placeholder:text-earth/40 outline-none transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 pb-24">
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pt-2">
+              {[1, 2, 3].map(i => <div key={i} className="h-20 skeleton rounded-[2rem]" />)}
+            </motion.div>
+          ) : activeTab === "chats" ? (
+            filteredConversations.length === 0 ? (
+              <motion.div key="no-chats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20 px-10">
+                <div className="w-20 h-20 rounded-[2.5rem] bg-stone/30 flex items-center justify-center mx-auto mb-6">
+                  <Sparkles size={32} className="text-earth/40" />
                 </div>
-              ) : (
-                filteredConversations.map((conv) => (
-                  <button
-                    key={conv.otherId}
-                    onClick={() => setSelectedConv(conv)}
-                    className={`w-full p-4 flex items-center gap-4 transition-colors hover:bg-amber-900/5 border-b border-amber-900/5 ${selectedConv?.otherId === conv.otherId ? 'bg-amber-900/5' : ''}`}
-                  >
-                    <div className="relative shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500/20">
-                      <Image src={conv.otherImage} alt={conv.otherName} fill className="object-cover" />
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <h3 className="font-bold text-amber-900 truncate">{conv.otherName}</h3>
-                        <span className="text-[10px] text-amber-900/40">{new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                      <p className="text-xs text-amber-900/60 truncate">{conv.lastMessage || t({ mn: "Шинэ чат эхлүүлэх...", en: "Start a new chat..." })}</p>
-                    </div>
-                    {conv.unreadCount > 0 && (
-                      <div className="w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center">
-                        <span className="text-[10px] text-white font-bold">{conv.unreadCount}</span>
-                      </div>
-                    )}
-                  </button>
-                ))
-              )
+                <h3 className="text-lg font-black text-ink mb-2">
+                  {t({ mn: "Одоогоор чат алга", en: "No messages yet" })}
+                </h3>
+                <p className="text-[14px] text-earth/60 leading-relaxed">
+                  {t({ mn: "Өөрт тохирох багшийг сонгон харилцааг эхлүүлээрэй.", en: "Start a soulful conversation with one of our experienced guides." })}
+                </p>
+              </motion.div>
             ) : (
-              filteredMonks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-12 text-center opacity-40">
-                  <User size={48} className="mb-4" />
-                  <p className="text-sm font-bold uppercase tracking-widest">{t({ mn: "Лам олдсонгүй", en: "No monks found" })}</p>
-                </div>
-              ) : (
-                filteredMonks.map((monk) => (
-                  <button
-                    key={monk._id}
-                    onClick={() => startChatWithMonk(monk)}
-                    className="w-full p-4 flex items-center gap-4 transition-colors hover:bg-amber-900/5 border-b border-amber-900/5"
-                  >
-                    <div className="relative shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500/20">
-                      <Image src={monk.image || "/default-monk.jpg"} alt={monk.name[language] || monk.name.mn} fill className="object-cover" />
+              <motion.div key="chats" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-1">
+                {filteredConversations.map((conv, idx) => (
+                  <button key={conv.otherId} onClick={() => setSelectedConv(conv)}
+                    className="w-full flex items-center gap-4 py-4 border-b border-stone/20 text-left active:bg-stone/20 rounded-2xl px-2 transition-colors -mx-2">
+                    <div className="relative shrink-0">
+                      <div className="w-14 h-14 rounded-[1.5rem] overflow-hidden border-2 border-white shadow-sm">
+                        <Image src={conv.otherImage || "/default-monk.jpg"} alt={conv.otherName}
+                          width={56} height={56} className="w-full h-full object-cover" />
+                      </div>
+                      {conv.unreadCount > 0 && (
+                        <div className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full bg-gold border-2 border-white flex items-center justify-center px-1">
+                          <span className="text-[9px] font-black text-white">{conv.unreadCount}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <h3 className="font-bold text-amber-900 truncate">{monk.name[language] || monk.name.mn}</h3>
-                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest truncate">
-                        {monk.title?.[language] || monk.title?.mn || t({ mn: "Багш", en: "Monk" })}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <span className="text-[15px] font-black text-ink truncate">{conv.otherName}</span>
+                        <span className="text-[11px] font-bold text-earth/50 shrink-0 ml-2">
+                          {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-earth/70 truncate pr-4">
+                        {conv.lastMessage || t({ mn: "Яриаг эхлүүлэх...", en: "Start the conversation..." })}
                       </p>
                     </div>
-                    <MessageSquare size={16} className="text-amber-900/20" />
                   </button>
-                ))
-              )
-            )}
-          </div>
-        </div>
-
-        {/* Main Content: Chat Window */}
-        <div className={`flex-1 flex flex-col bg-white/30 backdrop-blur-sm ${selectedConv ? 'flex' : 'hidden md:flex items-center justify-center'}`}>
-          {selectedConv ? (
-            <>
-              {/* Chat Header */}
-              <div className="p-4 border-b border-amber-900/5 flex items-center justify-between bg-white/80">
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setSelectedConv(null)} className="md:hidden p-2 -ml-2 text-amber-900/60">
-                    <ArrowLeft size={20} />
-                  </button>
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-amber-500/20">
-                    <Image src={selectedConv.otherImage} alt={selectedConv.otherName} width={40} height={40} className="object-cover" />
+                ))}
+              </motion.div>
+            )
+          ) : (
+            // Monks tab
+            <motion.div key="monks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2 pt-2">
+              {filteredMonks.map(monk => (
+                <button key={monk._id}
+                  onClick={() => startChatWithMonk(monk)}
+                  className="w-full flex items-center gap-4 p-4 bg-white border border-stone/40 hover:border-gold/20 rounded-3xl text-left active:scale-[0.98] transition-all shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-card">
+                    <Image src={monk.image || "/default-monk.jpg"} alt={monk.name.mn || ""}
+                      width={48} height={48} className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-amber-900 leading-none mb-1">{selectedConv.otherName}</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 opacity-70">
-                      {selectedConv.isMonk ? "Багш" : "Хэрэглэгч"}
-                    </p>
+                    <p className="text-[15px] font-black text-ink mb-0.5">{monk.name[language as 'mn' | 'en'] || monk.name.mn}</p>
+                    <p className="text-[11px] font-bold text-gold uppercase tracking-widest opacity-80">{monk.title?.[language as 'mn' | 'en'] || monk.title?.mn}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                   <button className="p-2 text-amber-900/40 hover:text-amber-900 transition-colors">
-                     <MoreVertical size={20} />
-                   </button>
-                </div>
-              </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 
-              {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-hide bg-[url('/noise.svg')] bg-repeat">
-                {messagesLoading && messages.length === 0 ? (
-                  <div className="flex justify-center py-10">
-                    <Loader2 className="animate-spin text-amber-600" size={24} />
-                  </div>
-                ) : (
-                  messages.map((msg, i) => {
-                    const isMe = msg.senderId === user?._id.toString();
-                    return (
-                      <div key={msg._id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
-                          isMe 
-                            ? 'bg-amber-600 text-white rounded-tr-none' 
-                            : 'bg-white text-amber-900 rounded-tl-none border border-amber-900/5'
-                        }`}>
-                          <p className="text-sm leading-relaxed">{msg.text}</p>
-                          <span className={`text-[8px] mt-1 block opacity-50 ${isMe ? 'text-right' : 'text-left'}`}>
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+  // --- COMPONENT: CHAT WINDOW ---
+  return (
+    <div className="min-h-[100svh] bg-cream flex flex-col">
+      {/* Chat header */}
+      <header className="px-4 bg-white/80 backdrop-blur-md border-b border-stone/30 flex items-center gap-3 sticky top-0 z-30"
+        style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 10px)", paddingBottom: 12 }}>
+        <button onClick={() => setSelectedConv(null)}
+          className="w-10 h-10 rounded-full hover:bg-stone/30 flex items-center justify-center shrink-0 transition-colors">
+          <ArrowLeft size={22} className="text-ink" />
+        </button>
+        <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-sm border border-stone/20">
+           <Image src={selectedConv.otherImage || "/default-monk.jpg"} alt={selectedConv.otherName}
+            width={40} height={40} className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 min-w-0 pr-4">
+          <p className="text-[16px] font-black text-ink truncate leading-tight">{selectedConv.otherName}</p>
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-live animate-pulse" />
+            <p className="text-[11px] font-black text-earth/60 uppercase tracking-widest">
+              {t({ mn: "Шууд", en: "Live" })}
+            </p>
+          </div>
+        </div>
+      </header>
 
-              {/* Chat Input */}
-              <div className="p-4 border-t border-amber-900/5 bg-white">
-                <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Мессеж бичих..."
-                    className="flex-1 bg-amber-900/5 border-none rounded-2xl py-3 px-6 text-sm outline-none focus:ring-2 ring-amber-500/20"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newMessage.trim() || sending}
-                    className={`p-3 rounded-2xl transition-all shadow-lg ${
-                      newMessage.trim() && !sending 
-                        ? 'bg-amber-600 text-white scale-100' 
-                        : 'bg-amber-100 text-amber-300 scale-95'
-                    }`}
-                  >
-                    {sending ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-                  </button>
-                </form>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center p-12 text-center opacity-40">
-              <div className="w-20 h-20 rounded-full bg-amber-900/5 flex items-center justify-center mb-6">
-                <MessageSquare size={32} />
-              </div>
-              <h3 className="text-xl font-serif font-bold text-amber-900 mb-2">Мессеж сонгоно уу</h3>
-              <p className="text-sm font-medium uppercase tracking-widest max-w-xs">
-                Зүүн талын жагсаалтаас хүн сонгож чатлаж эхэлнэ үү.
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
+        <AnimatePresence>
+          {messagesLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => <div key={i} className={`h-12 skeleton rounded-[1.5rem] max-w-[65%] ${i % 2 === 0 ? "ml-auto" : ""}`} />)}
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-20 opacity-40">
+              <Sparkles size={40} className="mx-auto mb-4 text-earth" />
+              <p className="text-[14px] font-bold text-earth uppercase tracking-widest italic">
+                {t({ mn: "Бодол санаагаа хуваалцаарай", en: "A heart-to-heart dialogue" })}
               </p>
             </div>
+          ) : (
+            messages.map((msg, idx) => {
+              const isMine = msg.senderId === user?._id || msg.senderId === user?.id;
+              return (
+                <motion.div 
+                  key={msg._id} 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-[80%] px-5 py-3 shadow-sm text-[15px] leading-[1.6] ${isMine
+                    ? "bg-gradient-to-br from-gold to-[#D97706] text-white rounded-[1.6rem] rounded-tr-[0.4rem]"
+                    : "bg-white border border-stone/40 text-ink rounded-[1.6rem] rounded-tl-[0.4rem]"
+                    }`}>
+                    {msg.text}
+                    <div className={`text-[9px] mt-1.5 font-bold uppercase tracking-widest ${isMine ? "text-white/60" : "text-earth/50"}`}>
+                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
-        </div>
+        </AnimatePresence>
+        <div ref={messagesEndRef} className="h-4" />
+      </div>
+
+      {/* Modern Input Bar */}
+      <div className="px-5 bg-white/80 backdrop-blur-lg border-t border-stone/30"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 24px)", paddingTop: 16 }}>
+        <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-stone/20 p-1.5 rounded-[2rem] border border-transparent focus-within:border-gold/10 focus-within:bg-white transition-all shadow-inner">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={e => setNewMessage(e.target.value)}
+            placeholder={t({ mn: "Сургаал бичих...", en: "Write your thoughts..." })}
+            className="flex-1 bg-transparent py-3 px-4 text-[15px] text-ink placeholder:text-earth/40 outline-none"
+          />
+          <button
+            type="submit"
+            disabled={sending || !newMessage.trim()}
+            className="w-12 h-12 rounded-full bg-gold flex items-center justify-center shrink-0 disabled:opacity-40 active:scale-90 transition-all shadow-gold cursor-pointer"
+          >
+            {sending ? <Loader2 size={20} className="text-white animate-spin" /> : <Send size={20} className="text-white" />}
+          </button>
+        </form>
       </div>
     </div>
   );

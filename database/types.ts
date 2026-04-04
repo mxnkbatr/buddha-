@@ -97,6 +97,8 @@ export interface Monk {
     date: string;
     time: string;
   }[];
+  rating?: string | number; // Added for UI display
+  department?: string; // Added for UI display
 }
 
 export interface Booking {

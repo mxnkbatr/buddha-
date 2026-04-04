@@ -295,8 +295,8 @@ export async function PATCH(request: Request, props: Props) {
                             <br/>
 
                             <div style="text-align: center;">
-                                <a href="${process.env.NEXT_PUBLIC_URL}/dashboard" style="background-color: #D97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                                    Go to Dashboard
+                                <a href="${process.env.NEXT_PUBLIC_URL}/profile" style="background-color: #D97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                                    Go to Profile
                                 </a>
                             </div>
 

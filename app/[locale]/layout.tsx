@@ -10,7 +10,6 @@ import SmoothScroll from '../components/SmoothScroll'
 import Navbar from '../components/Navbar'
 import CapacitorInitWrapper from '../capacitor/CapacitorInitWrapper'
 
-const Footer = dynamic(() => import('../components/Footer'))
 const SplashScreen = dynamic(() => import('../components/SplashScreen'))
 
 const playfair = Playfair_Display({
@@ -80,9 +79,10 @@ export default async function RootLayout({
                 <SmoothScroll />
                 <Navbar />
                 <SplashScreen />
-                <main className="w-full relative pb-32 md:pb-0 overflow-x-hidden">
+                <main className="w-full relative overflow-x-hidden" style={{
+                  paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)'
+                }}>
                   {children}
-                  <Footer />
                 </main>
               </ThemeProvider>
             </body>

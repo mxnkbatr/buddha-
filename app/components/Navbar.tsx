@@ -14,7 +14,9 @@ import {
   UserCircle,
   LogOut,
   Feather,
-  MessageSquare
+  MessageSquare,
+  Heart,
+  Bell
 } from "lucide-react";
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -28,7 +30,7 @@ const CONTENT = {
   logo: { mn: "Гэвабaл", en: "Gevabal" },
   login: { mn: "Нэвтрэх", en: "Sign In" },
   register: { mn: "Бүртгүүлэх", en: "Register" },
-  dashboard: { mn: "Самбар", en: "Panel" },
+  profile: { mn: "Профайл", en: "Profile" },
   messenger: { mn: "Мессенжер", en: "Messenger" },
 };
 
@@ -78,7 +80,7 @@ export default function OverlayNavbar() {
     { id: "monks", icon: Users, href: "/monks", label: { mn: "Үзмэрч", en: "Monks" } },
     { id: "blog", icon: Feather, href: "/blog", label: { mn: "Блог", en: "Blog" } },
     { id: "messenger", icon: MessageSquare, href: "/messenger", label: { mn: "Мессенжер", en: "Messenger" }, auth: true },
-    { id: "dashboard", icon: LayoutGrid, href: "/dashboard", label: { mn: "Самбар", en: "Panel" }, auth: true },
+    { id: "profile", icon: UserCircle, href: "/profile", label: { mn: "Профайл", en: "Profile" }, auth: false },
   ];
 
   const getIsActive = (href: string) => {
@@ -107,29 +109,22 @@ export default function OverlayNavbar() {
         <span className="font-serif font-black text-xl text-ink leading-none tracking-tight">
           {CONTENT.logo[lang]}
         </span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold/80 leading-tight mt-1">
-          {lang === 'mn' ? 'Ариун' : 'Sanctuary'}
-        </span>
+
       </div>
     </div>
   );
 
   const isAuthPage = ["/sign-in", "/sign-up"].some(p => pathname.includes(p));
+  const isSubPage = pathname.split('/').length > 2 && 
+                    !['dashboard', 'messenger', 'blog', 'monks'].includes(pathname.split('/')[2]);
 
   return (
     <>
       {/* --- DESKTOP NAVBAR --- */}
-      <motion.header
-        className={`fixed z-50 left-0 right-0 hidden md:flex justify-center pointer-events-none ${isAuthPage ? 'top-4' : ''}`}
-        animate={{ y: isAuthPage ? 0 : (isScrolled ? 12 : 24) }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      <header
+        className="fixed z-50 top-0 left-0 right-0 hidden md:flex justify-center bg-white/95 backdrop-blur-md border-b border-border shadow-sm py-3 px-8 transition-none"
       >
-        <nav className={`
-          pointer-events-auto flex items-center justify-between transition-all duration-500 rounded-full border backdrop-blur-md
-          ${isScrolled || isAuthPage
-            ? "w-[85%] py-2.5 px-6 bg-white/95 border-border shadow-lg shadow-black/5"
-            : "w-[90%] py-4 px-8 bg-cream/70 border-white/50 shadow-sm"}
-        `}>
+        <nav className="w-full max-w-7xl flex items-center justify-between">
 
           <LocalizedLink href="/" className="hover:opacity-80 transition-opacity">
             <Logo />
@@ -158,11 +153,21 @@ export default function OverlayNavbar() {
             })}
           </div>
 
+          <div className="flex items-center gap-4 px-2">
+            <button className="p-2 text-earth hover:text-gold transition-colors relative" aria-label="Wishlist">
+              <Heart size={20} strokeWidth={2} />
+            </button>
+            <button className="p-2 text-earth hover:text-gold transition-colors relative" aria-label="Notifications">
+              <Bell size={20} strokeWidth={2} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white shadow-sm" />
+            </button>
+          </div>
+
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3 pl-3 border-l border-border">
-                <LocalizedLink href="/dashboard" className="text-xs font-black uppercase tracking-widest text-ink hover:text-gold transition-colors">
-                  {CONTENT.dashboard[lang]}
+                <LocalizedLink href="/profile" className="text-xs font-black uppercase tracking-widest text-ink hover:text-gold transition-colors">
+                  {CONTENT.profile[lang]}
                 </LocalizedLink>
                 <div className="scale-100 hover:scale-105 transition-transform">
                   <UserButton />
@@ -177,31 +182,41 @@ export default function OverlayNavbar() {
             )}
           </div>
         </nav>
-      </motion.header>
+      </header>
 
       {/* --- MOBILE TOP HEADER (iOS Status Bar Optimized) --- */}
-      <div
-        className="md:hidden mobile-header"
-        style={{ paddingTop: `max(${safeArea.top}px, 44px)` }}
-      >
-        <LocalizedLink href="/" aria-label="Home">
-          <Logo className="scale-90 origin-left" />
+      {!isSubPage && (
+        <div
+          className="md:hidden mobile-header"
+          style={{ paddingTop: `max(${safeArea.top}px, 20px)`, paddingBottom: 8 }}
+        >
+        <LocalizedLink href="/" aria-label="Home" className="scale-75 origin-left">
+          <Logo />
         </LocalizedLink>
 
-        <div className="header-actions">
+        <div className="header-actions flex items-center gap-1.5 mb-1">
+          <button className="p-2 text-earth active:scale-90 transition-transform" aria-label="Wishlist">
+            <Heart size={18} strokeWidth={2} />
+          </button>
+          <button className="relative p-2 text-earth active:scale-90 transition-transform" aria-label="Notifications">
+            <Bell size={18} strokeWidth={2} />
+            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-error rounded-full border border-white" />
+          </button>
+
           {user ? (
             <div className="scale-90 origin-right transition-transform hover:scale-100">
               <UserButton afterSignOutUrl="/" />
             </div>
           ) : (
             <LocalizedLink href="/sign-in">
-              <button className="bg-gold text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+              <button className="bg-gold text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-transform">
                 {CONTENT.login[lang]}
               </button>
             </LocalizedLink>
           )}
         </div>
       </div>
+      )}
 
       {/* --- MOBILE BOTTOM TAB BAR (iOS Native Feel) --- */}
       {!isAuthPage && (

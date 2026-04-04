@@ -12,16 +12,16 @@ const getBlogs = cache(async () => {
             .toArray();
 
         // Serialize for client use
-        return blogs.map(blog => ({
-            ...blog,
+        return (blogs as any[]).map(blog => ({
             _id: blog._id.toString(),
             id: blog.id || blog._id.toString(),
-            title: blog.title,
-            content: blog.content,
-            date: blog.date,
-            cover: blog.cover,
-            category: blog.category,
-            authorName: blog.authorName
+            title: blog.title || { mn: "", en: "" },
+            content: blog.content || { mn: "", en: "" },
+            date: blog.date ? new Date(blog.date).toISOString() : new Date().toISOString(),
+            cover: blog.cover || "",
+            category: blog.category || "Wisdom",
+            authorName: blog.authorName || "Багш",
+            authorId: blog.authorId ? blog.authorId.toString() : ""
         }));
     } catch (error) {
         console.error("Failed to fetch blogs server-side:", error);

@@ -11,58 +11,55 @@ interface MonkCardProps {
 }
 
 export default function MonkCard({ monk, onClick }: MonkCardProps) {
-    const { language: lang } = useLanguage();
+    const { t, language: lang } = useLanguage();
     const validLang = (['mn', 'en'].includes(lang) ? lang : 'mn') as 'mn' | 'en';
     
     // Fallbacks
     const name = monk.name?.[validLang] || monk.name?.mn || monk.name?.en || "Unknown";
-    const title = monk.title?.[validLang] || monk.title?.mn || monk.title?.en || "Master";
+    const title = monk.title?.[validLang] || monk.title?.mn || monk.title?.en || "Үзмэрч";
     const years = monk.yearsOfExperience || 10;
-    const price = monk.isSpecial ? "88,800" : "50,000";
+    const price = (monk.services && monk.services[0]?.price) ? monk.services[0].price.toLocaleString() : "50,000";
     const isOnline = monk.isAvailable !== false;
+    const rating = (monk as any).rating || "4.8";
+    const reviews = (monk as any).reviews || 65;
     
-    // We'll take first 2 specialties to keep it clean in the card
-    const specialties = Array.isArray(monk.specialties) 
-        ? monk.specialties.slice(0, 2)
-        : [];
+    // We'll take the first specialty
+    const specialty = Array.isArray(monk.specialties) && monk.specialties.length > 0
+        ? monk.specialties[0]
+        : (validLang === 'en' ? "Spiritual Guide" : "Засалч");
 
     return (
-        <div className="monk-card" onClick={onClick}>
-            {/* Avatar */}
-            <div className="monk-avatar">
-                <Image 
+        <div className="hs-practitioner-card cursor-pointer mb-3" onClick={onClick}>
+            {/* AuraOrb Avatar */}
+            <div className="hs-aura-orb">
+                <div className={`hs-aura-ring ${isOnline ? "online" : ""}`} />
+                <img 
                     src={monk.image || "/default-monk.jpg"} 
                     alt={name} 
-                    width={56} 
-                    height={56} 
-                    className="rounded-2xl object-cover h-[56px] w-[56px]" 
+                    className="hs-practitioner-avatar" 
                 />
                 {isOnline && (
-                    <div className="online-badge" />
+                    <span className="hs-online-dot" />
                 )}
             </div>
 
             {/* Info */}
-            <div className="monk-info">
-                <h3 className="text-[14px] font-bold text-ink leading-tight">{name}</h3>
-                <p className="text-[11px] text-earth mt-0.5 opacity-80">
-                    {title} · {years} жил
-                </p>
-                {/* Tags */}
-                <div className="flex gap-1 mt-1.5 flex-wrap">
-                    {specialties.map((s, i) => (
-                        <span key={i} className="tag">{s}</span>
-                    ))}
-                    {specialties.length === 0 && <span className="tag">Spiritual Guide</span>}
+            <div className="hs-practitioner-info">
+                <h3 className="hs-practitioner-name">{name}</h3>
+                <p className="hs-practitioner-speciality">{specialty} · {years} жил</p>
+                <div className="hs-practitioner-rating">
+                  <span className="hs-star">★</span>
+                  <span className="hs-rating-num">{rating}</span>
+                  <span className="hs-review-count">({reviews})</span>
                 </div>
             </div>
 
-            {/* Price */}
-            <div className="text-right shrink-0">
-                <span className="text-[14px] font-bold text-gold tabular-nums">
-                    ₮{price}
-                </span>
-                <span className="text-[10px] text-earth block opacity-60">/цаг</span>
+            {/* Right: Price + CTA */}
+            <div className="hs-practitioner-right">
+                <p className="hs-practitioner-price">₮{price}<span>/цаг</span></p>
+                <div className="luminous-btn-sm hs-book-btn inline-flex items-center justify-center">
+                  {t({ mn: "Захиалах", en: "Book" })}
+                </div>
             </div>
         </div>
     );

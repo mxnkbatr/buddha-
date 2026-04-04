@@ -635,7 +635,12 @@ export default function DashboardPage() {
 
     return (
         <>
-            <main className="min-h-screen bg-cream pt-28 pb-20 px-6 relative overflow-hidden">
+            <main className="min-h-[100svh] bg-cream relative overflow-hidden" style={{
+                paddingTop: "calc(var(--header-height-mobile) + env(safe-area-inset-top))",
+                paddingBottom: "max(env(safe-area-inset-bottom, 0px), 100px)",
+                paddingLeft: "env(safe-area-inset-left, 0px)",
+                paddingRight: "env(safe-area-inset-right, 0px)"
+            }}>
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(217,119,6,0.03)_0%,_transparent_50%)] pointer-events-none" />
 
                 {/* HERO SECTION */}

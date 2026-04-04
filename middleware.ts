@@ -1,15 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
 const locales = ['mn', 'en'];
 const defaultLocale = 'mn';
-
-const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api(.*)',
-  // Add other public routes if needed
-]);
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this-in-prod";
 
 const isProtectedRoute = createRouteMatcher([
   '/:locale/dashboard(.*)',
@@ -25,6 +20,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+async function isValidCustomToken(token: string | undefined) {
+  if (!token) return false;
+  try {
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(JWT_SECRET)
+    );
+    return !!payload.sub;
+  } catch (err) {
+    return false;
+  }
+}
+
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
@@ -33,7 +41,6 @@ export default clerkMiddleware(async (auth, req) => {
     if (req.method === 'OPTIONS') {
       return new NextResponse(null, { status: 200, headers: corsHeaders });
     }
-    // For other API requests, add CORS headers to response
     const response = NextResponse.next();
     Object.entries(corsHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
@@ -41,28 +48,33 @@ export default clerkMiddleware(async (auth, req) => {
     return response;
   }
 
-  // 1. Check if the path excludes specific files/api
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.includes('.')
-  ) {
-    return; // Let Clerk/Next handle it
+  // Skip internals and static files
+  if (pathname.startsWith('/_next') || pathname.includes('.')) {
+    return;
   }
 
-  // 2. Check if pathname already has locale
+  // Check if pathname already has locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
-  if (pathnameHasLocale) {
-    // Protect routes that require auth
-    if (isProtectedRoute(req)) {
+  // AUTH PROTECTION LOGIC
+  if (isProtectedRoute(req)) {
+    // 1. Check Custom JWT first
+    const customToken = req.cookies.get('auth_token')?.value;
+    const isCustomAuth = await isValidCustomToken(customToken);
+
+    // 2. If NOT custom auth, enforce Clerk protection
+    if (!isCustomAuth) {
       await auth.protect();
     }
+  }
+
+  if (pathnameHasLocale) {
     return;
   }
 
-  // 3. Redirect if no locale
+  // Redirect if no locale
   const locale = defaultLocale;
   const newUrl = new URL(`/${locale}${pathname === '/' ? '' : pathname}`, req.url);
   return NextResponse.redirect(newUrl);

@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'com.capacitorjs.app'
 
 android {
     namespace 'mn.gevabal.buddha'
@@ -54,8 +55,6 @@ dependencies {
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
     implementation 'androidx.core:core-splashscreen:1.0.1'
 }
-
-apply from: 'capacitor.build.gradle'
 
 try {
     def servicesJSON = file('google-services.json')
